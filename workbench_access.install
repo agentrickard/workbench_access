@@ -1,0 +1,73 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Install file.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function workbench_access_schema() {
+
+  $schema['workbench_access'] = array(
+    'description' => 'Defines the active sections for hierarchical access controls.',
+    'fields' => array(
+      'access_id' => array(
+        'description' => 'The section identifier, which may be non-numeric.',
+        'type' => 'varchar',
+        'length' => '80',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'access_scheme' => array(
+        'description' => 'The module responsbile for this access system.',
+        'type' => 'varchar',
+        'length' => '40',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'access_type' => array(
+        'description' => 'The access type (e.g. taxonomy).',
+        'type' => 'varchar',
+        'length' => '40',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'access_type_id' => array(
+        'description' => 'The primary key for the access type (e.g. a vocabulary id).',
+        'type' => 'varchar',
+        'length' => '255',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('access_id'),
+  );
+  
+  $schema['workbench_access_user'] = array(
+    'description' => 'Maps user access to sections',
+    'fields' => array(
+      'access_id' => array(
+        'description' => 'The section identifier. Foreign key to {workbench_access}.',
+        'type' => 'varchar',
+        'length' => '80',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'uid' => array(
+        'description' => 'The user identifier. Foreign key to {users}.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('access_id', 'uid'),
+    'foreign keys' => array(
+      'section_id' => array('workbench_access' => 'access_id'),
+      'uid' => array('users' => 'uid'),
+    ),
+  );
+
+  return $schema;
+}

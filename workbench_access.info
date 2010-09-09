@@ -1,0 +1,10 @@
+;$Id$
+name = Workbench Access
+description = Extensible editorial access for the Workbench suite.
+package = Workbench
+core = 7.x
+configure = admin/config/workbench/access
+dependencies[] = taxonomy
+files[] = workbenc_access.module
+files[] = workbench_access.install
+files[] = workbench_access.admin.inc
