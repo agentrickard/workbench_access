@@ -18,7 +18,16 @@ function workbench_access_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('workbench_access_settings_form'),
     'file' => 'workbench_access.admin.inc',
+    'description' => 'Workbench',
+  );
+  $items['admin/config/workbench/access/settings'] = array(
+    'title' => 'Settings',
+    'access arguments' => array('administer workbench access'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('workbench_access_settings_form'),
+    'file' => 'workbench_access.admin.inc',
     'description' => 'Settings for the Workbench Access module.',
+    'weight' => -10,
   );
   $items['admin/config/workbench/access/sections'] = array(
     'title' => 'Sections',
