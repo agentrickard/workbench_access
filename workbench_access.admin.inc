@@ -137,7 +137,6 @@ function workbench_build_tree(&$tree, $sections = NULL, $depth = -1) {
 
 function workbench_access_section_form_submit(&$form, &$form_state) {
   $access_scheme = $form_state['values']['access_scheme'];
-  $sections = array_keys(array_filter($form_state['values']['sections']));
   $results = $form_state['values']['sections'];
   $sections = array();
   foreach ($results as $result) {
@@ -153,13 +152,16 @@ function workbench_access_section_form_submit(&$form, &$form_state) {
 }
 
 function workbench_access_user_form(&$form, &$form_state, $account) {
+  if (!isset($account->workbench_access)) {
+    $account = user_load($account->uid);
+  }
   $scheme = variable_get('workbench_access', 'workbench_access');
   $func = $scheme . '_workbench_access_info';
   $info = $func();
   $data = $info[$scheme];
-  $active = workbench_access_get_ids_by_scheme($data, TRUE);
+  $active = workbench_access_get_ids_by_scheme($data);
   $tree = workbench_access_tree($data);
-  $items = workbench_build_tree($tree);
+  workbench_build_tree($tree);
   $form = array();
   $form['uid'] = array(
     '#type' => 'value',
@@ -175,28 +177,61 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
     '#value' => array_keys($sections),
   );
   $form['sections']['#tree'] = TRUE;
-  $start = array_shift($items);
-  foreach ($start as $depth => $parent) {
-    foreach ($parent as $section) {
-      $form['sections'][$section['access_id']] = array(
-        '#type' => 'checkbox',
-        '#title' => $section['name'] . ' id: ' . $section['access_id'] . ' p:' . $section['parent'] . ' d:' . $section['depth'],
-        '#default_value' => isset($sections[$section['access_id']]),
-        '#disabled' => !in_array($section['access_id'], $active),
-      );
+  $active_items = array_keys($active);
+  $section_items = array_keys($sections);
+  $parent = 0;
+  $used = array();
+  foreach ($tree as $section) {
+    if (in_array($section['access_id'], $used)) {
+      continue;
     }
-  }
-  foreach ($items as $depth => $parent) {
-    foreach ($parent as $section) {
-      foreach ($section as $parent_id => $item) {
-        $form['sections'][$item['access_id']] = array(
-          '#type' => 'checkbox',
-          '#title' => $item['name'] . ' id: ' . $item['access_id'] . ' p:' . $item['parent'] . ' d:' . $item['depth'],
-          '#default_value' => isset($sections[$item['access_id']]),
-          '#disabled' => !in_array($item['access_id'], $active),
+
+    if ($section['depth'] == 0) {
+      $display = FALSE;
+      $parent = $section['access_id'];
+      $collapsed = TRUE;
+      if (!empty($sections[$section['access_id']])) {
+        $collapsed = FALSE;
+      }
+      elseif (!empty($section['children'])) {
+        $check = array_intersect($section_items, $section['children']);
+        if (!empty($check)) {
+          $collapsed = FALSE;
+        }
+      }
+      if (!empty($active[$section['access_id']])) {
+        $display = TRUE;
+      }
+      elseif (!empty($section['children'])) {
+        $check = array_intersect($active_items, $section['children']);
+        if (!empty($check)) {
+          $display = TRUE;
+        }
+      }
+      if ($display) {
+        $form['sections'][$parent] = array(
+          '#type' => 'fieldset',
+          '#title' => check_plain($section['name']),
+          '#collapsible' => TRUE,
+          '#collapsed' => $collapsed,
+          '#tree' => TRUE,
         );
       }
     }
+    if (isset($active[$section['access_id']])) {
+      $form['sections'][$parent][$section['access_id']] = array(
+        '#type' => 'checkbox',
+        '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
+        '#default_value' => isset($sections[$section['access_id']]),
+      );
+    }
+    else {
+      $form['sections'][$parent][$section['access_id']] = array(
+        '#type' => 'value',
+        '#value' => 0,
+      );
+    }
+    $used[] = $section['access_id'];
   }
   $form['submit'] = array(
     '#type' => 'submit',
@@ -208,7 +243,11 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
 function workbench_access_user_form_submit($form, &$form_state) {
   $access_scheme = $form_state['values']['access_scheme'];
   $user_sections = $form_state['values']['user_sections'];
-  $sections = array_keys(array_filter($form_state['values']['sections']));
+  $results = $form_state['values']['sections'];
+  $sections = array();
+  foreach ($results as $result) {
+    $sections = array_merge($sections, array_keys(array_filter($result)));
+  }
   if (empty($sections)) {
     drupal_set_message(t('There are now no editorial sections for this user.'), 'warning');
   }
