@@ -70,33 +70,38 @@ function workbench_access_section_form(&$form, &$form_state) {
     '#value' => $data,
   );
   $form['sections']['#tree'] = TRUE;
+  $active_items = array_keys($active);
   $parent = 0;
   $used = array();
   foreach ($tree as $section) {
     if (in_array($section['access_id'], $used)) {
       continue;
     }
-    $states = array();
-    $conditions = array();
-    if ($section['depth'] > 0) {
-      $conditions[] = array(':input[name=sections[' . $section['access_id'] . ']]' => array('checked' => TRUE));
-      $conditions[] = array(':input[name=sections[' . $section['parent'] . ']]' => array('checked' => TRUE));
-      if (!empty($section['children'])) {
-        foreach ($section['children'] as $child_id) {
-          $conditions[] = array(':input[name=sections[' . $child_id . ']]' => array('checked' => TRUE));
+    if ($section['depth'] == 0) {
+      $parent = $section['access_id'];
+      $collapsed = TRUE;
+      if (isset($active[$section['access_id']])) {
+      
+        $collapsed = FALSE;
+      }
+      elseif (!empty($section['children'])) {
+        $check = array_intersect($active_items, $section['children']);
+        if (!empty($check)) {
+          $collapsed = FALSE;
         }
       }
-    }
-    if (!empty($conditions)) {
-      $states = array(
-        'visible' => $conditions,
+      $form['sections'][$parent] = array(
+        '#type' => 'fieldset',
+        '#title' => check_plain($section['name']),
+        '#collapsible' => TRUE,
+        '#collapsed' => $collapsed,
+        '#tree' => TRUE,
       );
     }
-    $form['sections'][$section['access_id']] = array(
+    $form['sections'][$parent][$section['access_id']] = array(
       '#type' => 'checkbox',
-      '#title' => (!empty($section['children']) ? '+ ' : '') . str_repeat('-', $section['depth']) . $section['name'] . ' id: ' . $section['access_id'] . ' p:' . $section['parent'] . ' d:' . $section['depth'],
+      '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
       '#default_value' => isset($active[$section['access_id']]),
-      '#states' => $states,
     );
     $used[] = $section['access_id'];
   }
@@ -133,6 +138,11 @@ function workbench_build_tree(&$tree, $sections = NULL, $depth = -1) {
 function workbench_access_section_form_submit(&$form, &$form_state) {
   $access_scheme = $form_state['values']['access_scheme'];
   $sections = array_keys(array_filter($form_state['values']['sections']));
+  $results = $form_state['values']['sections'];
+  $sections = array();
+  foreach ($results as $result) {
+    $sections = array_merge($sections, array_keys(array_filter($result)));
+  }
   workbench_access_rebuild_scheme($access_scheme, $sections);
   if (empty($sections)) {
     drupal_set_message(t('There are now no editorial sections for your site.'), 'warning');
