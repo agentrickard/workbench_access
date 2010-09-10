@@ -333,12 +333,15 @@ function workbench_access_load_user_data($account) {
     return;
   }
   $access = array();
+  $access_type = variable_get('workbench_access', 'workbench_access');
   // Get the user's assigned access sections.
-  $result = db_select('workbench_access_user', 'wau')
+  $query = db_select('workbench_access_user', 'wau')
     ->addTag('workbench_access_user')
     ->fields('wau', array('access_id'))
-    ->condition('wau.uid', $account->uid)
-    ->execute()->fetchAll();
+    ->condition('wau.uid', $account->uid);
+  $query->join('workbench_access', 'wa', 'wa.access_id = wau.access_id');
+  $query->condition('wa.access_scheme', $access_type);
+  $result = $query->execute()->fetchAll();
   foreach ($result as $item) {
     // Get the permissions for those sections.
     // @TODO: complex permission handling.
@@ -356,6 +359,7 @@ function workbench_access_load_user_data($account) {
   drupal_alter('workbench_user_access', $access, $account);
   $lookup[$account->uid] = $access;
   $account->workbench_access = $lookup[$account->uid];
+  dsm($account);
 }
 
 /**
@@ -580,4 +584,45 @@ function workbench_access_configuration(&$form, &$form_state) {
       ),
     ),
   );
+}
+
+/**
+ * Build a hierarchy defined by an access control schema.
+ *
+ * Note that unlike taxonomy_build_tree() and similar, the child
+ * items are expressly listed as an array of the parent, for easier
+ * checking later.
+ *
+ * @param &$tree
+ *   The hierarchy array, passed by reference.
+ * @param $sections
+ *   Not implemented yet. An options array of sections to limit the
+ *   return set.
+ * @param $depth
+ *   Internal depth marker, used for recursive array processing. Do not use.
+ *
+ * @return
+ *   An array of items within the given access scheme.
+ */
+function workbench_build_tree(&$tree, $sections = NULL, $depth = -1) {
+  static $max_depth;
+  if (!isset($max_depth)) {
+    $max_depth = 0;
+  }
+  if ($depth > $max_depth) {
+    return;
+  }
+  $depth++;
+  foreach ($tree as $id => $item) {
+    if ($item['depth'] > $max_depth) {
+      $max_depth = $item['depth'];
+    }
+    if ($depth == 0 && $item['parent'] > 0 && isset($tree[$item['parent']])) {
+      $tree[$item['parent']]['children'][] = $id;
+    }
+    elseif ($item['depth'] > 0 && !empty($item['children']) && isset($tree[$item['parent']]['children'])) {
+      $tree[$item['parent']]['children'] = array_unique(array_merge($tree[$item['parent']]['children'], $item['children']));
+    }
+  }
+  workbench_build_tree($tree, $sections, $depth);
 }

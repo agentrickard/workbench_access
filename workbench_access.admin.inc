@@ -11,7 +11,7 @@
  */
 function workbench_access_settings_form(&$form, &$form_state) {
   $info = module_invoke_all('workbench_access_info');
-  $options = array('test' => 'Test');
+  $options = array();
   foreach ($info as $key => $value) {
     $options[$key] = $value['name'] . '<br /><em>' . $value['description'] . '</em>';
   }
@@ -112,29 +112,9 @@ function workbench_access_section_form(&$form, &$form_state) {
   return $form;
 }
 
-function workbench_build_tree(&$tree, $sections = NULL, $depth = -1) {
-  static $max_depth;
-  if (!isset($max_depth)) {
-    $max_depth = 0;
-  }
-  if ($depth > $max_depth) {
-    return;
-  }
-  $depth++;
-  foreach ($tree as $id => $item) {
-    if ($item['depth'] > $max_depth) {
-      $max_depth = $item['depth'];
-    }
-    if ($depth == 0 && $item['parent'] > 0 && isset($tree[$item['parent']])) {
-      $tree[$item['parent']]['children'][] = $id;
-    }
-    elseif ($item['depth'] > 0 && !empty($item['children']) && isset($tree[$item['parent']]['children'])) {
-      $tree[$item['parent']]['children'] = array_unique(array_merge($tree[$item['parent']]['children'], $item['children']));
-    }
-  }
-  workbench_build_tree($tree, $sections, $depth);
-}
-
+/**
+ * Save the active section definitions.
+ */
 function workbench_access_section_form_submit(&$form, &$form_state) {
   $access_scheme = $form_state['values']['access_scheme'];
   $results = $form_state['values']['sections'];
@@ -151,6 +131,9 @@ function workbench_access_section_form_submit(&$form, &$form_state) {
   }
 }
 
+/**
+ * Assign sections to a user.
+ */
 function workbench_access_user_form(&$form, &$form_state, $account) {
   if (!isset($account->workbench_access)) {
     $account = user_load($account->uid);
@@ -185,7 +168,6 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
     if (in_array($section['access_id'], $used)) {
       continue;
     }
-
     if ($section['depth'] == 0) {
       $display = FALSE;
       $parent = $section['access_id'];
@@ -240,6 +222,9 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
   return $form;
 }
 
+/**
+ * Save user assignments.
+ */
 function workbench_access_user_form_submit($form, &$form_state) {
   $access_scheme = $form_state['values']['access_scheme'];
   $user_sections = $form_state['values']['user_sections'];
