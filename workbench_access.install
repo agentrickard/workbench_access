@@ -43,12 +43,17 @@ function workbench_access_schema() {
         'default' => '',
       ),
     ),
-    'primary key' => array('access_id'),
+    'primary key' => array('access_id', 'access_scheme'),
   );
   
   $schema['workbench_access_user'] = array(
     'description' => 'Maps user access to sections',
     'fields' => array(
+      'uid' => array(
+        'description' => 'The user identifier. Foreign key to {users}.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
       'access_id' => array(
         'description' => 'The section identifier. Foreign key to {workbench_access}.',
         'type' => 'varchar',
@@ -56,15 +61,17 @@ function workbench_access_schema() {
         'not null' => TRUE,
         'default' => '',
       ),
-      'uid' => array(
-        'description' => 'The user identifier. Foreign key to {users}.',
-        'type' => 'int',
+      'access_scheme' => array(
+        'description' => 'The module responsbile for this access system.',
+        'type' => 'varchar',
+        'length' => '40',
         'not null' => TRUE,
+        'default' => '',
       ),
     ),
-    'primary key' => array('access_id', 'uid'),
+    'primary key' => array('uid', 'access_id', 'access_scheme'),
     'foreign keys' => array(
-      'section_id' => array('workbench_access' => 'access_id'),
+      'section_id' => array('workbench_access' => array('access_id', 'access_scheme')),
       'uid' => array('users' => 'uid'),
     ),
   );

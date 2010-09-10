@@ -82,10 +82,29 @@ function workbench_access_permission() {
 }
 
 /**
+ * Implements hook_init().
+ */
+function workbench_access_init() {
+  include 'modules/taxonomy.workbench_access.inc';
+}
+
+/**
+ * Implements hook_hook_info().
+ *
+ * Allows the use of $module.workbench_access.inc files.
+ */
+function workbench_access_hook_info() {
+  $hooks['workbench_access_info'] = array(
+    'group' => 'workbench_access',
+  );
+  return $hooks;
+}
+
+/**
  * Implements hook_workbench_access_info().
  *
  * Defines the default handler for access controls.
- */
+ * DISABLED.
 function workbench_access_workbench_access_info() {
   return array(
     'workbench_access' => array(
@@ -98,6 +117,7 @@ function workbench_access_workbench_access_info() {
     ),
   );
 }
+ */
 
 /**
  * Implements hook_node_access().
@@ -349,14 +369,13 @@ function workbench_access_load_user_data($account) {
     return;
   }
   $access = array();
-  $access_type = variable_get('workbench_access', 'workbench_access');
+  $access_scheme = variable_get('workbench_access', 'workbench_access');
   // Get the user's assigned access sections.
   $query = db_select('workbench_access_user', 'wau')
     ->addTag('workbench_access_user')
     ->fields('wau', array('access_id'))
-    ->condition('wau.uid', $account->uid);
-  $query->join('workbench_access', 'wa', 'wa.access_id = wau.access_id');
-  $query->condition('wa.access_scheme', $access_type);
+    ->condition('wau.uid', $account->uid)
+    ->condition('wau.access_scheme', $access_scheme);
   $result = $query->execute()->fetchAll();
   foreach ($result as $item) {
     // Get the permissions for those sections.
@@ -375,7 +394,6 @@ function workbench_access_load_user_data($account) {
   drupal_alter('workbench_user_access', $access, $account);
   $lookup[$account->uid] = $access;
   $account->workbench_access = $lookup[$account->uid];
-  dsm($account);
 }
 
 /**
@@ -500,8 +518,9 @@ function workbench_access_rebuild_user($uid, $access_scheme, $sections = array()
  * @see hook_workbench_access_save_user().
  */
 function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
-  $record['access_id'] = $access_id;
   $record['uid'] = $uid;
+  $record['access_id'] = $access_id;
+  $record['access_scheme'] = $access_scheme;
   drupal_write_record('workbench_access_user', $record);
   $account = user_load($uid, TRUE);
   module_invoke_all('workbench_access_save_user', $account, $access_id, $access_scheme);
@@ -522,6 +541,7 @@ function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
 function workbench_access_user_section_delete($uid, $access_id, $access_scheme) {
   db_delete('workbench_access_user')
     ->condition('access_id', $access_id)
+    ->condition('access_scheme', $access_scheme)
     ->condition('uid', $uid)
     ->execute();
   // Notify other modules.

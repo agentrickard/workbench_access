@@ -237,7 +237,7 @@ function workbench_access_user_form_submit($form, &$form_state) {
     drupal_set_message(t('There are now no editorial sections for this user.'), 'warning');
   }
   $uid = $form_state['values']['uid'];
-  workbench_access_rebuild_user($uid, $access_scheme, $sections, $user_sections);
+  workbench_access_rebuild_user($uid, $access_scheme['access_scheme'], $sections, $user_sections);
   if (!empty($sections)) {
     drupal_set_message(t('User permissions updated.'));
   }
