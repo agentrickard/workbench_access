@@ -27,23 +27,13 @@
  */
 function workbench_access_menu() {
   $items = array();
-
   $items['admin/config/workbench/access'] = array(
     'title' => 'Workbench Access',
     'access arguments' => array('administer workbench access'),
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('workbench_access_settings_form'),
+    'page arguments' => array('workbench_access_section_form'),
     'file' => 'workbench_access.admin.inc',
-    'description' => 'Workbench',
-  );
-  $items['admin/config/workbench/access/settings'] = array(
-    'title' => 'Settings',
-    'access arguments' => array('administer workbench access'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('workbench_access_settings_form'),
-    'file' => 'workbench_access.admin.inc',
-    'description' => 'Settings for the Workbench Access module.',
-    'weight' => -10,
+    'description' => 'Workbench access control settings',
   );
   $items['admin/config/workbench/access/sections'] = array(
     'title' => 'Sections',
@@ -52,6 +42,17 @@ function workbench_access_menu() {
     'page arguments' => array('workbench_access_section_form'),
     'file' => 'workbench_access.admin.inc',
     'description' => 'Define content sections for the Workbench Access module.',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+  );
+  $items['admin/config/workbench/access/settings'] = array(
+    'title' => 'Settings',
+    'access arguments' => array('administer workbench access'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('workbench_access_settings_form'),
+    'file' => 'workbench_access.admin.inc',
+    'description' => 'Settings for the Workbench Access module.',
+    'type' => MENU_LOCAL_TASK,
   );
   $items['user/%user/sections'] = array(
     'title' => 'Sections',
@@ -86,6 +87,7 @@ function workbench_access_permission() {
  */
 function workbench_access_init() {
   include 'modules/taxonomy.workbench_access.inc';
+  workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
 }
 
 /**
@@ -118,6 +120,29 @@ function workbench_access_workbench_access_info() {
   );
 }
  */
+
+/**
+ * Load a Workbench Access module file, or all files.
+ *
+ * @param $module
+ *   The name of the module file to load.
+ */
+function workbench_access_load_include($module = NULL) {
+  if (!is_null($module)) {
+    $file = drupal_get_path('module', 'workbench_access') . '/modules/' . $module . '.workbench_access.inc';
+    if (file_exists($file)) {
+      include_once($file);
+    }
+    else {
+      watchdog('workbench_access', 'Failed to load required include file %file', array('%file' => $file), WATCHDOG_ERROR);
+    }
+    return;
+  }
+  // Load all includes.
+  foreach (file_scan_directory(drupal_get_path('module', 'workbench_access') . '/modules', '/.inc/') as $file) {
+    include_once($file->uri);
+  }
+}
 
 /**
  * Implements hook_node_access().
@@ -165,7 +190,7 @@ function workbench_access_node_access($node, $op, $account) {
  *   An array of access_ids.
  */
 function workbench_access_get_node_tree($node) {
-  $access_type = variable_get('workbench_access', 'workbench_access');
+  $access_type = variable_get('workbench_access', 'taxonomy');
   $types = module_invoke_all('workbench_access_info');
   if (isset($types[$access_type])) {
     $default = 'workbench_access_get_node_' . $types[$access_type]['access_type'];
@@ -369,7 +394,7 @@ function workbench_access_load_user_data($account) {
     return;
   }
   $access = array();
-  $access_scheme = variable_get('workbench_access', 'workbench_access');
+  $access_scheme = variable_get('workbench_access', 'taxonomy');
   // Get the user's assigned access sections.
   $query = db_select('workbench_access_user', 'wau')
     ->addTag('workbench_access_user')

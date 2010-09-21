@@ -8,3 +8,4 @@ dependencies[] = taxonomy
 files[] = workbenc_access.module
 files[] = workbench_access.install
 files[] = workbench_access.admin.inc
+files[] = modules/taxonomy.workbench_access.inc

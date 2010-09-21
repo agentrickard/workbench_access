@@ -10,12 +10,14 @@
  * Test callback for admin.
  */
 function workbench_access_settings_form(&$form, &$form_state) {
+  // Make sure all hook_invocations exist.
+  workbench_access_load_include();
   $info = module_invoke_all('workbench_access_info');
   $options = array();
   foreach ($info as $key => $value) {
     $options[$key] = $value['name'] . '<br /><em>' . $value['description'] . '</em>';
   }
-  $active = variable_get('workbench_access', 'workbench_access');
+  $active = variable_get('workbench_access', 'taxonomy');
   $form = array();
   $form['workbench_access'] = array(
     '#type' => 'radios',
@@ -57,7 +59,7 @@ function workbench_access_settings_form(&$form, &$form_state) {
  * Administer section definitions.
  */
 function workbench_access_section_form(&$form, &$form_state) {
-  $scheme = variable_get('workbench_access', 'workbench_access');
+  $scheme = variable_get('workbench_access', 'taxonomy');
   $func = $scheme . '_workbench_access_info';
   $info = $func();
   $data = $info[$scheme];
@@ -138,7 +140,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
   if (!isset($account->workbench_access)) {
     $account = user_load($account->uid);
   }
-  $scheme = variable_get('workbench_access', 'workbench_access');
+  $scheme = variable_get('workbench_access', 'taxonomy');
   $func = $scheme . '_workbench_access_info';
   $info = $func();
   $data = $info[$scheme];
