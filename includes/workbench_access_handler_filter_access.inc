@@ -33,6 +33,12 @@ class workbench_access_handler_filter_access extends views_handler_filter {
       '#default_value' => $this->options['access_id'],
       '#size' => $this->options['size'],
     );
+    $form['size'] = array(
+      '#type' => 'select',
+      '#title' => t('Size'),
+      '#options' => drupal_map_assoc(array(1, 5, 10, 20, 50)),
+      '#default_value' => $this->options['size'],
+    );
   }
 
   function exposed_form(&$form, &$form_state) {
@@ -56,6 +62,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
       '#default_value' => $this->options['access_id'],
       '#size' => $this->options['size'],
     );
+    unset($form['size']);
   }
 
   function exposed_submit($form, &$form_state) {
