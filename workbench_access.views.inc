@@ -22,7 +22,7 @@ function workbench_access_views_data() {
       'click sortable' => FALSE,
     ),
   );
-  $data['workbench_access']['filter'] = array(
+  $data['workbench_access']['access_id'] = array(
     'title' => t('Access filter'),
     'help' => t('Filter nodes by access level.'),
     'filter' => array(

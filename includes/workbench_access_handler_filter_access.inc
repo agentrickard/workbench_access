@@ -3,7 +3,8 @@
 class workbench_access_handler_filter_access extends views_handler_filter {
   function option_definition() {
     $options = parent::option_definition();
-    $options['access_id'] = array('default' => array());
+    $options['access_id'] = array('default' => NULL);
+    $options['size'] = array('default' => 5);
     return $options;
   }
 
@@ -30,8 +31,8 @@ class workbench_access_handler_filter_access extends views_handler_filter {
       '#multiple' => TRUE,
       '#options' => $options,
       '#default_value' => $this->options['access_id'],
-      '#size' => 5,
-    );  
+      '#size' => $this->options['size'],
+    );
   }
 
   function exposed_form(&$form, &$form_state) {
@@ -47,16 +48,20 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     $data = $info[$scheme];
     $tree = workbench_access_tree($data);
     workbench_access_build_tree($tree, array_keys($account->workbench_access));
-    unset($form['access_id']['#title']);
-    foreach ($form['access_id']['#options'] as $access_id => $name) {
-      if ($access_id != -5 && !isset($tree[$access_id])) {
-        unset($form['access_id']['#options'][$access_id]);
-      }
-    }
+    $options = workbench_access_options($tree);
+    $form['access_id'] = array(
+      '#type' => 'select',
+      '#multiple' => TRUE,
+      '#options' => $options,
+      '#default_value' => $this->options['access_id'],
+      '#size' => $this->options['size'],
+    );
   }
-  
-  function expose_submit($form, &$form_state) {
-    dsm($form_state);
+
+  function exposed_submit($form, &$form_state) {
+    if (empty($form_state['values']['access_id'])) {
+      $form_state['values']['access_id'] = -5;
+    }
   }
 
   function query() {
@@ -79,7 +84,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     $active = workbench_access_get_ids_by_scheme($data);
     $tree = workbench_access_tree($data);
     // No selection? Use the user's tree.
-    if (empty($this->value)) {
+    if (empty($this->value) || $this->value == -5) {
       workbench_access_build_tree($tree, array_keys($account->workbench_access));
     }
     // Build the selection tree.

@@ -727,8 +727,18 @@ function workbench_access_options($tree, $options = array()) {
     if (in_array($section['access_id'], $used)) {
       continue;
     }
-    $options[$section['access_id']] = ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']);
+    $options[$section['access_id']] = ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . $section['name'];
     $used[] = $section['access_id'];
   }
   return $options;
+}
+
+/**
+ * Views is weird. Since we're embedding the view (and menus are borked)
+ * we have to supply the proper action.
+ */
+function workbench_access_form_views_exposed_form_alter(&$form, &$form_state) {
+  if ($form['#id'] == 'views-exposed-form-workbench-content-default') {
+    $form['#action'] = '/' . $_GET['q'];
+  }
 }
