@@ -16,6 +16,8 @@ function taxonomy_workbench_access_info() {
       'configuration' => 'taxonomy_workbench_access_configuration',
       'node_table' => 'taxonomy_index',
       'query_field' => 'tid',
+      'field_table' => 'taxonomy_term_data',
+      'name_field' => 'name',
     ),
   );
 }

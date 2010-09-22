@@ -156,6 +156,11 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
     '#type' => 'value',
     '#value' => $data,
   );
+  $form['helptext'] = array(
+    '#type' => 'markup',
+    '#markup' => t('The list below shows your editorial assignments. Active assignments <strong>appear with emphasis</strong>.'),
+    '#access' => !user_access('assign_workbench_access'),
+  );
   $sections = $account->workbench_access;
   $form['user_sections'] = array(
     '#type' => 'value',
@@ -232,6 +237,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save sections'),
+    '#access' => user_access('assign_workbench_access'),
   );
   return $form;
 }
