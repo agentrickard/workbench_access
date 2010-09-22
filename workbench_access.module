@@ -102,6 +102,15 @@ function workbench_access_hook_info() {
   return $hooks;
 }
 
+
+/**
+ * Implements hook_views_api().
+ */
+function workbench_access_views_api() {
+  return array('api' => 2.0);
+}
+
+
 /**
  * Implements hook_workbench_access_info().
  *
@@ -657,8 +666,7 @@ function workbench_access_configuration(&$form, &$form_state) {
  * @param &$tree
  *   The hierarchy array, passed by reference.
  * @param $sections
- *   Not implemented yet. An options array of sections to limit the
- *   return set.
+ *   An options array of sections to limit the return set.
  * @param $depth
  *   Internal depth marker, used for recursive array processing. Do not use.
  *
@@ -671,7 +679,22 @@ function workbench_build_tree(&$tree, $sections = NULL, $depth = -1) {
     $max_depth = 0;
   }
   if ($depth > $max_depth) {
-    return;
+    if (empty($sections)) {
+      return;
+    }
+    else {
+      $new_tree = array();
+      foreach ($sections as $access_id) {
+        $new_tree[$access_id] = $tree[$access_id];
+        if (!empty($tree[$access_id]['children'])) {
+          foreach ($tree[$access_id]['children'] as $id) {
+            $new_tree[$id] = $tree[$id];
+          }
+        }
+      }
+      $tree = $new_tree;
+      return;
+    }
   }
   $depth++;
   foreach ($tree as $id => $item) {
