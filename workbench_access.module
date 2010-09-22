@@ -63,7 +63,14 @@ function workbench_access_menu() {
     'description' => 'Assign users to sections for the Workbench Access module.',
     'type' => MENU_LOCAL_TASK,
   );
-
+  $items['admin/config/workbench/page/sections'] = array(
+    'title' => 'My sections',
+    'page callback' => 'workbench_access_sections',
+    'access arguments' => array('access workbench'),
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'workbench_access.admin.inc',
+  );
   return $items;
 }
 

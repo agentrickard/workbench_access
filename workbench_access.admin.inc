@@ -203,11 +203,23 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
       }
     }
     if (isset($active[$section['access_id']])) {
-      $form['sections'][$parent][$section['access_id']] = array(
-        '#type' => 'checkbox',
-        '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
-        '#default_value' => isset($sections[$section['access_id']]),
-      );
+      if (user_access('assign_workbench_access')) {
+        $form['sections'][$parent][$section['access_id']] = array(
+          '#type' => 'checkbox',
+          '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
+          '#default_value' => isset($sections[$section['access_id']]),
+        );
+      }
+      else {
+        $form['sections'][$parent][$section['access_id']] = array(
+          '#type' => 'markup',
+          '#markup' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />',
+        );
+        if (isset($sections[$section['access_id']])) {
+          $form['sections'][$parent][$section['access_id']]['#prefix'] = '<strong>';
+          $form['sections'][$parent][$section['access_id']]['#suffix'] = '</strong>';
+        }
+      }
     }
     else {
       $form['sections'][$parent][$section['access_id']] = array(
@@ -243,4 +255,19 @@ function workbench_access_user_form_submit($form, &$form_state) {
   if (!empty($sections)) {
     drupal_set_message(t('User permissions updated.'));
   }
+}
+
+/**
+ * Show user sections.
+ */
+function workbench_access_sections() {
+  global $user;
+  $account = $user;
+  if (!isset($account->workbench_access)) {
+    workbench_access_load_user_data($account);
+  }
+#  if (user_access('assign workbench access')) {
+    return drupal_get_form('workbench_access_user_form', $account);
+#  }
+  return 'list';
 }
