@@ -680,7 +680,7 @@ function workbench_access_configuration(&$form, &$form_state) {
  * @return
  *   An array of items within the given access scheme.
  */
-function workbench_build_tree(&$tree, $sections = NULL, $depth = -1) {
+function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
   static $max_depth;
   if (!isset($max_depth)) {
     $max_depth = 0;
@@ -715,5 +715,20 @@ function workbench_build_tree(&$tree, $sections = NULL, $depth = -1) {
       $tree[$item['parent']]['children'] = array_unique(array_merge($tree[$item['parent']]['children'], $item['children']));
     }
   }
-  workbench_build_tree($tree, $sections, $depth);
+  workbench_access_build_tree($tree, $sections, $depth);
+}
+
+/**
+ * Build form options from a tree.
+ */
+function workbench_access_options($tree, $options = array()) {
+  $used = array();
+  foreach ($tree as $section) {
+    if (in_array($section['access_id'], $used)) {
+      continue;
+    }
+    $options[$section['access_id']] = ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']);
+    $used[] = $section['access_id'];
+  }
+  return $options;
 }

@@ -65,7 +65,7 @@ function workbench_access_section_form(&$form, &$form_state) {
   $data = $info[$scheme];
   $active = workbench_access_get_ids_by_scheme($data);
   $tree = workbench_access_tree($data);
-  workbench_build_tree($tree);
+  workbench_access_build_tree($tree);
   $form = array();
   $form['access_scheme'] = array(
     '#type' => 'value',
@@ -146,7 +146,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
   $data = $info[$scheme];
   $active = workbench_access_get_ids_by_scheme($data);
   $tree = workbench_access_tree($data);
-  workbench_build_tree($tree);
+  workbench_access_build_tree($tree);
   $form = array();
   $form['uid'] = array(
     '#type' => 'value',

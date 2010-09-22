@@ -29,7 +29,8 @@ class workbench_access_handler_field_section extends views_handler_field {
     $info = $func();
     $data = $info[$scheme];
     $tree = workbench_access_tree($data);
-    workbench_build_tree($tree, array_keys($account->workbench_access));
+    $name = '';
+    workbench_access_build_tree($tree, array_keys($account->workbench_access));
     if (isset($account->workbench_access[$values->workbench_access_id])) {
       $name = $tree[$values->workbench_access_id]['name'];
     }
