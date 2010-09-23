@@ -36,9 +36,11 @@ class workbench_access_handler_field_section extends views_handler_field {
     }
     else {
       foreach ($account->workbench_access as $id => $data) {
-        $children = $tree[$id]['children'];
-        if (in_array($values->workbench_access_id, $children)) {
-          $name = $tree[$id]['name'] . ' > ' . $tree[$values->workbench_access_id]['name'];
+        if (!empty($tree[$id]['children'])) {
+          $children = $tree[$id]['children'];
+          if (in_array($values->workbench_access_id, $children)) {
+            $name = $tree[$id]['name'] . ' > ' . $tree[$values->workbench_access_id]['name'];
+          }
         }
       }
     }

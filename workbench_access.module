@@ -723,11 +723,20 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
  */
 function workbench_access_options($tree, $options = array()) {
   $used = array();
+  $parent = 0;
+  $base_depth = 0;
+  $tree_keys = array_keys($tree);
   foreach ($tree as $section) {
     if (in_array($section['access_id'], $used)) {
       continue;
     }
-    $options[$section['access_id']] = ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . $section['name'];
+    // Nest the children so the user understands the hierarchy.
+    if ($section['depth'] == 0 || !in_array($section['parent'], $tree_keys)) {
+      $parent = $section['name'];
+      $base_depth = $section['depth'];
+    }
+    $options[$parent][$section['access_id']] = str_repeat('-', $section['depth'] - $base_depth) . ' ' . $section['name'];
+    # $options[$parent][$section['access_id']] = ($section['name'] == $parent ? t('All of') . ' ' : '') . str_repeat('-', $section['depth'] - $base_depth) . ' ' . $section['name'];
     $used[] = $section['access_id'];
   }
   return $options;
