@@ -8,10 +8,25 @@ class workbench_access_handler_field_section extends views_handler_field {
     $func = $scheme . '_workbench_access_info';
     $info = $func();
     $data = $info[$scheme];
-    $table = $this->query->add_table($data['node_table']);
-    $field_table = $this->query->add_table($data['field_table']);
+    #$table = $this->query->ensure_table($data['node_table']);
+    $field_table = $this->query->ensure_table($data['field_table']);
     // Using this field alias breaks the COUNT query. Views bug?
     $field = $this->query->add_field($field_table, $data['query_field'], 'workbench_access_id');
+  }
+  
+  function click_sort($order) {
+    // TODO: Clean this up.
+    $scheme = variable_get('workbench_access', 'taxonomy');
+    $func = $scheme . '_workbench_access_info';
+    $info = $func();
+    $data = $info[$scheme];
+    if (empty($data['sort'])) {
+      return;
+    }
+    foreach ($data['sort'] as $sort) {
+      $table = $this->query->ensure_table($sort['table']);
+      $this->query->add_orderby($table, $sort['field'], (isset($sort['order'])) ? $sort['order'] : $order);
+    }
   }
   
   function render($values) {

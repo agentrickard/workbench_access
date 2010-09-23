@@ -42,6 +42,8 @@ class workbench_access_handler_filter_access extends views_handler_filter {
   }
 
   function exposed_form(&$form, &$form_state) {
+    // Prevent parent form errors by using a value.
+    $form['value'] = array('#type' => 'value', '#value' => '');
     parent::exposed_form(&$form, &$form_state);
     global $user;
     $account = $user;

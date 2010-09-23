@@ -19,7 +19,10 @@ function workbench_access_views_data() {
     'help' => t('The section to which this node belongs.'),
     'field' => array(
       'handler' => 'workbench_access_handler_field_section',
-      'click sortable' => FALSE,
+      'click sortable' => TRUE,
+    ),
+    'sort' => array(
+      'handler' => 'workbench_access_handler_sort_section',
     ),
   );
   $data['workbench_access']['access_id'] = array(
@@ -50,6 +53,9 @@ function workbench_access_views_handlers() {
       ),
       'workbench_access_handler_field_section' => array(
         'parent' => 'views_handler_field',
+      ),
+      'workbench_access_handler_sort_section' => array(
+        'parent' => 'views_handler_sort',
       ),
       'workbench_access_handler_filter_access' => array(
         'parent' => 'views_handler_filter',

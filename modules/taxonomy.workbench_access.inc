@@ -18,6 +18,22 @@ function taxonomy_workbench_access_info() {
       'query_field' => 'tid',
       'field_table' => 'taxonomy_term_data',
       'name_field' => 'name',
+      'sort' => array(
+        array(
+          'table' => 'taxonomy_term_hierarchy',
+          'field' => 'parent',
+        ),
+        array(
+          'table' => 'taxonomy_term_data',
+          'field' => 'weight',
+          'order' => 'ASC',
+        ),
+        array(
+          'table' => 'taxonomy_term_data',
+          'field' => 'name',
+          'order' => 'ASC',
+        ),
+      ),
     ),
   );
 }
