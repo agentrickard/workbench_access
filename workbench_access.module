@@ -54,6 +54,15 @@ function workbench_access_menu() {
     'description' => 'Settings for the Workbench Access module.',
     'type' => MENU_LOCAL_TASK,
   );
+  $items['admin/config/workbench/access/editors'] = array(
+    'title' => 'Editors',
+    'access arguments' => array('assign workbench access'),
+    'page callback' => 'workbench_access_editors',
+    'file' => 'workbench_access.admin.inc',
+    'description' => 'Editor settings.',
+    'weight' => 10,
+    'type' => MENU_LOCAL_TASK,
+  );
   $items['user/%user/sections'] = array(
     'title' => 'Sections',
     'access arguments' => array('assign workbench access'),
@@ -109,6 +118,18 @@ function workbench_access_hook_info() {
   return $hooks;
 }
 
+/**
+ * Implements hook_theme().
+ */
+function workbench_access_theme($existing, $type, $theme, $path) {
+  $themes = array(
+    'workbench_access_editor_form' => array(
+      'render element' => 'form',
+      'file' => 'workbench_access.admin.inc',
+    ),
+  );
+  return $themes;
+}
 
 /**
  * Implements hook_views_api().
@@ -116,7 +137,6 @@ function workbench_access_hook_info() {
 function workbench_access_views_api() {
   return array('api' => 2.0);
 }
-
 
 /**
  * Implements hook_workbench_access_info().
@@ -691,11 +711,14 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
     }
     else {
       $new_tree = array();
-      foreach ($sections as $access_id) {
-        $new_tree[$access_id] = $tree[$access_id];
-        if (!empty($tree[$access_id]['children'])) {
-          foreach ($tree[$access_id]['children'] as $id) {
-            $new_tree[$id] = $tree[$id];
+      $sections = array_flip($sections);
+      foreach ($tree as $access_id => $data) {
+        if (isset($sections[$access_id])) {
+          $new_tree[$access_id] = $tree[$access_id];
+          if (isset($tree[$access_id]['children'])) {
+            foreach ($tree[$access_id]['children'] as $id) {
+              $new_tree[$id] = $tree[$id];
+            }
           }
         }
       }
@@ -735,7 +758,7 @@ function workbench_access_options($tree, $options = array()) {
       $parent = $section['name'];
       $base_depth = $section['depth'];
     }
-    $options[$parent][$section['access_id']] = str_repeat('-', $section['depth'] - $base_depth) . ' ' . $section['name'];
+    $options[$section['access_id']] = str_repeat('-', $section['depth'] - $base_depth) . ' ' . $section['name'];
     # $options[$parent][$section['access_id']] = ($section['name'] == $parent ? t('All of') . ' ' : '') . str_repeat('-', $section['depth'] - $base_depth) . ' ' . $section['name'];
     $used[] = $section['access_id'];
   }

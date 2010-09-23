@@ -103,6 +103,7 @@ function workbench_access_section_form(&$form, &$form_state) {
     $form['sections'][$parent][$section['access_id']] = array(
       '#type' => 'checkbox',
       '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
+      '#suffix' => (user_access('assign workbench access') && isset($active[$section['access_id']])) ? l(t('[View editors]'), 'admin/config/workbench/access/editors/' . $data['access_type'] . '/' . $section['access_id']) : '',
       '#default_value' => isset($active[$section['access_id']]),
     );
     $used[] = $section['access_id'];
@@ -221,8 +222,12 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
           '#markup' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />',
         );
         if (isset($sections[$section['access_id']])) {
+          // &form_build_id=form-gTz2A0tW_-i8iUnvPLCnytNHmZKp2-0IoL_4JSzjJSI&form_token=yASSDKlt8cnNTaEB4UyynilWp2KZnZQ_2rOLThYhtTQ&form_id=views_exposed_form
+          $query = array(
+            'access_id[]' => $section['access_id'],
+          );
           $form['sections'][$parent][$section['access_id']]['#prefix'] = '<strong>';
-          $form['sections'][$parent][$section['access_id']]['#suffix'] = '</strong>';
+          $form['sections'][$parent][$section['access_id']]['#suffix'] = '</strong>'; // .l(t('View content'), 'http://barnard.rickard.vash.palantir.net/admin/config/workbench/page/content', array($query));
         }
       }
     }
@@ -276,4 +281,92 @@ function workbench_access_sections() {
     return drupal_get_form('workbench_access_user_form', $account);
 #  }
   return 'list';
+}
+
+function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
+  if (is_null($access_type)) {
+    return 'Access type list';
+  }
+  else if (is_null($access_type_id)) {
+    return 'Access type id list';
+  }
+  return drupal_get_form('workbench_access_editor_form', $access_type, $access_type_id);
+}
+
+function workbench_access_editor_form(&$form, &$form_state, $access_type, $access_type_id) {
+  $form = array();
+  $scheme = variable_get('workbench_access', 'taxonomy');
+  $func = $scheme . '_workbench_access_info';
+  $info = $func();
+  $data = $info[$scheme];
+  $data['access_id'] = $access_type_id;
+  $active = workbench_access_get_ids_by_scheme($data);
+  if ($data['access_type'] != $access_type || !isset($active[$access_type_id])) {
+    drupal_access_denied();
+    drupal_exit();
+  }
+  $query = db_select('users', 'u')
+    ->fields('u', array('uid', 'name'));    
+  $query->join('workbench_access_user', 'wau', 'u.uid = wau.uid');
+  $query->condition('wau.access_scheme', $access_type)
+    ->condition('wau.access_id', $access_type_id)
+    ->extend('PagerDefault')->limit(25);
+  $result = $query->execute();
+  $rows = array();
+  $form['users']['#tree'] = TRUE;
+  foreach ($result as $account) {
+    $form['users'][$account->uid]['name'] = array('#markup' => l($account->name, 'user/'. $account->uid));
+    $form['users'][$account->uid]['remove'] = array(
+      '#type' => 'checkbox',
+      '#title' => t('Remove'),
+    );
+  }
+  $form['add_user'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Add user'),
+    '#autocomplete_path' => 'user/autocomplete', //TODO: change this
+  );
+  $form['workbench_access'] = array(
+    '#type' => 'value',
+    '#value' => $data,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update editors'),
+  );
+  return $form;
+}
+
+function workbench_access_editor_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  if (!empty($values['add_user'])) {
+    $account = user_load_by_name($values['add_user']);
+    if (!empty($account->status) && !in_array($values['workbench_access']['access_id'], array_keys($account->workbench_access))) {
+      workbench_access_user_section_save($account->uid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
+    }
+  }
+  foreach ($values['users'] as $key => $value) {
+    if (!empty($value['remove'])) {
+      workbench_access_user_section_delete($key, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
+    }
+  }
+}
+
+function theme_workbench_access_editor_form($variables) {
+  $form = $variables['form'];
+  $header = array(t('User name'), t('Actions'));
+  $rows = array();
+  foreach (element_children($form['users']) as $key) {
+    $rows[] = array(
+      drupal_render($form['users'][$key]['name']),
+      drupal_render($form['users'][$key]['remove']),
+    );
+  }
+  $variables = array(
+    'header' => $header,
+    'rows' => $rows,
+  );
+  $output = theme('table', $variables);
+  $output .= drupal_render_children($form);
+  return $output;
 }
