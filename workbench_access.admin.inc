@@ -277,18 +277,42 @@ function workbench_access_sections() {
   if (!isset($account->workbench_access)) {
     workbench_access_load_user_data($account);
   }
-#  if (user_access('assign workbench access')) {
-    return drupal_get_form('workbench_access_user_form', $account);
-#  }
-  return 'list';
+  return drupal_get_form('workbench_access_user_form', $account);
 }
 
 function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
-  if (is_null($access_type)) {
-    return 'Access type list';
-  }
-  else if (is_null($access_type_id)) {
-    return 'Access type id list';
+  if (is_null($access_type) || is_null($access_type_id)) {
+    $scheme = variable_get('workbench_access', 'taxonomy');
+    $func = $scheme . '_workbench_access_info';
+    $info = $func();
+    $data = $info[$scheme];
+    $data['access_id'] = $access_type_id;
+    $active = workbench_access_get_ids_by_scheme($data);
+    $tree = workbench_access_tree($data);
+    workbench_access_build_tree($tree);
+    $active_keys = array_keys($active);
+    $output = '<h2>' . t('Editorial sections') . '</h2>';
+    $output .= '<p>' . t('The following sections are currently active.');
+    if (user_access('administer workbench access')) {
+      $output .= ' ' . t('You may <a href="!url">add or delete sections</a>.', array('!url' => url('admin/config/workbench/access'))) .'</p>';
+    }
+    $list = array();
+    foreach ($tree as $access_id => $section) {
+      if (!in_array($access_id, $active_keys)) {
+        continue;
+      }
+      // Nest the children so the user understands the hierarchy.
+      if ($section['depth'] == 0 || !in_array($section['parent'], $active_keys)) {
+        $parent = $section['name'];
+        $base_depth = $section['depth'];
+      }
+      $count = db_query("SELECT COUNT(uid) FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id",
+        array(':access_scheme' => $data['access_type'], ':access_id' => $access_id)
+        )->fetchField();
+      $list[$section['access_id']] = str_repeat('-', $section['depth'] - $base_depth) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $data['access_type'] . '/' . $access_id) . ' [' . format_plural($count, '1 editor', '@count editors') . ']';
+    }
+    $output .= theme('item_list', array('items' => $list));
+    return $output;
   }
   return drupal_get_form('workbench_access_editor_form', $access_type, $access_type_id);
 }
@@ -323,7 +347,7 @@ function workbench_access_editor_form(&$form, &$form_state, $access_type, $acces
   }
   $form['add_user'] = array(
     '#type' => 'textfield',
-    '#title' => t('Add user'),
+    '#title' => t('Add editor'),
     '#autocomplete_path' => 'workbench_access/autocomplete/' . $access_type . '/' . $access_type_id,
   );
   $form['workbench_access'] = array(
@@ -354,7 +378,11 @@ function workbench_access_editor_form_submit($form, &$form_state) {
 
 function theme_workbench_access_editor_form($variables) {
   $form = $variables['form'];
-  $header = array(t('User name'), t('Actions'));
+  $scheme = $form['workbench_access']['#value'];
+  $access_info = workbench_access_load_access_info($scheme);
+  $output = '<h2>' . check_plain($access_info['name']) . '</h2>';
+  $output .= '<p>' . t('Active editors for the %section section.', array('%section' => $access_info['name'])) . '</p>';
+  $header = array(t('Editor'), t('Actions'));
   $rows = array();
   foreach (element_children($form['users']) as $key) {
     $rows[] = array(
@@ -366,7 +394,7 @@ function theme_workbench_access_editor_form($variables) {
     'header' => $header,
     'rows' => $rows,
   );
-  $output = theme('table', $variables);
+  $output .= theme('table', $variables);
   $output .= drupal_render_children($form);
   return $output;
 }

@@ -804,3 +804,21 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
   }
   drupal_json_output($matches);
 }
+
+/**
+ * Given an access id and scheme, load the object with it's data.
+ */
+function workbench_access_load_access_info($scheme) {
+  $function = 'workbench_access_load_'. $scheme['access_type'];
+  return $function($scheme);
+}
+
+function workbench_access_load_taxonomy($scheme) {
+  $term = taxonomy_term_load($scheme['access_id']);
+  $data = array(
+    'name' => $term->name,
+    'description' => $term->description,
+    'access_id' => $term->tid,
+  );
+  return $data;
+}
