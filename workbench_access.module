@@ -517,9 +517,11 @@ function workbench_access_section_save($section) {
 function workbench_access_section_delete($section) {
   db_delete('workbench_access')
     ->condition('access_id', $section['access_id'])
+    ->condition('access_scheme', $section['access_scheme'])
     ->execute();
   db_delete('workbench_access_user')
     ->condition('access_id', $section['access_id'])
+    ->condition('access_scheme', $section['access_scheme'])
     ->execute();
   // Notify other modules.
   module_invoke_all('workbench_access_delete', $section);
