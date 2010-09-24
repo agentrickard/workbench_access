@@ -324,7 +324,7 @@ function workbench_access_editor_form(&$form, &$form_state, $access_type, $acces
   $form['add_user'] = array(
     '#type' => 'textfield',
     '#title' => t('Add user'),
-    '#autocomplete_path' => 'user/autocomplete', //TODO: change this
+    '#autocomplete_path' => 'workbench_access/autocomplete/' . $access_type . '/' . $access_type_id,
   );
   $form['workbench_access'] = array(
     '#type' => 'value',

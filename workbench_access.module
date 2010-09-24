@@ -27,6 +27,13 @@
  */
 function workbench_access_menu() {
   $items = array();
+  $items['workbench_access/autocomplete'] = array(
+    'title' => 'Workbench access autocomplete',
+    'page callback' => 'workbench_access_autocomplete',
+    'page arguments' => array(2, 3, 4),
+    'access arguments' => array('access workbench access'),
+    'type' => MENU_CALLBACK,
+  );
   $items['admin/config/workbench/access'] = array(
     'title' => 'Workbench Access',
     'access arguments' => array('administer workbench access'),
@@ -773,4 +780,25 @@ function workbench_access_form_views_exposed_form_alter(&$form, &$form_state) {
   if ($form['#id'] == 'views-exposed-form-workbench-content-default') {
     $form['#action'] = '/' . $_GET['q'];
   }
+}
+
+/**
+ * Autocomplete callback for adding users to a section.
+ *
+ * We don't use user_autocomplete so we can filter out users already
+ * assigned to the section.
+ */
+function workbench_access_autocomplete($access_type, $access_id, $string) {
+  $string = trim($string);
+  $matches = array();
+  if (!empty($string)) {
+    $result = db_query("SELECT DISTINCT(u.name) FROM {users} u 
+      WHERE u.name LIKE :string AND 
+      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))",
+      array(':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id));
+    foreach ($result as $user) {
+      $matches[$user->name] = check_plain($user->name);
+    }
+  }
+  drupal_json_output($matches);
 }
