@@ -16,14 +16,9 @@ class workbench_access_handler_filter_access extends views_handler_filter {
 
   function value_form(&$form, &$form_state) {
    # $options = array(-5 => t('All sections'));
-    // TODO: Clean this up.
-    $scheme = variable_get('workbench_access', 'taxonomy');
-    $func = $scheme . '_workbench_access_info';
-    $info = $func();
-    $data = $info[$scheme];
-    $tree = workbench_access_tree($data);
-    $active = workbench_access_get_ids_by_scheme($data);
-    workbench_access_build_tree($tree, array_keys($active));
+    $active = workbench_access_get_active_tree();
+    $tree = $active['tree'];
+    workbench_access_build_tree($tree, array_keys($active['active']));
     $options = workbench_access_options($tree);
     $form['access_id'] = array(
       '#type' => 'select',
@@ -50,11 +45,8 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     if (!isset($account->workbench_access)) {
       workbench_access_load_user_data($account);
     }
-    $scheme = variable_get('workbench_access', 'taxonomy');
-    $func = $scheme . '_workbench_access_info';
-    $info = $func();
-    $data = $info[$scheme];
-    $tree = workbench_access_tree($data);
+    $active = workbench_access_get_active_tree();
+    $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($account->workbench_access));
     $options = workbench_access_options($tree);
     $form['access_id'] = array(
@@ -85,13 +77,8 @@ class workbench_access_handler_filter_access extends views_handler_filter {
       $this->query->add_where($this->options['group'], "$table.$field", -1, '=');
       return;
     }
-    // TODO: Clean this up.
-    $scheme = variable_get('workbench_access', 'taxonomy');
-    $func = $scheme . '_workbench_access_info';
-    $info = $func();
-    $data = $info[$scheme];
-    $active = workbench_access_get_ids_by_scheme($data);
-    $tree = workbench_access_tree($data);
+    $active = workbench_access_get_active_tree();
+    $tree = $active['tree'];
     // No selection? Use the user's tree.
     if (empty($this->value) || $this->value == -5) {
       workbench_access_build_tree($tree, array_keys($account->workbench_access));
@@ -101,9 +88,9 @@ class workbench_access_handler_filter_access extends views_handler_filter {
       workbench_access_build_tree($tree, array_keys($this->value));
     }
     $ids = array_keys($tree);
-    $table = $this->query->add_table($data['node_table']);
+    $table = $this->query->add_table($active['access_scheme']['node_table']);
     // Using this field alias breaks the COUNT query. Views bug?
-    $field = $this->query->add_field($table, $data['query_field']);
-    $this->query->add_where($this->options['group'], "$table." . $data['query_field'], $ids, 'IN');
+    $field = $this->query->add_field($table, $active['access_scheme']['query_field']);
+    $this->query->add_where($this->options['group'], "$table." . $active['access_scheme']['query_field'], $ids, 'IN');
   }
 }

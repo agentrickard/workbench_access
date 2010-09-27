@@ -3,27 +3,18 @@
 class workbench_access_handler_field_section extends views_handler_field {
   // No query for this field.
   function query() {
-    // TODO: Clean this up.
-    $scheme = variable_get('workbench_access', 'taxonomy');
-    $func = $scheme . '_workbench_access_info';
-    $info = $func();
-    $data = $info[$scheme];
-    #$table = $this->query->ensure_table($data['node_table']);
-    $field_table = $this->query->ensure_table($data['field_table']);
+    $active = workbench_access_get_active_tree();
+    $field_table = $this->query->ensure_table($active['access_scheme']['field_table']);
     // Using this field alias breaks the COUNT query. Views bug?
-    $field = $this->query->add_field($field_table, $data['query_field'], 'workbench_access_id');
+    $field = $this->query->add_field($field_table, $active['access_scheme']['query_field'], 'workbench_access_id');
   }
   
   function click_sort($order) {
-    // TODO: Clean this up.
-    $scheme = variable_get('workbench_access', 'taxonomy');
-    $func = $scheme . '_workbench_access_info';
-    $info = $func();
-    $data = $info[$scheme];
-    if (empty($data['sort'])) {
+    $active = workbench_access_get_active_tree();
+    if (empty($active['access_scheme']['sort'])) {
       return;
     }
-    foreach ($data['sort'] as $sort) {
+    foreach ($active['access_scheme']['sort'] as $sort) {
       $table = $this->query->ensure_table($sort['table']);
       $this->query->add_orderby($table, $sort['field'], (isset($sort['order'])) ? $sort['order'] : $order);
     }
@@ -38,13 +29,9 @@ class workbench_access_handler_field_section extends views_handler_field {
     if (!isset($values->workbench_access_id)) {
       return '';
     }
-    // TODO: Clean this up.
-    $scheme = variable_get('workbench_access', 'taxonomy');
-    $func = $scheme . '_workbench_access_info';
-    $info = $func();
-    $data = $info[$scheme];
-    $tree = workbench_access_tree($data);
+    $active = workbench_access_get_active_tree();
     $name = '';
+    $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($account->workbench_access));
     if (isset($account->workbench_access[$values->workbench_access_id])) {
       $name = $tree[$values->workbench_access_id]['name'];
