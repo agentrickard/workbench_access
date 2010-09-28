@@ -138,6 +138,15 @@ function workbench_access_theme($existing, $type, $theme, $path) {
 }
 
 /**
+ * Implements hook_workbench_content_alter().
+ *
+ * Shows the view we need for the Workbench front page.
+ */
+function workbench_access_workbench_content_alter(&$output) {
+  $output .= views_embed_view('workbench_content');
+}
+
+/**
  * Implements hook_views_api().
  */
 function workbench_access_views_api() {
