@@ -172,6 +172,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
       $collapsed = TRUE;
       if (!empty($sections[$section['access_id']])) {
         $collapsed = FALSE;
+        $display = TRUE;
       }
       elseif (!empty($section['children'])) {
         $check = array_intersect($section_items, $section['children']);
@@ -179,7 +180,8 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
           $collapsed = FALSE;
         }
       }
-      if (!empty($active['active'][$section['access_id']])) {
+      // Do we show inactive sections here?
+      if (1 == 1 || !empty($active['active'][$section['access_id']])) {
         $display = TRUE;
       }
       elseif (!empty($section['children'])) {
@@ -198,12 +200,14 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
         );
       }
     }
-    if (isset($active['active'][$section['access_id']])) {
-      if (user_access('assign_workbench_access')) {
+    // Do we show inactive sections here?
+    if (1 == 1 || isset($active['active'][$section['access_id']])) {
+      if (user_access('assign_workbench_access') && !empty($sections[$section['access_id']])) {
         $form['sections'][$parent][$section['access_id']] = array(
           '#type' => 'checkbox',
           '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
           '#default_value' => isset($sections[$section['access_id']]),
+          # '#disabled' => empty($sections[$section['access_id']]),
         );
       }
       else {

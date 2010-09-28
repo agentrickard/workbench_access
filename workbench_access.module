@@ -109,7 +109,6 @@ function workbench_access_permission() {
  * Implements hook_init().
  */
 function workbench_access_init() {
-  include 'modules/taxonomy.workbench_access.inc';
   workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
 }
 
@@ -172,6 +171,8 @@ function workbench_access_load_include($module = NULL) {
  * Implements hook_node_access().
  *
  * Enforces our access rules when users try to edit/delete a node.
+ *
+ * @TODO: what about unpublished nodes?
  */
 function workbench_access_node_access($node, $op, $account) {
   if (!isset($account->workbench_access)) {
@@ -191,6 +192,7 @@ function workbench_access_node_access($node, $op, $account) {
   if ($op == 'view') {
     return NODE_ACCESS_IGNORE;
   }
+  workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
   // Get the access rules for this node.
   // @TODO: move to hook_node_load() ?
   $node->workbench_access = workbench_access_get_node_tree($node);
@@ -722,10 +724,12 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
     if (empty($sections)) {
       return;
     }
-    // TODO: REFACTOR THIS BROKEN CODE.
+    // If passed a sections array, find all its children, but keep
+    // the proper display order.
     else {
       $new_tree = array();
       $sections = array_flip($sections);
+      // Find all the children of the active sections.
       foreach ($tree as $access_id => $data) {
         if (isset($sections[$access_id])) {
           $new_tree[$access_id] = $tree[$access_id];
@@ -736,7 +740,12 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
           }
         }
       }
-      $tree = $new_tree;
+      // Remove sections that should not be shown.
+      foreach ($tree as $access_id => $data) {
+        if(!isset($new_tree[$access_id])) {
+          unset($tree[$access_id]);
+        }
+      }
       return;
     }
   }
@@ -818,6 +827,9 @@ function workbench_access_load_access_info($scheme) {
   return $function($scheme);
 }
 
+/**
+ * Load data for a taxonomy term.
+ */
 function workbench_access_load_taxonomy($scheme) {
   $term = taxonomy_term_load($scheme['access_id']);
   $data = array(
@@ -826,4 +838,58 @@ function workbench_access_load_taxonomy($scheme) {
     'access_id' => $term->tid,
   );
   return $data;
+}
+
+/**
+ * Alter the options when presenting a node form.
+ */
+function workbench_access_form_alter(&$form, $form_state) {
+  if (empty($form['#node_edit_form'])) {
+    return;
+  }
+  $active = workbench_access_get_active_tree();
+  // Determine the proper field to edit.
+  $function = 'workbench_access_' . $active['access_scheme']['access_type'] . '_form';
+  if (!function_exists($function)) {
+    return;
+  }
+  $function($form, $active);
+}
+
+/**
+ * Set the basic node taxonomy form options.
+ *
+ * Note that this only works for select forms.
+ */
+function workbench_access_taxonomy_form(&$form, $active) {
+  global $user;
+  // We have to find out which of the fields we care about.
+  $match = '';
+  $fields = db_query("SELECT field_name, type, data FROM {field_config} WHERE module = :module", array(':module' => $active['access_scheme']['access_type']));
+  foreach ($fields as $field) {
+    $data = unserialize($field->data);
+    if ($data['settings']['allowed_values'][0]['vid'] == $active['access_scheme']['access_type_id']) {
+      $match = $field->field_name;
+      break;
+    }
+  }
+  if (empty($match) || !isset($form[$match])) {
+    return;
+  }
+  // TODO: language handling?
+  $account = $user;
+  if (!isset($account->workbench_access)) {
+    $account = user_load($account->uid);
+  }
+  $tree = $active['tree'];
+  workbench_access_build_tree($tree, array_keys($account->workbench_access));
+  $default_values = $form[$match][$form[$match]['#language']]['#default_value'];
+  foreach ($default_values as $id) {
+    if (!isset($tree[$id])) {
+      // Houston, we have a problem.
+      // TODO: Acount for this edge case.
+      return;
+    }
+  }
+  $form[$match][$form[$match]['#language']]['#options'] = workbench_access_options($tree);
 }
