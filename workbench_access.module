@@ -300,7 +300,7 @@ function workbench_access_in_tree($access_id, $account_access) {
  *   The access rules for the user performing the action.
  *
  * @return
- *   An array of access rules. ????
+ *   An array of access rules.
  */
 function workbench_access_get_access_tree($account_access = NULL) {
   if (is_null($account_access)) {
@@ -309,6 +309,9 @@ function workbench_access_get_access_tree($account_access = NULL) {
     $account_access = $account->workbench_access;
   }
   $tree = array();
+  if (empty($account_access)) {
+    return $tree;
+  }
   $access_scheme = db_select('workbench_access', 'wa')
     ->addTag('workbench_access')
     ->fields('wa', array('access_id', 'access_type', 'access_scheme', 'access_type_id'))
