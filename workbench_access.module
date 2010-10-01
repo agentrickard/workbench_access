@@ -896,6 +896,12 @@ function workbench_access_taxonomy_form(&$form, $active) {
   $tree = $active['tree'];
   workbench_access_build_tree($tree, array_keys($account->workbench_access));
   $default_values = $form[$match][$form[$match]['#language']]['#default_value'];
+  $options = $form[$match][$form[$match]['#language']]['#options'];
+  if (count($options) < 2) {
+    $form[$match][$form[$match]['#language']]['#required'] = FALSE;
+    // Problem.
+    return;
+  }
   foreach ($default_values as $id) {
     if (!isset($tree[$id])) {
       // Houston, we have a problem.
