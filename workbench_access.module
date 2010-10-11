@@ -880,7 +880,7 @@ function workbench_access_taxonomy_form(&$form, $active) {
   $fields = db_query("SELECT field_name, type, data FROM {field_config} WHERE module = :module", array(':module' => $active['access_scheme']['access_type']));
   foreach ($fields as $field) {
     $data = unserialize($field->data);
-    if ($data['settings']['allowed_values'][0]['vid'] == $active['access_scheme']['access_type_id']) {
+    if (isset($data['settings']['allowed_values'][0]['vid']) && $data['settings']['allowed_values'][0]['vid'] == $active['access_scheme']['access_type_id']) {
       $match = $field->field_name;
       break;
     }
