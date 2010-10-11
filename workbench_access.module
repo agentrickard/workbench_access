@@ -201,6 +201,10 @@ function workbench_access_node_access($node, $op, $account) {
   if ($op == 'view') {
     return NODE_ACCESS_IGNORE;
   }
+  // If the account is the node owner, ignore.
+  if ($account->uid == $node->uid) {
+    return NODE_ACCESS_IGNORE;
+  }
   workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
   // Get the access rules for this node.
   // @TODO: move to hook_node_load() ?
