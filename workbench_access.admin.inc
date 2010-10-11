@@ -138,7 +138,6 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
     $account = user_load($account->uid);
   }
   $active = workbench_access_get_active_tree();
-  dsm($active);
   $form = array();
   $form['uid'] = array(
     '#type' => 'value',
@@ -163,7 +162,6 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
   $section_items = array_keys($sections);
   $parent = 0;
   $used = array();
-  dsm($sections);
   foreach ($active['tree'] as $section) {
     if (in_array($section['access_id'], $used)) {
       continue;
