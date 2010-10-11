@@ -138,6 +138,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
     $account = user_load($account->uid);
   }
   $active = workbench_access_get_active_tree();
+  dsm($active);
   $form = array();
   $form['uid'] = array(
     '#type' => 'value',
@@ -162,6 +163,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
   $section_items = array_keys($sections);
   $parent = 0;
   $used = array();
+  dsm($sections);
   foreach ($active['tree'] as $section) {
     if (in_array($section['access_id'], $used)) {
       continue;
@@ -202,7 +204,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
     }
     // Do we show inactive sections here?
     if (1 == 1 || isset($active['active'][$section['access_id']])) {
-      if (user_access('assign_workbench_access') && !empty($sections[$section['access_id']])) {
+      if (user_access('assign workbench access') && !empty($active['active'][$section['access_id']])) {
         $form['sections'][$parent][$section['access_id']] = array(
           '#type' => 'checkbox',
           '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
@@ -236,7 +238,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Save sections'),
-    '#access' => user_access('assign_workbench_access'),
+    '#access' => user_access('assign workbench access'),
   );
   return $form;
 }
