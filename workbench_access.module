@@ -110,6 +110,25 @@ function workbench_access_permission() {
  */
 function workbench_access_init() {
   workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
+  /*
+    TESTING VOCABULARY
+  $vocabulary = new stdClass();
+  $vocabulary->name = 'Workbench Access';
+  $vocabulary->module = 'workbench_access';
+  $vocabulary->machine_name = 'workbench_access';
+  $vocabulary->description = 'Access control for editorial content.';
+  $vocabulary->hierarchy = 1;
+  $vocabulary->weight = -10;
+  $existing = taxonomy_get_vocabularies();
+  $exists = FALSE;
+  foreach($existing as $voc) {
+    if ($voc->machine_name == $vocabulary->machine_name) {
+      $exists = TRUE;
+    }
+  }
+  if (!$exists) {
+    taxonomy_vocabulary_save($vocabulary);
+  }*/
 }
 
 /**
