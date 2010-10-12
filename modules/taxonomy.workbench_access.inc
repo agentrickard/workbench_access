@@ -14,8 +14,8 @@ function taxonomy_workbench_access_info() {
       'access_type_id' => variable_get('workbench_access_taxonomy', 0),
       'description' => t('Uses a taxonomy vocabulary for assigning hierarchical access control'),
       'configuration' => 'taxonomy_workbench_access_configuration',
-      'node_table' => 'taxonomy_index',
-      'query_field' => 'tid',
+      'node_table' => 'workbench_access_node',
+      'query_field' => 'access_id',
       'field_table' => 'taxonomy_term_data',
       'name_field' => 'name',
       'sort' => array(
@@ -102,49 +102,4 @@ function _workbench_access_taxonomy_remove_option(&$form) {
       unset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access']);
     }
   }
-
-}
-
-/**
- * Set the basic node taxonomy form options.
- *
- * Note that this only works for select forms.
- */
-function taxonomy_workbench_access_node_element(&$form, $form_state, $active) {
-  global $user;
-  // We have to find out which of the fields we care about.
-  $match = '';
-  $fields = db_query("SELECT field_name, type, data FROM {field_config} WHERE module = :module", array(':module' => $active['access_scheme']['access_type']));
-  foreach ($fields as $field) {
-    $data = unserialize($field->data);
-    if (isset($data['settings']['allowed_values'][0]['vid']) && $data['settings']['allowed_values'][0]['vid'] == $active['access_scheme']['access_type_id']) {
-      $match = $field->field_name;
-      break;
-    }
-  }
-  if (empty($match) || !isset($form[$match])) {
-    return;
-  }
-  // TODO: language handling?
-  $account = $user;
-  if (!isset($account->workbench_access)) {
-    $account = user_load($account->uid);
-  }
-  $tree = $active['tree'];
-  workbench_access_build_tree($tree, array_keys($account->workbench_access));
-  $default_values = $form[$match][$form[$match]['#language']]['#default_value'];
-  $options = $form[$match][$form[$match]['#language']]['#options'];
-  if (count($options) < 2) {
-    $form[$match][$form[$match]['#language']]['#required'] = FALSE;
-    // Problem.
-    return;
-  }
-  foreach ($default_values as $id) {
-    if (!isset($tree[$id])) {
-      // Houston, we have a problem.
-      // TODO: Acount for this edge case.
-      return;
-    }
-  }
-  $form[$match][$form[$match]['#language']]['#options'] = workbench_access_options($tree);
 }

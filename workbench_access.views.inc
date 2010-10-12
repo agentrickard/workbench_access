@@ -39,6 +39,14 @@ function workbench_access_views_data() {
       'field' => 'nid',
     ),
   );
+  // TODO: Fix this
+  $data['workbench_access_node']['table']['join'] = array(
+    //...to the node table
+    'node' => array(
+      'left_field' => 'nid',
+      'field' => 'nid',
+    ),
+  );
   return $data;
 }
 

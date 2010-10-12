@@ -383,9 +383,11 @@ function workbench_access_editor_form_submit($form, &$form_state) {
       workbench_access_user_section_save($account->uid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
     }
   }
-  foreach ($values['users'] as $key => $value) {
-    if (!empty($value['remove'])) {
-      workbench_access_user_section_delete($key, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
+  if (!empty($values['users'])) {
+    foreach ($values['users'] as $key => $value) {
+      if (!empty($value['remove'])) {
+        workbench_access_user_section_delete($key, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
+      }
     }
   }
 }

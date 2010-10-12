@@ -116,7 +116,7 @@ function workbench_access_schema() {
  *  1) Create our vocabulary.
  *  2) Create some sample terms.
  *  3) Set the active schema for the site.
- *  4) Set all sections to active?
+ *  4) Set all sections to active.
  */
 function workbench_access_enable() {
   $vocabulary = new stdClass();

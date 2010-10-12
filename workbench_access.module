@@ -155,6 +155,25 @@ function workbench_access_views_api() {
 }
 
 /**
+ * Implements hook_field_extra_fields()
+ */
+function workbench_access_field_extra_fields() {
+  $base = array(
+    'workbench_access' => array(
+      'label' => t('Workbench Access'),
+      'description' => t('Workbench Access settings.'),
+      'weight' => -1,
+    ),
+  );
+  // Seriously FieldAPI? I have to do this?!?
+  foreach (node_type_get_names() as $name => $value) {
+    $extra['node'][$name]['form'] = $base;
+    $extra['node'][$name]['display'] = $base;
+  }
+  return $extra;
+}
+
+/**
  * Load a Workbench Access module file, or all files.
  *
  * @param $module
@@ -198,8 +217,8 @@ function workbench_access_node_access($node, $op, $account) {
   if ($op == 'create') {
     return NODE_ACCESS_IGNORE;
   }
-  // View step. We likely ignore.
-  if ($op == 'view') {
+  // View step. We ignore for published nodes.
+  if ($op == 'view' && $node->status) {
     return NODE_ACCESS_IGNORE;
   }
   // If the account is the node owner, ignore.
@@ -208,8 +227,6 @@ function workbench_access_node_access($node, $op, $account) {
   }
   workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
   // Get the access rules for this node.
-  // @TODO: move to hook_node_load() ?
-  $node->workbench_access = workbench_access_get_node_tree($node);
   $result = FALSE; // Always default to FALSE.
   if (!empty($node->workbench_access)) {
     $result = workbench_access_check($op, $type, array_filter($node->workbench_access), $account->workbench_access);
@@ -230,19 +247,14 @@ function workbench_access_node_access($node, $op, $account) {
  *   An array of access_ids.
  */
 function workbench_access_get_node_tree($node) {
-  $access_type = variable_get('workbench_access', 'taxonomy');
-  $types = module_invoke_all('workbench_access_info');
-  if (isset($types[$access_type])) {
-    $default = 'workbench_access_get_node_' . $types[$access_type]['access_type'];
-    $func = $access_type . '_get_node_' . $types[$access_type]['access_type'];
-    if (function_exists($func)) {
-      return $func($node);
-    }
-    elseif (function_exists($default)) {
-      return $default($node);
-    }
+  if (empty($node->workbench_access)) {
+    return array();
   }
-  return array();
+  $access = array();
+  foreach ($node->workbench_access as $access_id => $info) {
+    $access[$access_id] = $access_id;
+  }
+  return $access;
 }
 
 /**
@@ -262,7 +274,7 @@ function workbench_access_get_node_tree($node) {
  */
 function workbench_access_check($op, $type, $access_ids, $account_access) {
   foreach ($access_ids as $access_id) {
-    if ($id = workbench_access_in_tree($access_id, array_keys($account_access))) {
+    if ($id = workbench_access_in_tree($access_id, $account_access)) {
       if (in_array('all', $account_access[$id][$op]) || in_array($type, $account_access[$id][$op])) {
         return $id;
       }
@@ -286,12 +298,13 @@ function workbench_access_check($op, $type, $access_ids, $account_access) {
  */
 function workbench_access_in_tree($access_id, $account_access) {
   // Simple equivalence check. If this passes, no need for complexity.
-  if (in_array($access_id, $account_access)) {
+  if (isset($account_access[$access_id])) {
     return $access_id;
   }
-  $tree = workbench_access_get_access_tree($account_access);
+  $tree = workbench_access_get_access_tree(array_keys($account_access));
   foreach ($tree as $id => $info) {
-    if (in_array($access_id, $info)) {
+    $data = array_flip($info);
+    if (isset($data[$access_id])) {
       return $id;
     }
   }
@@ -428,12 +441,55 @@ function workbench_access_get_active_tree() {
  * @TODO: clean this up!
  */
 function workbench_access_get_node_taxonomy($node) {
-  if (!variable_get('taxonomy_maintain_index_table', TRUE)) {
-    return array();
-  }
-  // @TODO: make this vocabulary sensitive.
-  $terms = array_keys(db_query("SELECT tid FROM {taxonomy_index} WHERE nid = :nid", array(':nid' => $node->nid))->fetchAllAssoc('tid', PDO::FETCH_ASSOC));
+  $terms = array();
   return $terms;
+}
+
+/**
+ * Implements hook_node_load().
+ */
+function workbench_access_node_load($nodes, $types) {
+  $active = workbench_access_get_active_tree();
+  foreach ($nodes as $node) {
+    // Cannot load if the node has not been created yet.
+    if (!isset($node->nid)) {
+      continue;
+    }
+    $nodes[$node->nid]->workbench_access = array();
+    $result = db_query("SELECT access_id FROM {workbench_access_node} WHERE nid = :nid", array(':nid' => $node->nid));
+    foreach ($result as $record) {
+      $nodes[$node->nid]->workbench_access[$record->access_id] = $record->access_id;
+    }
+  }
+}
+
+/**
+ * Implements hook_node_insert().
+ */
+function workbench_access_node_insert($node) {
+  $record = array(
+    'nid' => $node->nid,
+    'access_id' => $node->workbench_access_id,
+    'access_scheme' => $node->workbench_access_scheme['access_scheme'],
+  );
+  drupal_write_record('workbench_access_node', $record);
+}
+
+/**
+ * Implements hook_node_update().
+ */
+function workbench_access_node_update($node) {
+  workbench_access_node_delete($node);
+  workbench_access_node_insert($node);
+}
+
+/**
+ * Implements hook_node_delete().
+ */
+function workbench_access_node_delete($node) {
+  db_delete('workbench_access_node')
+    ->condition('nid', $node->nid)
+    ->execute();
 }
 
 /**
@@ -862,11 +918,33 @@ function workbench_access_load_taxonomy($scheme) {
  * Alter the options when presenting a node form.
  */
 function workbench_access_form_alter(&$form, $form_state, $form_id) {
+  global $user;
   if (empty($form['#node_edit_form'])) {
     workbench_access_alter_form($form_id, $form, $form_state);
   }
   else {
-    workbench_access_alter_form('node_element', $form, $form_state);
+    // Make sure we prepared the user.
+    if (!isset($user->workbench_access)) {
+      workbench_access_load_user_data($user);
+    }
+    // Prepare the form element.
+    $active = workbench_access_get_active_tree();
+    $tree = $active['tree'];
+    workbench_access_build_tree($tree, array_keys($user->workbench_access));
+    // TODO: error handling.
+    $element = array(
+      '#type' => 'select',
+      '#title' => t('Section'),
+      '#options' => workbench_access_options($tree),
+      '#required' => TRUE,
+      '#default_value' => current(array_keys($form['#node']->workbench_access)), // TODO: multi-select
+    );
+    workbench_access_alter_form('node_element', $element, $active);
+    $form['workbench_access_id'] = $element;
+    $form['workbench_access_scheme'] = array(
+      '#type' => 'value',
+      '#value' => $active['access_scheme'],
+    );
   }
 }
 
