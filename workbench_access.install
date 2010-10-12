@@ -76,5 +76,132 @@ function workbench_access_schema() {
     ),
   );
 
+  $schema['workbench_access_node'] = array(
+    'description' => 'Maps sections to nodes',
+    'fields' => array(
+      'nid' => array(
+        'description' => 'The node identifier. Foreign key to {node}.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'access_id' => array(
+        'description' => 'The section identifier. Foreign key to {workbench_access}.',
+        'type' => 'varchar',
+        'length' => '80',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'access_scheme' => array(
+        'description' => 'The module responsbile for this access system.',
+        'type' => 'varchar',
+        'length' => '40',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('nid', 'access_id', 'access_scheme'),
+    'foreign keys' => array(
+      'section_id' => array('workbench_access' => array('access_id', 'access_scheme')),
+      'uid' => array('node' => 'nid'),
+    ),
+  );
+
   return $schema;
+}
+
+/**
+ * Implements hook_enable().
+ *
+ * Multistep process:
+ *  1) Create our vocabulary.
+ *  2) Create some sample terms.
+ *  3) Set the active schema for the site.
+ *  4) Set all sections to active?
+ */
+function workbench_access_enable() {
+  $vocabulary = new stdClass();
+  $vocabulary->name = 'Workbench Access';
+  $vocabulary->module = 'workbench_access';
+  $vocabulary->machine_name = 'workbench_access';
+  $vocabulary->description = 'Access control for editorial content.';
+  $vocabulary->hierarchy = 1;
+  $vocabulary->weight = -10;
+  $existing = taxonomy_get_vocabularies();
+  $exists = FALSE;
+  // Ensure that this is a unique vocabulary.
+  foreach($existing as $voc) {
+    if ($voc->machine_name == $vocabulary->machine_name) {
+      $exists = TRUE;
+    }
+  }
+  // If the vocabulary exists, do not create any terms for it.
+  if ($exists) {
+    return;
+  }
+  // Save.
+  taxonomy_vocabulary_save($vocabulary);
+  // Create some terms.
+  $terms = array(
+    'foo',
+    'bar',
+    'baz',
+  );
+  $children = array(
+    'one',
+    'two',
+  );
+  // Get the proper fitler format for taxonomy descriptions.
+  $account = new stdClass();
+  $account->uid = 0;
+  $format = filter_default_format($account);
+  $ids = array();
+  $i = -5;
+  foreach ($terms as $name) {
+    $term = new stdClass();
+    $term->name = $name;
+    $term->vocabulary_machine_name = 'workbench_access';
+    $term->vid = $vocabulary->vid;
+    $term->description = t('Test term for Workbench Access.');
+    $term->format = $format;
+    $term->weight = $i;
+    taxonomy_term_save($term);
+    $i = $i +5;
+    $ids[] = $term->tid;
+    // Create child terms.
+    foreach ($children as $child) {
+      $item = new stdClass();
+      $item->name = $name . '-' . $child;
+      $item->parent = $term->tid;
+      $item->vocabulary_machine_name = 'workbench_access';
+      $item->vid = $vocabulary->vid;
+      $item->format = $format;
+      $item->description = t('Test child term for Workbench Access.');
+      taxonomy_term_save($item);
+      $ids[] = $item->tid;
+    }
+  }
+  // Set our vocabulary as the default.
+  // TODO: Use machine name?
+  variable_set('workbench_access_taxonomy', $vocabulary->vid);
+  $section = array(
+    'access_scheme' => 'taxonomy',
+    'access_type' => 'taxonomy',
+    'access_type_id' => $vocabulary->vid,
+  );
+  foreach ($ids as $id) {
+    $section['access_id'] = $id;
+    workbench_access_section_save($section);
+  }
+}
+
+/**
+ * Remove our vocabulary and variables.
+ */
+function workbench_access_uninstall() {
+  $vocabulary = taxonomy_vocabulary_machine_name_load('workbench_access');
+  if (isset($vocabulary->vid)) {
+    taxonomy_vocabulary_delete($vocabulary->vid);
+  }
+  variable_del('workbench_access');
+  variable_del('workbench_access_taxonomy');
 }
