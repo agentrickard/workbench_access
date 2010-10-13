@@ -845,6 +845,10 @@ function workbench_access_options($tree, $options = array()) {
   $used = array();
   $parent = 0;
   $base_depth = 0;
+  $options = array();
+  if (empty($tree)) {
+    return $options;
+  }
   $tree_keys = array_keys($tree);
   foreach ($tree as $section) {
     if (in_array($section['access_id'], $used)) {
@@ -936,7 +940,10 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     // Generate options so we can check for access.
     $options = workbench_access_options($tree);
      // TODO: multi-select
-    $default = current(array_keys($form['#node']->workbench_access));
+    $default = NULL;
+    if (!empty($form['#node']->workbench_access)) {
+      $default = current(array_keys($form['#node']->workbench_access));
+    }
     // The base form element.
     $element = array(
       '#type' => 'select',
