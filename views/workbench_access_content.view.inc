@@ -1,6 +1,6 @@
 <?php
 $view = new view;
-$view->name = 'workbench_content';
+$view->name = 'workbench_access_content';
 $view->description = 'Workbench content';
 $view->tag = 'Workbench';
 $view->view_php = '';

@@ -5,7 +5,7 @@
  */
 function workbench_access_views_default_views() {  
   // Find all the .view files in the views subdirectory that end in .view.
-  $files = file_scan_directory(drupal_get_path('module', 'workbench_access') . '/views', '/.view/');
+  $files = file_scan_directory(drupal_get_path('module', 'workbench_access') . '/views', '/.view.inc/');
 
   $views = array();
   foreach ($files as $path => $file) {

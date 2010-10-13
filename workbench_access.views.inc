@@ -32,15 +32,20 @@ function workbench_access_views_data() {
       'handler' => 'workbench_access_handler_filter_access',
     ),
   );
-  $data['workbench_access']['table']['join'] = array(
+
+  $data['workbench_access_node']['table']['group']  = t('Workbench Access');
+  $data['workbench_access_node']['nid'] = array(
+    'title' => t('Nid'),
+    'help' => t('Nid'),
+  );
+  $data['workbench_access_node']['table']['join'] = array(
     //...to the node table
     'node' => array(
       'left_field' => 'nid',
       'field' => 'nid',
     ),
   );
-  // TODO: Fix this
-  $data['workbench_access_node']['table']['join'] = array(
+  $data['workbench_access']['table']['join'] = array(
     //...to the node table
     'node' => array(
       'left_field' => 'nid',

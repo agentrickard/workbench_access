@@ -16,4 +16,3 @@ files[] = includes/workbench_access_handler_field_section.inc
 files[] = includes/workbench_access_handler_filter_access.inc
 files[] = includes/workbench_access_handler_sort_section.inc
 files[] = modules/taxonomy.workbench_access.inc
-files[] = views/workbench_access.view

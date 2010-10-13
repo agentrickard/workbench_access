@@ -16,8 +16,16 @@ function taxonomy_workbench_access_info() {
       'configuration' => 'taxonomy_workbench_access_configuration',
       'node_table' => 'workbench_access_node',
       'query_field' => 'access_id',
-      'field_table' => 'taxonomy_term_data',
+      'field_table' => 'workbench_access_node',
       'name_field' => 'name',
+      'adjust_join' => array(
+        'taxonomy_term_data' => array(
+          'original_table' => 'taxonomy_index',
+          'original_field' => 'tid',
+          'new_table' => 'workbench_access_node',
+          'new_field' => 'access_id',
+        ),
+      ),
       'sort' => array(
         array(
           'table' => 'taxonomy_term_hierarchy',
