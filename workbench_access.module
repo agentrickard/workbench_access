@@ -919,9 +919,11 @@ function workbench_access_load_taxonomy($scheme) {
  */
 function workbench_access_form_alter(&$form, $form_state, $form_id) {
   global $user;
+  // Fire any active internal module hooks.
   if (empty($form['#node_edit_form'])) {
     workbench_access_alter_form($form_id, $form, $form_state);
   }
+  // Fire the node form alter.
   else {
     // Make sure we prepared the user.
     if (!isset($user->workbench_access)) {
@@ -931,17 +933,32 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     $active = workbench_access_get_active_tree();
     $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($user->workbench_access));
-    // TODO: error handling.
+    // Generate options so we can check for access.
+    $options = workbench_access_options($tree);
+     // TODO: multi-select
+    $default = current(array_keys($form['#node']->workbench_access));
+    // The base form element.
     $element = array(
       '#type' => 'select',
       '#title' => t('Section'),
-      '#options' => workbench_access_options($tree),
+      '#options' => $options,
       '#required' => TRUE,
-      '#default_value' => current(array_keys($form['#node']->workbench_access)), // TODO: multi-select
+      '#default_value' => $default,
     );
+    // If the default is set and is not in the user's range, then pass hidden and
+    // display a message.
+    // TODO: $default might legitimately be zero in some edge cases.
+    if (!empty($default) && !isset($options[$default]) && isset($active['tree'][$default])) {
+      $name = check_plain($active['tree'][$default]['name']);
+      $element['#type'] = 'value';
+      $element['#value'] = $element['#default_value'];
+      $form['workbench_access']['message'] = array(
+        '#markup' => '<label for="edit-workbench-access-id">' . t('Section') . ' *</label>' . t('%title is assigned to %section and may not be changed.', array('%title' => $form['#node']->title, '%section' => $name)),
+      );
+    }
     workbench_access_alter_form('node_element', $element, $active);
-    $form['workbench_access_id'] = $element;
-    $form['workbench_access_scheme'] = array(
+    $form['workbench_access']['workbench_access_id'] = $element;
+    $form['workbench_access']['workbench_access_scheme'] = array(
       '#type' => 'value',
       '#value' => $active['access_scheme'],
     );
