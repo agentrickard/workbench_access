@@ -150,7 +150,7 @@ function workbench_access_enable() {
     'one',
     'two',
   );
-  // Get the proper fitler format for taxonomy descriptions.
+  // Get the proper filter format for taxonomy descriptions.
   $account = new stdClass();
   $account->uid = 0;
   $format = filter_default_format($account);

@@ -76,8 +76,7 @@ function workbench_access_section_form(&$form, &$form_state) {
     if ($section['depth'] == 0) {
       $parent = $section['access_id'];
       $collapsed = TRUE;
-      if (isset($active[$section['access_id']])) {
-      
+      if (isset($active['active'][$parent])) {
         $collapsed = FALSE;
       }
       elseif (!empty($section['children'])) {

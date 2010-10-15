@@ -599,6 +599,10 @@ function workbench_access_section_delete($section) {
     ->condition('access_id', $section['access_id'])
     ->condition('access_scheme', $section['access_scheme'])
     ->execute();
+  db_delete('workbench_access_node')
+    ->condition('access_id', $section['access_id'])
+    ->condition('access_scheme', $section['access_scheme'])
+    ->execute();
   db_delete('workbench_access_user')
     ->condition('access_id', $section['access_id'])
     ->condition('access_scheme', $section['access_scheme'])
@@ -718,23 +722,9 @@ function workbench_access_user_delete($account) {
  * If an active term is deleted, cascade the change through our system.
  */
 function workbench_access_taxonomy_term_delete($term) {
-  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type", array(':access_type' => 'taxonomy'))->fetchAssoc();
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $term->tid))->fetchAssoc();
   if (!empty($access_scheme)) {
     workbench_access_section_delete($access_scheme);
-  }
-}
-
-/**
- * Implements hook_taxonomy_vocabulary_delete().
- *
- * If an active term is deleted, cascade the change through our system.
- */
-function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
-  $access_schemes = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_type_id = :vid", array(':access_type' => 'taxonomy', ':vid' => $vocabulary->vid))->fetchAllAssoc();
-  if (!empty($access_schemes)) {
-    foreach ($access_schemes as $access_scheme) {
-      workbench_access_section_delete($access_scheme);
-    }
   }
 }
 
@@ -985,4 +975,3 @@ function workbench_access_alter_form($hook, &$form, $form_state) {
   }
   $function($form, $form_state, $active);
 }
-
