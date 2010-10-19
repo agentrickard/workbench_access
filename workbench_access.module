@@ -950,7 +950,9 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
       $element['#type'] = 'value';
       $element['#value'] = $element['#default_value'];
       $form['workbench_access']['message'] = array(
-        '#markup' => '<label for="edit-workbench-access-id">' . t('Section') . ' *</label>' . t('%title is assigned to %section and may not be changed.', array('%title' => $form['#node']->title, '%section' => $name)),
+        '#type' => 'item',
+        '#title' => t('Section'),
+        '#markup' => t('%title is assigned to %section and may not be changed.', array('%title' => $form['#node']->title, '%section' => $name)),
       );
     }
     workbench_access_alter_form('node_element', $element, $active);
