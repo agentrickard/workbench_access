@@ -218,9 +218,12 @@ function workbench_access_node_access($node, $op, $account) {
     return NODE_ACCESS_IGNORE;
   }
   // View step. We ignore for published nodes.
+  // This breaks when Workbench Moderation is used.
+  /*
   if ($op == 'view' && $node->status) {
     return NODE_ACCESS_IGNORE;
   }
+  */
   // If the account is the node owner, ignore.
   if ($account->uid == $node->uid) {
     return NODE_ACCESS_IGNORE;
@@ -467,6 +470,11 @@ function workbench_access_node_load($nodes, $types) {
  * Implements hook_node_insert().
  */
 function workbench_access_node_insert($node) {
+  // Workbench Moderation submits the node twice???
+  if (!isset($node->workbench_access_scheme['access_scheme'])) {
+    return;
+  }
+  workbench_access_node_delete($node);
   $record = array(
     'nid' => $node->nid,
     'access_id' => $node->workbench_access_id,
@@ -479,7 +487,6 @@ function workbench_access_node_insert($node) {
  * Implements hook_node_update().
  */
 function workbench_access_node_update($node) {
-  workbench_access_node_delete($node);
   workbench_access_node_insert($node);
 }
 
@@ -925,6 +932,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     }
     // Prepare the form element.
     $active = workbench_access_get_active_tree();
+
     $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($user->workbench_access));
     // Generate options so we can check for access.
