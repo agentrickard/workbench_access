@@ -218,12 +218,9 @@ function workbench_access_node_access($node, $op, $account) {
     return NODE_ACCESS_IGNORE;
   }
   // View step. We ignore for published nodes.
-  // This breaks when Workbench Moderation is used.
-  /*
   if ($op == 'view' && $node->status) {
     return NODE_ACCESS_IGNORE;
   }
-  */
   // If the account is the node owner, ignore.
   if ($account->uid == $node->uid) {
     return NODE_ACCESS_IGNORE;
