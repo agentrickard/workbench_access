@@ -213,8 +213,8 @@ function workbench_access_node_access($node, $op, $account) {
   else {
     $type = $node->type;
   }
-  // Create step. We probably act here later.
-  if ($op == 'create') {
+  // Create step. User must be assigned to a section to create content.
+  if ($op == 'create' && !empty($account->workbench_access)) {
     return NODE_ACCESS_IGNORE;
   }
   // View step. We ignore for published nodes.
@@ -222,13 +222,13 @@ function workbench_access_node_access($node, $op, $account) {
     return NODE_ACCESS_IGNORE;
   }
   // If the account is the node owner, ignore.
-  if ($account->uid == $node->uid) {
+  if (isset($node->uid) && $account->uid == $node->uid) {
     return NODE_ACCESS_IGNORE;
   }
   workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
   // Get the access rules for this node.
   $result = FALSE; // Always default to FALSE.
-  if (!empty($node->workbench_access)) {
+  if (!empty($node->workbench_access) && !empty($account->workbench_access)) {
     $result = workbench_access_check($op, $type, array_filter($node->workbench_access), $account->workbench_access);
   }
   if ($result !== FALSE) {
@@ -931,7 +931,13 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     $active = workbench_access_get_active_tree();
 
     $tree = $active['tree'];
-    workbench_access_build_tree($tree, array_keys($user->workbench_access));
+    // We should never get this far, really.
+    if (empty($user->workbench_access)) {
+      $tree = array();
+    }
+    else {
+      workbench_access_build_tree($tree, array_keys($user->workbench_access));
+    }
     // Generate options so we can check for access.
     $options = workbench_access_options($tree);
      // TODO: multi-select
