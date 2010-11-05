@@ -865,7 +865,7 @@ function workbench_access_options($tree, $options = array()) {
  * we have to supply the proper action.
  */
 function workbench_access_form_views_exposed_form_alter(&$form, &$form_state) {
-  if ($form['#id'] == 'views-exposed-form-workbench-content-default') {
+  if ($form['#id'] == 'views-exposed-form-workbench-access-content-default') {
     $form['#action'] = '/' . $_GET['q'];
   }
 }
