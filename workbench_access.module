@@ -948,10 +948,11 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     // The base form element.
     $element = array(
       '#type' => 'select',
-      '#title' => t('Section'),
+      '#title' => t('Workbench access'),
       '#options' => $options,
       '#required' => TRUE,
       '#default_value' => $default,
+      '#description' => t('Select the proper editorial group for this content.'),
     );
     // If the default is set and is not in the user's range, then pass hidden and
     // display a message.
@@ -962,8 +963,8 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
       $element['#value'] = $element['#default_value'];
       $form['workbench_access']['message'] = array(
         '#type' => 'item',
-        '#title' => t('Section'),
-        '#markup' => t('%title is assigned to %section and may not be changed.', array('%title' => $form['#node']->title, '%section' => $name)),
+        '#title' => t('Workbench access'),
+        '#markup' => t('%title is assigned to the %section editorial group and may not be changed.', array('%title' => $form['#node']->title, '%section' => $name)),
       );
     }
     workbench_access_alter_form('node_element', $element, $active);
