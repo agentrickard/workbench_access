@@ -180,7 +180,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
         }
       }
       // Do we show inactive sections here?
-      if (1 == 1 || !empty($active['active'][$section['access_id']])) {
+      if (!empty($active['active'][$section['access_id']])) {
         $display = TRUE;
       }
       elseif (!empty($section['children'])) {
@@ -200,7 +200,7 @@ function workbench_access_user_form(&$form, &$form_state, $account) {
       }
     }
     // Do we show inactive sections here?
-    if (1 == 1 || isset($active['active'][$section['access_id']])) {
+    if (isset($active['active'][$section['access_id']])) {
       if (user_access('assign workbench access') && !empty($active['active'][$section['access_id']])) {
         $form['sections'][$parent][$section['access_id']] = array(
           '#type' => 'checkbox',
