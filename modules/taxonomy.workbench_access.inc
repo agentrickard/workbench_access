@@ -1,6 +1,13 @@
 <?php
 
 /**
+ * @file
+ *  Taxonomy integration for Workbench.
+ *
+ * @copyright (C) Copyright 2010 Palantir.net
+ */
+
+/**
  * Implements hook_workbench_access_info().
  *
  * Defines the default handler for access controls.

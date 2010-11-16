@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @file
+ *  Views integration for Workbench.
+ *
+ * @copyright (C) Copyright 2010 Palantir.net
+ */
+
 class workbench_access_handler_filter_access extends views_handler_filter {
   function option_definition() {
     $options = parent::option_definition();

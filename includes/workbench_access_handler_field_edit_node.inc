@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * @file
+ *  Views integration for Workbench.
+ *
+ * @copyright (C) Copyright 2010 Palantir.net
+ */
+
 class workbench_access_handler_field_edit_node extends views_handler_field {
   // No query for this field.
   function query() {}

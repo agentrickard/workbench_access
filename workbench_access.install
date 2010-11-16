@@ -1,9 +1,10 @@
 <?php
-// $Id$
 
 /**
  * @file
- * Install file.
+ *   Install file.
+ *
+ * @copyright (C) Copyright 2010 Palantir.net
  */
 
 /**

@@ -1,6 +1,13 @@
 <?php
 
 /**
+ * @file
+ *  Views integration for Workbench.
+ *
+ * @copyright (C) Copyright 2010 Palantir.net
+ */
+
+/**
  * Implementation of hook_views_default_views().
  */
 function workbench_access_views_default_views() {  

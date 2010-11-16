@@ -1,9 +1,10 @@
 <?php
-// $Id$
 
 /**
  * @file
  *   Workbench Access admin file.
+ *
+ * @copyright (C) Copyright 2010 Palantir.net
  */
 
 /**
