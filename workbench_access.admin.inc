@@ -10,7 +10,7 @@
 /**
  * Test callback for admin.
  */
-function workbench_access_settings_form(&$form, &$form_state) {
+function workbench_access_settings_form($form, &$form_state) {
   // Make sure all hook_invocations exist.
   workbench_access_load_include();
   $info = module_invoke_all('workbench_access_info');
@@ -59,7 +59,7 @@ function workbench_access_settings_form(&$form, &$form_state) {
 /**
  * Administer section definitions.
  */
-function workbench_access_section_form(&$form, &$form_state) {
+function workbench_access_section_form($form, &$form_state) {
   $active = workbench_access_get_active_tree();
   $form = array();
   $form['access_scheme'] = array(
@@ -133,7 +133,7 @@ function workbench_access_section_form_submit(&$form, &$form_state) {
  * @param $account
  *   The user account being acted upon.
  */
-function workbench_access_user_form(&$form, &$form_state, $account) {
+function workbench_access_user_form($form, &$form_state, $account) {
   if (!isset($account->workbench_access)) {
     $account = user_load($account->uid);
   }
@@ -332,7 +332,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
  * @return
  *   A form.
  */
-function workbench_access_editor_form(&$form, &$form_state, $access_type, $access_type_id) {
+function workbench_access_editor_form($form, &$form_state, $access_type, $access_type_id) {
   $form = array();
   $active = workbench_access_get_active_tree();
   $active['access_scheme']['access_id'] = $access_type_id;
