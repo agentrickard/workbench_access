@@ -66,6 +66,10 @@ function workbench_access_section_form($form, &$form_state) {
     '#type' => 'value',
     '#value' => $active['access_scheme'],
   );
+  $form['access_tree'] = array(
+    '#type' => 'value',
+    '#value' => $active['tree'],
+  );
   $form['sections']['#tree'] = TRUE;
   $active_items = array_keys($active['active']);
   $parent = 0;
@@ -113,10 +117,14 @@ function workbench_access_section_form($form, &$form_state) {
  */
 function workbench_access_section_form_submit(&$form, &$form_state) {
   $access_scheme = $form_state['values']['access_scheme'];
+  $access_tree = $form_state['values']['access_tree'];
   $results = $form_state['values']['sections'];
-  $sections = array();
+  $selection = array();
   foreach ($results as $result) {
-    $sections = array_merge($sections, array_keys(array_filter($result)));
+    $selection = array_merge($selection, array_keys(array_filter($result)));
+  }
+  foreach ($selection as $access_id) {
+    $sections[$access_id] = $access_tree[$access_id];
   }
   workbench_access_rebuild_scheme($access_scheme, $sections);
   if (empty($sections)) {

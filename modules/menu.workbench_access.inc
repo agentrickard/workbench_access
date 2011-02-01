@@ -1,0 +1,196 @@
+<?php
+
+/**
+ * @file
+ *  Menu integration for Workbench.
+ *
+ * @copyright (C) Copyright 2010 Palantir.net
+ */
+
+/**
+ * Implements hook_workbench_access_info().
+ *
+ * Defines the default handler for access controls.
+ */
+function menu_workbench_access_info() {
+  return array(
+    'menu' => array(
+      'access_scheme' => 'menu',
+      'name' => 'Menu',
+      'access_type' => 'menu',
+      'access_type_id' => array_filter(variable_get('workbench_access_menu', array('main-menu'))),
+      'description' => t('Uses a menu for assigning hierarchical access control'),
+      'configuration' => 'menu_workbench_access_configuration',
+      'node_table' => 'workbench_access_node',
+      'query_field' => 'access_id',
+      'field_table' => 'workbench_access_node',
+      'name_field' => 'name',
+      'adjust_join' => array(
+        'menu_term_data' => array(
+          'original_table' => 'menu_links',
+          'original_field' => 'mlid',
+          'new_table' => 'workbench_access_node',
+          'new_field' => 'access_id',
+        ),
+      ),
+      'sort' => array(
+        array(
+          'table' => 'menu_links',
+          'field' => 'plid',
+        ),
+        array(
+          'table' => 'menu_links',
+          'field' => 'weight',
+          'order' => 'ASC',
+        ),
+      ),
+    ),
+  );
+}
+
+/**
+ * Defines configuration options for the default access scheme.
+ *
+ * @see workbench_access_workbench_access_info()
+ */
+function menu_workbench_access_configuration(&$form, &$form_state) {
+  $options = array();
+  $menus = menu_get_menus();
+  foreach ($menus as $name => $menu) {
+    $options[$name] = $menu;
+  }
+  $form['menu_workbench_access_info'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Menu scheme settings'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name=workbench_access]' => array('value' => 'menu'),
+      ),
+    ),
+  );
+  $form['menu_workbench_access_info']['workbench_access_menu'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Editorial menus'),
+    '#description' => t('Select the menus to be used for access control. <strong>Warning: changing this value in production may disrupt your workflow.</strong>'),
+    '#options' => $options,
+    '#default_value' => variable_get('workbench_access_menu', array('main_menu')),
+    '#states' => array(
+      'visible' => array(
+        ':input[name=workbench_access]' => array('value' => 'menu'),
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_workbench_access_field_form().
+ */
+function menu_workbench_access_field_form(&$form, $form_state, $active) {
+  _workbench_access_menu_remove_option($form);
+}
+
+/**
+ * Implements hook_workbench_access_field_ui_field_settings_form().
+ */
+function menu_workbench_access_field_ui_field_settings_form(&$form, $form_state, $active) {
+  _workbench_access_menu_remove_option($form);
+}
+
+/**
+ * Helper function to remove the option from Field UI forms.
+ */
+function _workbench_access_menu_remove_option(&$form) {
+  // The element we want is nested very deeply in the form.
+  if (!isset($form['field']['settings']['allowed_values'])) {
+    return;
+  }
+  // Cannot trust positional arrays.
+  foreach ($form['field']['settings']['allowed_values'] as $key => $value) {
+    if (isset($value['vocabulary']) && isset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access'])) {
+      unset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access']);
+    }
+  }
+}
+
+/**
+ * Get the access tree for a taxonomy term.
+ *
+ * @param $info
+ *   An array defining the access scheme.
+ * @param $keys
+ *   Boolean value to return only array keys, or all data.
+ *
+ * @return
+ *   An array of access_ids or a data array.
+ */
+function workbench_access_menu_tree($info, $keys) {
+  $tree = array();
+  $items = array();
+  if (isset($info['access_id'])) {
+    $items[$info['access_type_id']] = $info['access_id'];
+  }
+  else {
+    foreach (array_filter($info['access_type_id']) as $key) {
+      $items[$key] = 0;
+    }
+  }
+  foreach ($items as $name => $mlid) {
+    $data = menu_load($name);
+    $tree[$name] = array(
+      'access_id' => $data['menu_name'],
+      'access_type_id' => $data['menu_name'],
+      'name' => $data['title'],
+      'description' => $data['description'],
+      'weight' => 0,
+      'depth' => 0,
+      'parent' => 0,
+    );
+    $menu = menu_tree_all_data($name);
+    foreach ($menu as $link) {
+       _workbench_access_menu_build_tree($tree, $link);
+    }
+  }
+  if ($keys) {
+    return array_keys($tree);
+  }
+  return $tree;
+}
+
+/**
+ * Recursive helper function to build menus.
+ *
+ * @param &$tree
+ *   The workbench access tree being built.
+ * @param $link
+ *   The menu link being inspected.
+ */
+function _workbench_access_menu_build_tree(&$tree, $link) {
+  $item = (object) $link['link'];
+  $tree[$item->mlid] = array(
+    'access_id' => $item->mlid,
+    'access_type_id' => $item->menu_name,
+    'name' => $item->link_title,
+    'description' => isset($item->options['attributes']['title']) ? $item->options['attributes']['title'] : '',
+    'weight' => $item->weight,
+    'depth' => $item->depth,
+    'parent' => ($item->plid == 0) ? $item->menu_name : $item->plid,
+  );
+  if (!empty($link['below'])) {
+    foreach ($link['below'] as $below) {
+      _workbench_access_menu_build_tree($tree, $below);
+    }
+  }
+}
+
+/**
+ * Load data for a menu link.
+ */
+function workbench_access_load_menu($scheme) {
+  $item = (object) menu_link_load($scheme['access_id']);
+  $data = array(
+    'access_id' => $item->mlid,
+    'name' => $item->link_title,
+    'description' => isset($item->options['attributes']['title']) ? $item->options['attributes']['title'] : '',
+  );
+  return $data;
+}

@@ -350,45 +350,6 @@ function workbench_access_tree($info, $keys = FALSE) {
 }
 
 /**
- * Get the access tree for a taxonomy term.
- *
- * @param $info
- *   An array defining the access scheme.
- * @param $keys
- *   Boolean value to return only array keys, or all data.
- *
- * @return
- *   An array of access_ids or a data array.
- */
-function workbench_access_taxonomy_tree($info, $keys) {
-  $tree = array();
-  if (!empty($info['access_id'])) {
-    $term = taxonomy_term_load($info['access_id']);
-    $vid = $term->vid;
-    $tid = $term->tid;
-  }
-  else {
-    $vid = $info['access_type_id'];
-    $tid = 0;
-  }
-  $children = taxonomy_get_tree($vid, $tid);
-  foreach ($children as $child) {
-    $tree[$child->tid] = array(
-      'access_id' => $child->tid,
-      'name' => $child->name,
-      'description' => $child->description,
-      'weight' => $child->weight,
-      'depth' => $child->depth,
-      'parent' => isset($child->parents[0]) ? $child->parents[0] : 0,
-    );
-  }
-  if ($keys) {
-    return array_keys($tree);
-  }
-  return $tree;
-}
-
-/**
  * Load the active tree.
  */
 function workbench_access_get_active_tree() {
@@ -410,22 +371,6 @@ function workbench_access_get_active_tree() {
     'active' => $active,
   );
   return $active;
-}
-
-/**
- * Get the relevant taxonomy rules for this node.
- *
- * @param $node
- *   The node being requested.
- *
- * @return
- *   An array of term ids.
- *
- * @TODO: clean this up!
- */
-function workbench_access_get_node_taxonomy($node) {
-  $terms = array();
-  return $terms;
 }
 
 /**
@@ -542,17 +487,23 @@ function workbench_access_load_user_data($account) {
 function workbench_access_rebuild_scheme($access_scheme, $sections = array()) {
   // Check to see if any sections have been removed.
   $access_ids = workbench_access_get_ids_by_scheme($access_scheme, TRUE);
-  $removed = array_diff($access_ids, $sections);
+  $removed = array_diff($access_ids, array_keys($sections));
   foreach ($removed as $access_id) {
     $record = $access_scheme;
     $record['access_id'] = $access_id;
+    if (isset($sections[$access_id]['access_type_id'])) {
+      $record['access_type_id'] = $sections[$access_id]['access_type_id'];
+    }
     workbench_access_section_delete($record);
   }
   // Add the new sections.
-  $added = array_diff($sections, $access_ids);
+  $added = array_diff(array_keys($sections), $access_ids);
   foreach ($added as $access_id) {
     $record = $access_scheme;
     $record['access_id'] = $access_id;
+    if (isset($sections[$access_id]['access_type_id'])) {
+      $record['access_type_id'] = $sections[$access_id]['access_type_id'];
+    }
     workbench_access_section_save($record);
   }
 }
@@ -880,19 +831,6 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
 function workbench_access_load_access_info($scheme) {
   $function = 'workbench_access_load_'. $scheme['access_type'];
   return $function($scheme);
-}
-
-/**
- * Load data for a taxonomy term.
- */
-function workbench_access_load_taxonomy($scheme) {
-  $term = taxonomy_term_load($scheme['access_id']);
-  $data = array(
-    'name' => $term->name,
-    'description' => $term->description,
-    'access_id' => $term->tid,
-  );
-  return $data;
 }
 
 /**

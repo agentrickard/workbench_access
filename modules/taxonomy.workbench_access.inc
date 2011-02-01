@@ -18,7 +18,7 @@ function taxonomy_workbench_access_info() {
       'access_scheme' => 'taxonomy',
       'name' => 'Taxonomy',
       'access_type' => 'taxonomy',
-      'access_type_id' => variable_get('workbench_access_taxonomy', 0),
+      'access_type_id' => array_filter(variable_get('workbench_access_taxonomy', array())),
       'description' => t('Uses a taxonomy vocabulary for assigning hierarchical access control'),
       'configuration' => 'taxonomy_workbench_access_configuration',
       'node_table' => 'workbench_access_node',
@@ -76,11 +76,11 @@ function taxonomy_workbench_access_configuration(&$form, &$form_state) {
     ),
   );
   $form['taxonomy_workbench_access_info']['workbench_access_taxonomy'] = array(
-    '#type' => 'radios',
+    '#type' => 'checkboxes',
     '#title' => t('Editorial vocabulary'),
     '#description' => t('Select the vocabulary to be used for access control. <strong>Warning: changing this value in production may disrupt your workflow.</strong>'),
     '#options' => $options,
-    '#default_value' => variable_get('workbench_access_taxonomy', 0),
+    '#default_value' => variable_get('workbench_access_taxonomy', array()),
     '#states' => array(
       'visible' => array(
         ':input[name=workbench_access]' => array('value' => 'taxonomy'),
@@ -117,4 +117,75 @@ function _workbench_access_taxonomy_remove_option(&$form) {
       unset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access']);
     }
   }
+}
+
+/**
+ * Get the access tree for a taxonomy term.
+ *
+ * @param $info
+ *   An array defining the access scheme.
+ * @param $keys
+ *   Boolean value to return only array keys, or all data.
+ *
+ * @return
+ *   An array of access_ids or a data array.
+ */
+function workbench_access_taxonomy_tree($info, $keys) {
+  $tree = array();
+  $items = array();
+  if (isset($info['access_id'])) {
+    $items[$info['access_type_id']] = $info['access_id'];
+  }
+  else {
+    foreach (array_filter($info['access_type_id']) as $vid) {
+      $items[$vid] = 0;
+    }
+  }
+  foreach ($items as $vid => $tid) {
+    $children = taxonomy_get_tree($vid, $tid);
+    foreach ($children as $child) {
+      $tree[$child->tid] = array(
+        'access_id' => $child->tid,
+        'access_type_id' => $child->vid,
+        'name' => $child->name,
+        'description' => $child->description,
+        'weight' => $child->weight,
+        'depth' => $child->depth,
+        'parent' => isset($child->parents[0]) ? $child->parents[0] : 0,
+      );
+    }
+  }
+  if ($keys) {
+    return array_keys($tree);
+  }
+  return $tree;
+}
+
+/**
+ * Load data for a taxonomy term.
+ */
+function workbench_access_load_taxonomy($scheme) {
+  $term = taxonomy_term_load($scheme['access_id']);
+  $data = array(
+    'name' => $term->name,
+    'description' => $term->description,
+    'access_id' => $term->tid,
+  );
+  return $data;
+}
+
+/**
+ * Get the relevant taxonomy rules for this node.
+ *
+ * @param $node
+ *   The node being requested.
+ *
+ * @return
+ *   An array of term ids.
+ *
+ * @TODO: clean this up!
+ */
+function workbench_access_get_node_taxonomy($node) {
+  $terms = array();
+  return $terms;
 }
