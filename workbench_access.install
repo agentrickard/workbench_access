@@ -205,4 +205,23 @@ function workbench_access_uninstall() {
   }
   variable_del('workbench_access');
   variable_del('workbench_access_taxonomy');
+  variable_del('workbench_access_menu');
+}
+
+/**
+ * Upgrade existing sites.
+ *
+ * NOTE: This should be removed from the release version.
+ */
+function workbench_access_update_0001() {
+  $taxonomy = variable_get('workbench_access_taxonomy', 0);
+  if (!is_array($taxonomy)) {
+    if (empty($taxonomy)) {
+      variable_set('workbench_access_taxonomy', array());
+    }
+    else {
+      variable_set('workbench_access_taxonomy', array($taxonomy));
+    }
+  }
+  return t('Set access rules correctly.');
 }
