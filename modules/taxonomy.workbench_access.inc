@@ -142,6 +142,16 @@ function workbench_access_taxonomy_tree($info, $keys) {
     }
   }
   foreach ($items as $vid => $tid) {
+    $vocabulary = taxonomy_vocabulary_load($vid);
+    $tree[$vocabulary->machine_name] = array(
+      'access_id' => $vocabulary->machine_name,
+      'access_type_id' => $vocabulary->vid,
+      'name' => $vocabulary->name,
+      'description' => $vocabulary->description,
+      'weight' => 0,
+      'depth' => 0,
+      'parent' => 0,
+    );
     $children = taxonomy_get_tree($vid, $tid);
     foreach ($children as $child) {
       $tree[$child->tid] = array(
@@ -150,8 +160,8 @@ function workbench_access_taxonomy_tree($info, $keys) {
         'name' => $child->name,
         'description' => $child->description,
         'weight' => $child->weight,
-        'depth' => $child->depth,
-        'parent' => isset($child->parents[0]) ? $child->parents[0] : 0,
+        'depth' => $child->depth+1,
+        'parent' => !empty($child->parents[0]) ? $child->parents[0] : $vocabulary->machine_name,
       );
     }
   }
@@ -165,12 +175,21 @@ function workbench_access_taxonomy_tree($info, $keys) {
  * Load data for a taxonomy term.
  */
 function workbench_access_load_taxonomy($scheme) {
-  $term = taxonomy_term_load($scheme['access_id']);
-  $data = array(
-    'name' => $term->name,
-    'description' => $term->description,
-    'access_id' => $term->tid,
-  );
+  if ($vocabulary = taxonomy_vocabulary_machine_name_load($scheme['access_id'])) {
+    $data = array(
+      'name' => $vocabulary->name,
+      'description' => $vocabulary->description,
+      'access_id' => $vocabulary->machine_name,
+    );  
+  }
+  else {
+    $term = taxonomy_term_load($scheme['access_id']);
+    $data = array(
+      'name' => $term->name,
+      'description' => $term->description,
+      'access_id' => $term->tid,
+    );
+  }
   return $data;
 }
 

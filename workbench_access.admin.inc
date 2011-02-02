@@ -316,12 +316,11 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
       // Nest the children so the user understands the hierarchy.
       if ($section['depth'] == 0 || !isset($active['active'][$section['parent']])) {
         $parent = $section['name'];
-        $base_depth = $section['depth'];
       }
       $count = db_query("SELECT COUNT(uid) FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id",
         array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
         )->fetchField();
-      $list[$section['access_id']] = str_repeat('-', $section['depth'] - $base_depth) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id) . ' [' . format_plural($count, '1 editor', '@count editors') . ']';
+      $list[$section['access_id']] = str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id) . ' [' . format_plural($count, '1 editor', '@count editors') . ']';
     }
     $output .= theme('item_list', array('items' => $list));
     return $output;

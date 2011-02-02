@@ -183,14 +183,25 @@ function _workbench_access_menu_build_tree(&$tree, $link) {
 }
 
 /**
- * Load data for a menu link.
+ * Load data for a menu.
  */
 function workbench_access_load_menu($scheme) {
-  $item = (object) menu_link_load($scheme['access_id']);
-  $data = array(
-    'access_id' => $item->mlid,
-    'name' => $item->link_title,
-    'description' => isset($item->options['attributes']['title']) ? $item->options['attributes']['title'] : '',
-  );
+  // This might be a menu or a single menu item.
+  if ($menu = menu_load($scheme['access_id'])) {
+    $menu = (object) $menu;
+    $data = array(
+      'access_id' => $menu->menu_name,
+      'name' => $menu->title,
+      'description' => $menu->description,
+    );
+  }
+  else {
+    $item = (object) menu_link_load($scheme['access_id']);
+    $data = array(
+      'access_id' => $item->mlid,
+      'name' => $item->link_title,
+      'description' => isset($item->options['attribute']['description']) ? $item->options['attribute']['description'] : '',
+    );
+  }
   return $data;
 }

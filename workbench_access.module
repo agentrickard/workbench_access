@@ -710,7 +710,7 @@ function workbench_access_configuration(&$form, &$form_state) {
  * @param &$tree
  *   The hierarchy array, passed by reference.
  * @param $sections
- *   An options array of sections to limit the return set.
+ *   An optional array of sections to limit the return set.
  * @param $depth
  *   Internal depth marker, used for recursive array processing. Do not use.
  *
@@ -724,6 +724,8 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
   }
   if ($depth > $max_depth) {
     if (empty($sections)) {
+      // Reset max_depth static in case we get a new function call.
+      $max_depth = 0;
       return;
     }
     // If passed a sections array, find all its children, but keep
@@ -748,6 +750,8 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
           unset($tree[$access_id]);
         }
       }
+      // Reset max_depth static in case we get a new function call.
+      $max_depth = 0;
       return;
     }
   }
@@ -756,7 +760,7 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
     if ($item['depth'] > $max_depth) {
       $max_depth = $item['depth'];
     }
-    if ($depth == 0 && $item['parent'] > 0 && isset($tree[$item['parent']])) {
+    if ($depth == 0 && !empty($item['parent']) && isset($tree[$item['parent']])) {
       $tree[$item['parent']]['children'][] = $id;
     }
     elseif ($item['depth'] > 0 && !empty($item['children']) && isset($tree[$item['parent']]['children'])) {
@@ -768,18 +772,27 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
 
 /**
  * Build form options from a tree.
+ *
+ * @param $tree
+ *   The current access tree.
+ * @param $active
+ *   An array of active sections, used as a filter.
+ *
+ * @return
+ *   An array of options, suitable for use in a form.
  */
-function workbench_access_options($tree, $options = array()) {
+function workbench_access_options($tree, $active) {
   $used = array();
   $parent = 0;
   $base_depth = 0;
   $options = array();
-  if (empty($tree)) {
+  if (empty($tree) || empty($active)) {
     return $options;
   }
   $tree_keys = array_keys($tree);
+  $active_keys = array_flip(array_keys($active));
   foreach ($tree as $section) {
-    if (in_array($section['access_id'], $used)) {
+    if (in_array($section['access_id'], $used) || !isset($active_keys[$section['access_id']])) {
       continue;
     }
     // Nest the children so the user understands the hierarchy.
@@ -788,7 +801,6 @@ function workbench_access_options($tree, $options = array()) {
       $base_depth = $section['depth'];
     }
     $options[$section['access_id']] = str_repeat('-', $section['depth'] - $base_depth) . ' ' . $section['name'];
-    # $options[$parent][$section['access_id']] = ($section['name'] == $parent ? t('All of') . ' ' : '') . str_repeat('-', $section['depth'] - $base_depth) . ' ' . $section['name'];
     $used[] = $section['access_id'];
   }
   return $options;
@@ -826,11 +838,14 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
 }
 
 /**
- * Given an access id and scheme, load the object with it's data.
+ * Given an access id and scheme, load the object with its data.
  */
 function workbench_access_load_access_info($scheme) {
   $function = 'workbench_access_load_'. $scheme['access_type'];
-  return $function($scheme);
+  if (function_exists($function)) {
+    return $function($scheme);
+  }
+  return array();
 }
 
 /**
@@ -860,7 +875,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
       workbench_access_build_tree($tree, array_keys($user->workbench_access));
     }
     // Generate options so we can check for access.
-    $options = workbench_access_options($tree);
+    $options = workbench_access_options($tree, $active['active']);
      // TODO: multi-select
     $default = NULL;
     if (!empty($form['#node']->workbench_access)) {
