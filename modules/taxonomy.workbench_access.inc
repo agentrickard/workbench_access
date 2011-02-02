@@ -62,9 +62,7 @@ function taxonomy_workbench_access_configuration(&$form, &$form_state) {
   $options = array();
   $vocabularies = taxonomy_get_vocabularies();
   foreach ($vocabularies as $vid => $vocabulary) {
-    if ($vocabulary->module == 'workbench_access') {
-      $options[$vid] = $vocabulary->name;
-    }
+    $options[$vid] = $vocabulary->name;
   }
   $form['taxonomy_workbench_access_info'] = array(
     '#type' => 'fieldset',
