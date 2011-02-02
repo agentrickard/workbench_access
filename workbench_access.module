@@ -667,6 +667,42 @@ function workbench_access_taxonomy_term_delete($term) {
 }
 
 /**
+ * Implements hook_taxonomy_vocabulary_delete().
+ *
+ * If an active vocabulary is deleted, cascade the change through our system.
+ */
+function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $vocabulary->machine_name))->fetchAssoc();
+  if (!empty($access_scheme)) {
+    workbench_access_section_delete($access_scheme);
+  }
+}
+
+/**
+ * Implements hook_menu_delete().
+ *
+ * If an active menu is deleted, cascade the change through our system.
+ */
+function workbench_access_menu_delete($menu) {
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'menu', ':access_id' => $menu['menu_name']))->fetchAssoc();
+  if (!empty($access_scheme)) {
+    workbench_access_section_delete($access_scheme);
+  }
+}
+
+/**
+ * Implements hook_menu_link_delete().
+ *
+ * If an active menu link is deleted, cascade the change through our system.
+ */
+function workbench_access_menu_link_delete($link) {
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'menu', ':access_id' => $link['mlid']))->fetchAssoc();
+  if (!empty($access_scheme)) {
+    workbench_access_section_delete($access_scheme);
+  }
+}
+
+/**
  * Defines configuration options for the default access scheme.
  *
  * @see workbench_access_workbench_access_info()
