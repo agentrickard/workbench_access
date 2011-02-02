@@ -26,7 +26,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     $active = workbench_access_get_active_tree();
     $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($active['active']));
-    $options = workbench_access_options($tree);
+    $options = workbench_access_options($tree, $active['active']);
     $form['access_id'] = array(
       '#type' => 'select',
       '#title' => t('Sections'),
@@ -55,7 +55,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     $active = workbench_access_get_active_tree();
     $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($account->workbench_access));
-    $options = workbench_access_options($tree);
+    $options = workbench_access_options($tree, $active['active']);
     $form['access_id'] = array(
       '#type' => 'select',
       '#multiple' => TRUE,

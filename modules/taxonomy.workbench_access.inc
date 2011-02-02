@@ -206,3 +206,27 @@ function workbench_access_get_node_taxonomy($node) {
   $terms = array();
   return $terms;
 }
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ *
+ * If an active term is deleted, cascade the change through our system.
+ */
+function workbench_access_taxonomy_term_delete($term) {
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $term->tid))->fetchAssoc();
+  if (!empty($access_scheme)) {
+    workbench_access_section_delete($access_scheme);
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ *
+ * If an active vocabulary is deleted, cascade the change through our system.
+ */
+function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $vocabulary->machine_name))->fetchAssoc();
+  if (!empty($access_scheme)) {
+    workbench_access_section_delete($access_scheme);
+  }
+}

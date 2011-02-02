@@ -129,8 +129,13 @@ function workbench_access_theme($existing, $type, $theme, $path) {
  *
  * Shows the view we need for the Workbench front page.
  */
-function workbench_access_workbench_content_alter(&$content) {
-  $content['workbench_access']['#markup'] = views_embed_view('workbench_access_content');
+function workbench_access_workbench_content_alter(&$output) {
+  $output = array();
+  $output['field_workbench_access'] = array(
+    '#title' => t('My Sections'),
+    '#markup' => views_embed_view('workbench_access_content'),
+    '#theme' => 'workbench_element',
+  );
 }
 
 /**
@@ -652,54 +657,6 @@ function workbench_access_user_delete($account) {
   db_delete('workbench_access_user')
     ->condition('uid', $uid)
     ->execute();
-}
-
-/**
- * Implements hook_taxonomy_term_delete().
- *
- * If an active term is deleted, cascade the change through our system.
- */
-function workbench_access_taxonomy_term_delete($term) {
-  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $term->tid))->fetchAssoc();
-  if (!empty($access_scheme)) {
-    workbench_access_section_delete($access_scheme);
-  }
-}
-
-/**
- * Implements hook_taxonomy_vocabulary_delete().
- *
- * If an active vocabulary is deleted, cascade the change through our system.
- */
-function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
-  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $vocabulary->machine_name))->fetchAssoc();
-  if (!empty($access_scheme)) {
-    workbench_access_section_delete($access_scheme);
-  }
-}
-
-/**
- * Implements hook_menu_delete().
- *
- * If an active menu is deleted, cascade the change through our system.
- */
-function workbench_access_menu_delete($menu) {
-  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'menu', ':access_id' => $menu['menu_name']))->fetchAssoc();
-  if (!empty($access_scheme)) {
-    workbench_access_section_delete($access_scheme);
-  }
-}
-
-/**
- * Implements hook_menu_link_delete().
- *
- * If an active menu link is deleted, cascade the change through our system.
- */
-function workbench_access_menu_link_delete($link) {
-  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'menu', ':access_id' => $link['mlid']))->fetchAssoc();
-  if (!empty($access_scheme)) {
-    workbench_access_section_delete($access_scheme);
-  }
 }
 
 /**
