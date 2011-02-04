@@ -1,17 +1,19 @@
 <?php
+// $Id$
+
 $view = new view;
 $view->name = 'workbench_access_content';
-$view->description = 'Workbench content';
+$view->description = 'Content assigned to the user\'s editorial sections.';
 $view->tag = 'Workbench';
-$view->view_php = '';
 $view->base_table = 'node';
-$view->is_cacheable = FALSE;
+$view->human_name = '';
+$view->core = 0;
 $view->api_version = '3.0-alpha1';
 $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
 
 /* Display: Defaults */
 $handler = $view->new_display('default', 'Defaults', 'default');
-$handler->display->display_options['use_ajax'] = TRUE;
+$handler->display->display_options['use_ajax'] = FALSE;
 $handler->display->display_options['access']['type'] = 'perm';
 $handler->display->display_options['access']['perm'] = 'access workbench';
 $handler->display->display_options['cache']['type'] = 'none';
@@ -129,6 +131,7 @@ $handler->display->display_options['fields']['status']['not'] = 0;
 $handler->display->display_options['fields']['changed']['id'] = 'changed';
 $handler->display->display_options['fields']['changed']['table'] = 'node';
 $handler->display->display_options['fields']['changed']['field'] = 'changed';
+$handler->display->display_options['fields']['changed']['label'] = 'Last updated';
 $handler->display->display_options['fields']['changed']['alter']['alter_text'] = 0;
 $handler->display->display_options['fields']['changed']['alter']['make_link'] = 0;
 $handler->display->display_options['fields']['changed']['alter']['absolute'] = 0;
@@ -137,9 +140,11 @@ $handler->display->display_options['fields']['changed']['alter']['word_boundary'
 $handler->display->display_options['fields']['changed']['alter']['ellipsis'] = 1;
 $handler->display->display_options['fields']['changed']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['changed']['alter']['html'] = 0;
+$handler->display->display_options['fields']['changed']['element_label_colon'] = 1;
+$handler->display->display_options['fields']['changed']['element_default_classes'] = 1;
 $handler->display->display_options['fields']['changed']['hide_empty'] = 0;
 $handler->display->display_options['fields']['changed']['empty_zero'] = 0;
-$handler->display->display_options['fields']['changed']['date_format'] = 'raw time ago';
+$handler->display->display_options['fields']['changed']['date_format'] = 'time ago';
 /* Field: Workbench Access: Edit link */
 $handler->display->display_options['fields']['edit']['id'] = 'edit';
 $handler->display->display_options['fields']['edit']['table'] = 'workbench_access';
@@ -164,7 +169,6 @@ $handler->display->display_options['filters']['title']['exposed'] = TRUE;
 $handler->display->display_options['filters']['title']['expose']['label'] = 'Title';
 $handler->display->display_options['filters']['title']['expose']['identifier'] = 'title';
 $handler->display->display_options['filters']['title']['expose']['remember'] = 1;
-$handler->display->display_options['filters']['title']['case'] = 1;
 /* Filter: Node: Type */
 $handler->display->display_options['filters']['type']['id'] = 'type';
 $handler->display->display_options['filters']['type']['table'] = 'node';
@@ -195,3 +199,26 @@ $handler->display->display_options['filters']['access_id']['expose']['remember']
 $handler->display->display_options['filters']['access_id']['expose']['single'] = 0;
 $handler->display->display_options['filters']['access_id']['access_id'] = array();
 $handler->display->display_options['filters']['access_id']['size'] = '5';
+
+/* Display: Block */
+$handler = $view->new_display('block', 'Block', 'block_1');
+$translatables['workbench_access_content'] = array(
+  t('Defaults'),
+  t('more'),
+  t('Apply'),
+  t('Reset'),
+  t('Sort By'),
+  t('Asc'),
+  t('Desc'),
+  t('Items per page'),
+  t('- All -'),
+  t('Offset'),
+  t('Title'),
+  t('Section'),
+  t('Type'),
+  t('Published'),
+  t('Last updated'),
+  t('Edit'),
+  t('Sections'),
+  t('Block'),
+);
