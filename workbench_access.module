@@ -315,25 +315,31 @@ function workbench_access_in_tree($access_id, $account_access) {
  * @return
  *   An array of access rules.
  */
-function workbench_access_get_access_tree($account_access = NULL) {
-  if (is_null($account_access)) {
+function workbench_access_get_access_tree($account_access = array()) {
+  $trees = &drupal_static(__FUNCTION__);
+  $key = implode($account_access);
+  if (isset($trees[$key])) {
+    return $trees[$key];
+  }
+  if (empty($account_access)) {
     $account = $GLOBALS['user'];
     workbench_access_load_user_data($account);
     $account_access = $account->workbench_access;
   }
-  $tree = array();
+  $trees[$key] = array();
   if (empty($account_access)) {
-    return $tree;
+    return $trees[$key];
   }
   $access_scheme = db_select('workbench_access', 'wa')
     ->addTag('workbench_access')
     ->fields('wa', array('access_id', 'access_type', 'access_scheme', 'access_type_id'))
     ->condition('wa.access_id', $account_access, 'IN')
+    ->condition('wa.access_type', variable_get('workbench_access', 'taxonomy'))
     ->execute()->fetchAllAssoc('access_id', PDO::FETCH_ASSOC);
   foreach ($access_scheme as $id => $info) {
-    $tree[$id] = workbench_access_tree($info, TRUE);
+    $trees[$key][$id] = workbench_access_tree($info, TRUE);
   }
-  return $tree;
+  return $trees[$key];
 }
 
 /**
@@ -365,7 +371,7 @@ function workbench_access_tree($info, $keys = FALSE) {
  * Load the active tree.
  */
 function workbench_access_get_active_tree() {
-  static $active;
+  $active = &drupal_static(__FUNCTION__);
   if (isset($active['scheme'])) {
     return $active;
   }
@@ -389,16 +395,19 @@ function workbench_access_get_active_tree() {
  * Implements hook_node_load().
  */
 function workbench_access_node_load($nodes, $types) {
-  $active = workbench_access_get_active_tree();
+  static $scheme;
+  if (!isset($scheme)) {
+    $scheme = variable_get('workbench_access', 'taxonomy');
+  }
+  $result = db_query("SELECT nid, access_id FROM {workbench_access_node} WHERE nid IN (:nid) AND access_scheme = :access_scheme", array(':nid' => array_keys($nodes), ':access_scheme' => $scheme))->fetchAllAssoc('nid');
   foreach ($nodes as $node) {
     // Cannot load if the node has not been created yet.
-    if (!isset($node->nid)) {
+    if (empty($node->nid)) {
       continue;
     }
     $nodes[$node->nid]->workbench_access = array();
-    $result = db_query("SELECT access_id FROM {workbench_access_node} WHERE nid = :nid", array(':nid' => $node->nid));
-    foreach ($result as $record) {
-      $nodes[$node->nid]->workbench_access[$record->access_id] = $record->access_id;
+    if (isset($result[$node->nid])) {
+      $nodes[$node->nid]->workbench_access[$result[$node->nid]->access_id] = $result[$node->nid]->access_id;
     }
   }
 }
@@ -455,7 +464,7 @@ function workbench_access_user_load($users) {
  *   No return. Add the workbench_access attribute by reference.
  */
 function workbench_access_load_user_data($account) {
-  static $lookup;
+  $lookup = drupal_static(__FUNCTION__);
   if (isset($lookup[$account->uid])) {
     $account->workbench_access = $lookup[$account->uid];
     return;
@@ -576,12 +585,15 @@ function workbench_access_section_delete($section) {
  *   An array of access_ids or a data array.
  */
 function workbench_access_get_ids_by_scheme($access_scheme, $keys = FALSE) {
-  $data = db_select('workbench_access', 'wa')
-    ->addTag('workbench_access')
-    ->fields('wa', array('access_id', 'access_scheme', 'access_type', 'access_type_id'))
-    ->condition('wa.access_scheme', $access_scheme['access_scheme'])
-    ->condition('wa.access_type_id', $access_scheme['access_type_id'])
-    ->execute()->fetchAllAssoc('access_id', PDO::FETCH_ASSOC);
+  $data = &drupal_static(__FUNCTION__);
+  if (!isset($data)) {
+    $data = db_select('workbench_access', 'wa')
+      ->addTag('workbench_access')
+      ->fields('wa', array('access_id', 'access_scheme', 'access_type', 'access_type_id'))
+      ->condition('wa.access_scheme', $access_scheme['access_scheme'])
+      ->condition('wa.access_type_id', $access_scheme['access_type_id'])
+      ->execute()->fetchAllAssoc('access_id', PDO::FETCH_ASSOC);
+  }
   if ($keys) {
     return array_keys($data);
   }
