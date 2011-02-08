@@ -87,6 +87,9 @@ function workbench_access_permission() {
     'assign workbench access' => array(
       'title' => t('Assign users to Workbench sections'),
     ),
+    'access workbench access by role' => array(
+      'title' => t('Allow all members of this role to be assigned to Workbench sections'),
+    ),
   );
   return $permissions;
 }
@@ -478,7 +481,23 @@ function workbench_access_load_user_data($account) {
     ->condition('wau.uid', $account->uid)
     ->condition('wau.access_scheme', $access_scheme);
   $result = $query->execute()->fetchAll();
-  foreach ($result as $item) {
+  $items = array();
+  foreach ($result as $data) {
+    $items[$data->access_id] = $data;
+  }
+  // Add roles.
+  $query = db_select('workbench_access_role', 'war')
+    ->addTag('workbench_access_role')
+    ->fields('war', array('access_id'))
+    ->condition('war.rid', array_keys($account->roles), 'IN')
+    ->condition('war.access_scheme', $access_scheme);
+  $result = $query->execute()->fetchAll();
+  foreach ($result as $data) {
+    if (!isset($items[$data->access_id])) {
+      $items[$data->access_id] = $data;
+    }
+  }
+  foreach ($items as $item) {
     // Get the permissions for those sections.
     // @TODO: complex permission handling.
     $access[$item->access_id] = array(
@@ -666,6 +685,50 @@ function workbench_access_user_section_delete($uid, $access_id, $access_scheme) 
 }
 
 /**
+ * Save a role access record and notify other modules.
+ *
+ * @param $rid
+ *   The active role id.
+ * @param $access_id
+ *   The access id to store.
+ * @param $access_scheme
+ *   The active access scheme
+ *
+ * @see hook_workbench_access_save_role().
+ */
+function workbench_access_role_section_save($rid, $access_id, $access_scheme) {
+  $record['rid'] = $rid;
+  $record['access_id'] = $access_id;
+  $record['access_scheme'] = $access_scheme;
+  drupal_write_record('workbench_access_role', $record);
+  $role = user_role_load($rid, TRUE);
+  module_invoke_all('workbench_access_save_role', $role, $access_id, $access_scheme);
+}
+
+/**
+ * Deletes an access rule from the {workbench_access_user} table.
+ *
+ * @param $uid
+ *   The active user id.
+ * @param $access_id
+ *   The active access id.
+ * @param $access_scheme
+ *   The active access scheme.
+ *
+ * @see hook_workbench_access_section_delete().
+ */
+function workbench_access_role_section_delete($rid, $access_id, $access_scheme) {
+  db_delete('workbench_access_role')
+    ->condition('access_id', $access_id)
+    ->condition('access_scheme', $access_scheme)
+    ->condition('rid', $rid)
+    ->execute();
+  // Notify other modules.
+  $role = user_role_load($rid, TRUE);
+  module_invoke_all('workbench_access_delete_role', $role, $access_id, $access_scheme);
+}
+
+/**
  * Implements hook_user_delete().
  *
  * On user delete, remove access rules. Note that we do not fire our
@@ -675,6 +738,17 @@ function workbench_access_user_section_delete($uid, $access_id, $access_scheme) 
 function workbench_access_user_delete($account) {
   db_delete('workbench_access_user')
     ->condition('uid', $uid)
+    ->execute();
+}
+
+/**
+ * Implements hook_user_role_delete().
+ *
+ * On role delete, remove access rules.
+ */
+function workbench_access_user_role_delete($role) {
+  db_delete('workbench_access_role')
+    ->condition('rid', $role->rid)
     ->execute();
 }
 

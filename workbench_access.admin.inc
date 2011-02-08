@@ -308,7 +308,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
     if (user_access('administer workbench access')) {
       $output .= ' ' . t('You may <a href="!url">add or delete sections</a>.', array('!url' => url('admin/config/workbench/access'))) .'</p>';
     }
-    $list = array();
+    $rows = array();
     foreach ($active['tree'] as $access_id => $section) {
       if (!isset($active['active'][$access_id])) {
         continue;
@@ -320,10 +320,19 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
       $count = db_query("SELECT COUNT(uid) FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id",
         array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
         )->fetchField();
-      $list[$section['access_id']] = str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id) . ' [' . format_plural($count, '1 editor', '@count editors') . ']';
+      $count2 = db_query("SELECT COUNT(rid) FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_id",
+        array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
+        )->fetchField();
+      $rows[] = array(
+        str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id),
+        format_plural($count, '1 editor', '@count editors'),
+        format_plural($count2, '1 role', '@count roles'),
+      );
     }
-    $output .= theme('item_list', array('items' => $list));
-    return $output;
+    $header = array(t('Section'), t('Editors'), t('Roles'));
+    $output .= theme('table', array('header' => $header, 'rows' => $rows));
+    $build['content']['#markup'] = $output;
+    return $build;
   }
   return drupal_get_form('workbench_access_editor_form', $access_type, $access_type_id);
 }
@@ -368,6 +377,17 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
     '#title' => t('Add editor'),
     '#autocomplete_path' => 'workbench_access/autocomplete/' . $access_type . '/' . $access_type_id,
   );
+  // User role form.
+  $roles = user_roles(FALSE, 'access workbench access by role');
+  $default = array_keys(db_query("SELECT rid FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
+  $form['roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Roles'),
+    '#options' => $roles,
+    '#default_value' => $default,
+    '#description' => empty($roles) ? t('There are no roles with the proper permissions.') : t('Select the role(s) that should have all users assigned to this section.'),
+  );
+  $form['default_roles'] = array('#type' => 'value', '#value' => !empty($roles) ? $default : array());
   $form['workbench_access'] = array(
     '#type' => 'value',
     '#value' => $active['access_scheme'],
@@ -384,6 +404,7 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
  */
 function workbench_access_editor_form_submit($form, &$form_state) {
   $values = $form_state['values'];
+  // User handling.
   if (!empty($values['add_user'])) {
     $account = user_load_by_name($values['add_user']);
     if (!empty($account->status) && !in_array($values['workbench_access']['access_id'], array_keys($account->workbench_access))) {
@@ -395,6 +416,15 @@ function workbench_access_editor_form_submit($form, &$form_state) {
       if (!empty($value['remove'])) {
         workbench_access_user_section_delete($key, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
       }
+    }
+  }
+  // Role handling.
+  foreach ($values['roles'] as $rid => $status) {
+    if (!empty($status) && !in_array($rid, $values['default_roles'])) {
+      workbench_access_role_section_save($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
+    }
+    elseif (empty($status) && in_array($rid, $values['default_roles'])) {
+      workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);    
     }
   }
 }
