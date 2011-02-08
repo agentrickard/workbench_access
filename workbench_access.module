@@ -91,7 +91,7 @@ function workbench_access_permission() {
       'title' => t('Allow all members of this role to be assigned to Workbench sections'),
     ),
     'view workbench access information' => array(
-      'title' => t('View users to view Workbench access information'),
+      'title' => t('View Workbench access information'),
     ),
   );
   return $permissions;
