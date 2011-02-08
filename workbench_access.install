@@ -77,6 +77,36 @@ function workbench_access_schema() {
     ),
   );
 
+  $schema['workbench_access_role'] = array(
+    'description' => 'Maps role access to sections',
+    'fields' => array(
+      'rid' => array(
+        'description' => 'The role identifier. Foreign key to {role}.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'access_id' => array(
+        'description' => 'The section identifier. Foreign key to {workbench_access}.',
+        'type' => 'varchar',
+        'length' => '80',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'access_scheme' => array(
+        'description' => 'The module responsbile for this access system.',
+        'type' => 'varchar',
+        'length' => '40',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('rid', 'access_id', 'access_scheme'),
+    'foreign keys' => array(
+      'section_id' => array('workbench_access' => array('access_id', 'access_scheme')),
+      'rid' => array('role' => 'rid'),
+    ),
+  );
+
   $schema['workbench_access_node'] = array(
     'description' => 'Maps sections to nodes',
     'fields' => array(
@@ -224,4 +254,46 @@ function workbench_access_update_0001() {
     }
   }
   return t('Set access rules correctly.');
+}
+
+/**
+ * Upgrade existing sites.
+ *
+ * NOTE: This should be removed from the release version.
+ */
+function workbench_access_update_0002() {
+  if (db_table_exists('workbench_access_role')) {
+    return t('Update not required.');
+  }
+  $schema = array(
+    'description' => 'Maps role access to sections',
+    'fields' => array(
+      'rid' => array(
+        'description' => 'The role identifier. Foreign key to {role}.',
+        'type' => 'int',
+        'not null' => TRUE,
+      ),
+      'access_id' => array(
+        'description' => 'The section identifier. Foreign key to {workbench_access}.',
+        'type' => 'varchar',
+        'length' => '80',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+      'access_scheme' => array(
+        'description' => 'The module responsbile for this access system.',
+        'type' => 'varchar',
+        'length' => '40',
+        'not null' => TRUE,
+        'default' => '',
+      ),
+    ),
+    'primary key' => array('rid', 'access_id', 'access_scheme'),
+    'foreign keys' => array(
+      'section_id' => array('workbench_access' => array('access_id', 'access_scheme')),
+      'rid' => array('role' => 'rid'),
+    ),
+  );
+  db_create_table('workbench_access_role', $schema);
+  return t('Added the workbench_access_role table');
 }
