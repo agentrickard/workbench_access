@@ -107,6 +107,13 @@ function workbench_access_hook_info() {
     'workbench_access_field_form',
     'workbench_access_field_ui_field_settings_form',
     'workbench_access_node_element',
+    'workbench_access_save',
+    'workbench_access_delete',
+    'workbench_access_save_user',
+    'workbench_access_delete_user',
+    'workbench_access_save_role',
+    'workbench_access_delete_role',
+    'workbench_access_user_alter',
   );
   foreach ($items as $item) {
     $hooks[$item]['group'] = 'workbench_access';
@@ -511,7 +518,7 @@ function workbench_access_load_user_data($account) {
     );
   }
   // Allow modules to alter the default behavior.
-  drupal_alter('workbench_user_access', $access, $account);
+  drupal_alter('workbench_access_user', $access, $account);
   $lookup[$account->uid] = $access;
   $account->workbench_access = $lookup[$account->uid];
 }
@@ -1010,4 +1017,70 @@ function workbench_access_alter_form($hook, &$form, $form_state) {
     return;
   }
   $function($form, $form_state, $active);
+}
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ *
+ * Change the name of the edit tab, conditionally.
+ *
+ * If a piece of content has a published version and the published version is
+ * also the current moderation revision, the "Edit" tab should be titled "Create
+ * draft".
+ *
+ * If a piece of content has a published version and the current moderation
+ * revision is a newer, the "Edit" tab should be titled "Edit draft".
+ *
+ * If a piece of content has no published version, the "Edit" tab should be
+ * titled "Edit draft".
+ *
+ * Otherwise, the "Edit" tab should not be renamed.
+ */
+function workbench_access_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  // Do we need to bother doing anything?
+  if (empty($data['tabs'][0]['output']) || empty($router_item['page_arguments'][0])) {
+    return;
+  }
+
+  // Check the path.
+  $arg = arg(0, $root_path);
+  $arg1 = arg(1, $root_path);
+  if ($arg != 'node' || $arg1 != '%') {
+    return;
+  }
+
+  // Devel module passes node as the first parameter, but we support it.
+  if (count($router_item['page_arguments']) > 1 && $router_item['page_arguments'][0] == 'node') {
+    array_shift($router_item['page_arguments']);
+  }
+  // Ensure that we have a proper node.
+  if (!is_object($router_item['page_arguments'][0])) {
+    return;
+  }
+  $node = $router_item['page_arguments'][0];
+  if (empty($node->vid) || empty($node->workbench_moderation['current'])) {
+    return;
+  }
+  $state = $node->workbench_moderation;
+  // Set the proper title for this item.
+  if (!isset($state['published']->vid)) {
+    $title = t('Edit draft');
+  }
+  elseif ($state['current']->vid > $state['published']->vid) {
+    $title = t('Edit draft');
+  }
+  elseif ($state['current']->vid == $state['published']->vid) {
+    $title = t('Create draft');
+  }
+  else {
+    return;
+  }
+  foreach ($data['tabs'][0]['output'] as $key => $item) {
+    // Is there an edit tab here?
+    if (isset($item['#link']['path']) && $item['#link']['path'] == 'node/%/edit') {
+      $data['tabs'][0]['output'][$key]['#link']['title'] = $title;
+      // There can be only one, Highlander.
+      break;
+    }
+  }
 }
