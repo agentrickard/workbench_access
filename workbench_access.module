@@ -90,6 +90,9 @@ function workbench_access_permission() {
     'access workbench access by role' => array(
       'title' => t('Allow all members of this role to be assigned to Workbench sections'),
     ),
+    'view workbench access information' => array(
+      'title' => t('View users to view Workbench access information'),
+    ),
   );
   return $permissions;
 }
@@ -1061,26 +1064,17 @@ function workbench_access_menu_local_tasks_alter(&$data, $router_item, $root_pat
   if (empty($node->vid) || empty($node->workbench_moderation['current'])) {
     return;
   }
-  $state = $node->workbench_moderation;
-  // Set the proper title for this item.
-  if (!isset($state['published']->vid)) {
-    $title = t('Edit draft');
-  }
-  elseif ($state['current']->vid > $state['published']->vid) {
-    $title = t('Edit draft');
-  }
-  elseif ($state['current']->vid == $state['published']->vid) {
-    $title = t('Create draft');
-  }
-  else {
+  $active = workbench_access_get_active_tree();
+  if (!isset($node->workbench_access)) {
     return;
   }
-  foreach ($data['tabs'][0]['output'] as $key => $item) {
-    // Is there an edit tab here?
-    if (isset($item['#link']['path']) && $item['#link']['path'] == 'node/%/edit') {
-      $data['tabs'][0]['output'][$key]['#link']['title'] = $title;
-      // There can be only one, Highlander.
-      break;
-    }
+  $access_id = current($node->workbench_access);
+  if (!isset($active['active'][$access_id])) {
+    return;
   }
+  $data['tabs'][0]['count']++;
+  $data['tabs'][0]['output'][] = array(
+    '#markup' => '<li><a>' . check_plain($active['tree'][$access_id]['name']) . '</a></li>',
+    '#access' => user_access('view workbench access information'),
+  );
 }
