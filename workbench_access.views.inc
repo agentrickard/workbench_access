@@ -83,3 +83,78 @@ function workbench_access_views_handlers() {
     ),
   );
 }
+
+/**
+ * This is an unfinished function designed to dynamically add the exposed fitlers
+ * that workbench_access provides.
+ */
+function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
+
+/*  if ($view->name  == 'workbench_access_content'  && $display_id == 'default') {
+
+    //dsm('###workbench_access_views_pre_view');
+    //dsm($view->display_handler->options['filters']);
+     unset($view->display_handler->options['filters']['created']);
+
+
+
+
+       unset($view->display_handler->options['filters']['access_id']);
+    //dsm($view->display_handler->options['filters']);
+
+  //$access_id_filter_definition =
+  $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_definition();
+
+//    dsm($view->display_handler->options['filters']);
+
+    //print_r($view);
+
+  }*/
+}
+
+
+/*
+function workbench_access_views_pre_build(&$view) {
+
+  if ($view->name  == 'workbench_access_content') {
+    dsm('###workbench_access_views_pre_build');
+    //dsm($view->name);
+    //print_r($view);
+//    dsm($view);
+  }
+}
+
+
+function workbench_access_views_pre_execute(&$view) {
+
+  if ($view->name  == 'workbench_access_content') {
+    dsm('###workbench_access_views_pre_execute');
+    dsm($view->name);
+    //print_r($view);
+//    dsm($view);
+  }
+}
+*/
+
+function _workbench_access_views_access_id_definition() {
+
+  return array (
+    'id' => 'access_id',
+    'table' => 'workbench_access',
+    'field' => 'access_id',
+    'operator' => 'or',
+    'exposed' => true,
+    'expose' =>
+    array (
+      'label' => 'Sections',
+      'identifier' => 'access_id',
+      'remember' => 1,
+      'single' => 0,
+    ),
+    'access_id' =>
+    array (
+    ),
+    'size' => '5',
+    'group' => '0',
+  );
+}
