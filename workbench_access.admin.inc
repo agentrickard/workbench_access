@@ -325,8 +325,8 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
         )->fetchField();
       $rows[] = array(
         str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id),
-        format_plural($count, '1 editor', '@count editors'),
-        format_plural($count2, '1 role', '@count roles'),
+        l(format_plural($count, '1 editor', '@count editors'), 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id),
+        l(format_plural($count2, '1 role', '@count roles'),  'admin/config/workbench/access/roles/' . $active['access_scheme']['access_type'] . '/' . $access_id),
       );
     }
     $header = array(t('Section'), t('Editors'), t('Roles'));
@@ -453,4 +453,48 @@ function theme_workbench_access_editor_form($variables) {
   $output .= theme('table', $variables);
   $output .= drupal_render_children($form);
   return $output;
+}
+
+ /**
+ * Display the roles for a section.
+ *
+ * @param $access_type
+ *   The type of access requested (e.g.g taxonomy).
+ * @param $access_type_id
+ *   The id for this specific access (here, a taxnomy term tid).
+ *
+ * @return
+ *   A list of editors within the given role.
+ *
+ * @see workbench_access_editor_form()
+ */
+function workbench_access_roles($access_type = NULL, $access_type_id = NULL) {
+  if (is_null($access_type) || is_null($access_type_id)) {
+    return 'foo';
+  }
+  $active = workbench_access_get_active_tree();
+  $access_info = $active['tree'][$access_type_id];
+  $output = '<h2>' . t('%name editors by role', array('%name' => $access_info['name'])) . '</h2>';
+  $output .= '<p>' . t('Active editors for the %section section, as determined by role.', array('%section' => $access_info['name']));
+  if (user_access('assign workbench access')) {
+    $output .= ' ' . t('You may <a href="!url">change these settings</a>.', array('!url' => url('admin/config/workbench/access/editors/'. $access_type . '/'. $access_type_id))) .'</p>';
+  }
+  $header = array(t('Editors'), t('Roles'));
+  $rows = array();
+  $roles = array_keys(db_query("SELECT war.rid FROM {workbench_access_role} war WHERE war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
+  $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:roles)", array(':roles' => $roles));
+  $users_by_role = array();
+  foreach ($users as $data) {
+    $users_by_role[$data->uid]['name'] = $data->name;
+    $users_by_role[$data->uid]['roles'][] = check_plain($data->role);
+  }
+  foreach ($users_by_role as $uid => $item) {
+    $rows[] = array(
+      l($item['name'], 'user/'. $uid),
+      theme('item_list', array('items' => $item['roles'], 'type' => 'ul')),
+    );
+  }
+  $output .= theme('table', array('header' => $header, 'rows' => $rows));
+  $build['content']['#markup'] = $output;
+  return $build;
 }

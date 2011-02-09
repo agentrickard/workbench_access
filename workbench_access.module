@@ -36,6 +36,15 @@ function workbench_access_menu() {
     'weight' => -10,
     'type' => MENU_DEFAULT_LOCAL_TASK,
   );
+  $items['admin/config/workbench/access/roles'] = array(
+    'title' => 'Roles',
+    'access arguments' => array('assign workbench access'),
+    'page callback' => 'workbench_access_roles',
+    'file' => 'workbench_access.admin.inc',
+    'description' => 'Role settings.',
+    'weight' => -8,
+    'type' => MENU_CALLBACK,
+  );
   $items['admin/config/workbench/access/sections'] = array(
     'title' => 'Sections',
     'access arguments' => array('administer workbench access'),
