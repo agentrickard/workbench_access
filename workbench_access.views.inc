@@ -85,57 +85,23 @@ function workbench_access_views_handlers() {
 }
 
 /**
- * This is an unfinished function designed to dynamically add the exposed fitlers
- * that workbench_access provides.
+ * Add dynamically the exposed fitlers that workbench_access provides to appropriate Views
  */
 function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
-/*  if ($view->name  == 'workbench_access_content'  && $display_id == 'default') {
-
-    //dsm('###workbench_access_views_pre_view');
-    //dsm($view->display_handler->options['filters']);
-     unset($view->display_handler->options['filters']['created']);
-
-
-
-
-       unset($view->display_handler->options['filters']['access_id']);
-    //dsm($view->display_handler->options['filters']);
-
-  //$access_id_filter_definition =
-  $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_definition();
-
-//    dsm($view->display_handler->options['filters']);
-
-    //print_r($view);
-
-  }*/
-}
-
-
-/*
-function workbench_access_views_pre_build(&$view) {
-
+  //There should be a more intelligent check here for which Views/display_ids upon which to act
+  //Right now it is only adding one View
   if ($view->name  == 'workbench_access_content') {
-    dsm('###workbench_access_views_pre_build');
-    //dsm($view->name);
-    //print_r($view);
-//    dsm($view);
+    $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_definition();
   }
 }
 
-
-function workbench_access_views_pre_execute(&$view) {
-
-  if ($view->name  == 'workbench_access_content') {
-    dsm('###workbench_access_views_pre_execute');
-    dsm($view->name);
-    //print_r($view);
-//    dsm($view);
-  }
-}
-*/
-
+/**
+ * Return the array definition of the access_id exposed filter
+ *
+ * This is called from workbench_access_views_pre_view to dynamically
+ * add this filter to given Views
+ */
 function _workbench_access_views_access_id_definition() {
 
   return array (
