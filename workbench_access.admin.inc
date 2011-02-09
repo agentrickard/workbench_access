@@ -306,7 +306,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
     $output = '<h2>' . t('Editorial sections') . '</h2>';
     $output .= '<p>' . t('The following sections are currently active.');
     if (user_access('administer workbench access')) {
-      $output .= ' ' . t('You may <a href="!url">add or delete sections</a>.', array('!url' => url('admin/config/workbench/access'))) .'</p>';
+      $output .= ' ' . t('You may <a href="!url">enable or disable sections</a>.', array('!url' => url('admin/config/workbench/access/sections'))) .'</p>';
     }
     $rows = array();
     foreach ($active['tree'] as $access_id => $section) {

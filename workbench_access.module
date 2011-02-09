@@ -22,11 +22,19 @@ function workbench_access_menu() {
   );
   $items['admin/config/workbench/access'] = array(
     'title' => 'Workbench Access',
-    'access arguments' => array('administer workbench access'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('workbench_access_section_form'),
+    'access arguments' => array('assign workbench access'),
+    'page callback' => 'workbench_access_editors',
     'file' => 'workbench_access.admin.inc',
     'description' => 'Workbench access control settings',
+  );
+  $items['admin/config/workbench/access/editors'] = array(
+    'title' => 'Editors',
+    'access arguments' => array('assign workbench access'),
+    'page callback' => 'workbench_access_editors',
+    'file' => 'workbench_access.admin.inc',
+    'description' => 'Editor settings.',
+    'weight' => -10,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['admin/config/workbench/access/sections'] = array(
     'title' => 'Sections',
@@ -35,17 +43,8 @@ function workbench_access_menu() {
     'page arguments' => array('workbench_access_section_form'),
     'file' => 'workbench_access.admin.inc',
     'description' => 'Define content sections for the Workbench Access module.',
-    'type' => MENU_DEFAULT_LOCAL_TASK,
-    'weight' => -10,
-  );
-  $items['admin/config/workbench/access/editors'] = array(
-    'title' => 'Editors',
-    'access arguments' => array('assign workbench access'),
-    'page callback' => 'workbench_access_editors',
-    'file' => 'workbench_access.admin.inc',
-    'description' => 'Editor settings.',
-    'weight' => -5,
     'type' => MENU_LOCAL_TASK,
+    'weight' => -5,
   );
   $items['admin/config/workbench/access/settings'] = array(
     'title' => 'Settings',
