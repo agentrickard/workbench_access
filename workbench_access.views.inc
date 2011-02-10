@@ -62,6 +62,9 @@ function workbench_access_views_data() {
   return $data;
 }
 
+/**
+ * Implementation of hook_views_handlers
+ */
 function workbench_access_views_handlers() {
   return array(
     'info' => array(
@@ -89,9 +92,8 @@ function workbench_access_views_handlers() {
  */
 function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
-  //There should be a more intelligent check here for which Views/display_ids upon which to act
-  //Right now it is only adding one View
-  if ($view->name  == 'workbench_access_content') {
+  //Target any view with a workbench tag that uses the base_table, node
+  if (is_numeric(strripos($view->tag, 'Workbench')) && $view->base_table == 'node') {
     $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_definition();
   }
 }
