@@ -224,12 +224,11 @@ function workbench_access_user_form($form, &$form_state, $account) {
           '#markup' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />',
         );
         if (isset($sections[$section['access_id']])) {
-          // &form_build_id=form-gTz2A0tW_-i8iUnvPLCnytNHmZKp2-0IoL_4JSzjJSI&form_token=yASSDKlt8cnNTaEB4UyynilWp2KZnZQ_2rOLThYhtTQ&form_id=views_exposed_form
           $query = array(
             'access_id[]' => $section['access_id'],
           );
           $form['sections'][$parent][$section['access_id']]['#prefix'] = '<strong>';
-          $form['sections'][$parent][$section['access_id']]['#suffix'] = '</strong>'; // .l(t('View content'), 'http://barnard.rickard.vash.palantir.net/admin/config/workbench/page/content', array($query));
+          $form['sections'][$parent][$section['access_id']]['#suffix'] = '</strong>';
         }
       }
     }
