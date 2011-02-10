@@ -43,7 +43,7 @@ function workbench_access_menu() {
     'file' => 'workbench_access.admin.inc',
     'description' => 'Role settings.',
     'weight' => -8,
-    'type' => MENU_CALLBACK,
+    'type' => MENU_LOCAL_TASK,
   );
   $items['admin/config/workbench/access/sections'] = array(
     'title' => 'Sections',
@@ -73,7 +73,7 @@ function workbench_access_menu() {
     'description' => 'Assign users to sections for the Workbench Access module.',
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/config/workbench/page/sections'] = array(
+  $items['admin/workbench/sections'] = array(
     'title' => 'My sections',
     'page callback' => 'workbench_access_sections',
     'access arguments' => array('access workbench'),
@@ -197,6 +197,8 @@ function workbench_access_field_extra_fields() {
  *
  * @param $module
  *   The name of the module file to load.
+ *
+ * @TODO: Allow loading from outside the module directory.
  */
 function workbench_access_load_include($module = NULL) {
   if (!is_null($module)) {
