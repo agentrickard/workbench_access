@@ -88,43 +88,73 @@ function workbench_access_views_handlers() {
 }
 
 /**
- * Add dynamically the exposed fitlers that workbench_access provides to appropriate Views
+ * Implementation of hook_view_pre_view
+ *
+ * Add dynamically the exposed fitlers that workbench_access provides to appropriate Views.
+ *
+ * There are a lot of 'if () {} else {}' statements in here to find out which options to target.
+ * These look at a given option and check if it uses the default settings or an override.
+ * The given option is then modified to add filters/fields/settings from workbench_access.
  */
 function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
-  //Target any view with a workbench tag that uses the base_table, node
+  //Target any view with a workbench tag that uses 'node' as the base_table.
   if (is_numeric(strripos($view->tag, 'Workbench')) && $view->base_table == 'node') {
-    $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_filter_definition();
 
-    //Add a section field and style options if this is a table
-    if ($view->display_handler->options['style_plugin'] == 'table') {
+    //This shorthand variable will increase readability.
+    $current_display = $view->current_display;
 
-      //This array will be spliced and remerged after inserting the new section field
-      $old_view_fields = $view->display_handler->options['fields'];
+    //If the current display uses the default filters, target the default filters.
+    if ($view->display[$current_display]->handler->options['defaults']['filters']) {
+      $filters = &$view->display['default']->handler->options['filters'];
+    }
+    //Otherwise, target this display's filters.
+    else {
+      $filters = &$view->display[$current_display]->handler->options['filters'];
+    }
 
-      //Get the number of fields
-      $count = count($old_view_fields);
+    //Add the access_id filter to the filters array.
+    $filters['access_id'] = _workbench_access_views_access_id_filter_definition();
 
-      //We're assuming here, using base 0, that the title will always be the first item in the fields array
-      //That might not be a safe assumption
-      $position_of_title = 0;
-      $length_of_remainder = $count - ($position_of_title + 1);
 
-      //Slice from the beginning of the array to after title, this may only one element, the title
-      $new_view_fields = array_slice($old_view_fields, 0, ($position_of_title + 1), TRUE);
+    //If the current display uses the default style_plugin, target the default style_plugin and style options.
+    if ($view->display[$current_display]->handler->options['defaults']['style_plugin']) {
+      $style_plugin  = &$view->display['default']->handler->options['style_plugin'];
+      $style_options = &$view->display['default']->handler->options['style_options'];
+    }
+    //Otherwise, target this display's style_plugin and style options.
+    else {
+      $style_plugin = &$view->display[$current_display]->handler->options['style_plugin'];
+      $style_options = &$view->display[$current_display]->handler->options['style_options'];
+    }
 
-      //Add the section field
-      $new_view_fields['section'] = _workbench_access_views_section_field_definition();
+    //Only Add a section field and style options if this is a table.
+    if ($style_plugin == 'table') {
 
-      //Add the rest of the items from the old array of fields
-      $array_after_title =  array_slice($old_view_fields, -$length_of_remainder, $length_of_remainder, TRUE);
-      $new_view_fields = array_merge($new_view_fields, $array_after_title);
+      //If the current display uses the default fields, target the default fields.
+      if ($view->display[$current_display]->handler->options['defaults']['fields']) {
+        $fields = &$view->display['default']->handler->options['fields'];
+      }
+      //Otherwise, target this display's fields.
+      else {
+        $fields = &$view->display[$current_display]->handler->options['fields'];
+      }
 
-      //Set the new fields array on the actual view
-      $view->display_handler->options['fields'] = $new_view_fields;
+      //This temporary variable will take all the values from
+      //the existing fields array and add a section field after the title.
+      $new_view_fields = array();
+      foreach ($fields as $key => $value) {
+        $new_view_fields[$key] = $value;
+        if ($key == 'title') {
+          $new_view_fields['section'] = _workbench_access_views_section_field_definition();
+        }
+      }
 
-      $view->display_handler->options['style_options']['columns']['section'] = 'section';
-      $view->display_handler->options['style_options']['info']['section'] = array(
+      //Set the new fields array on the actual view.
+      $fields = $new_view_fields;
+
+      $style_options['columns']['section'] = 'section';
+      $style_options['info']['section'] = array(
         'sortable' => 1,
         'align' => '',
         'separator' => '',
@@ -134,10 +164,10 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 }
 
 /**
- * Return the array definition of the access_id exposed filter
+ * Return the array definition of the access_id exposed filter.
  *
- * This is called from workbench_access_views_pre_view to dynamically
- * add this filter to given Views
+ * This is called from workbench_access_views_pre_view to dynamically.
+ * add this filter to given Views.
  */
 function _workbench_access_views_access_id_filter_definition() {
 
@@ -163,10 +193,10 @@ function _workbench_access_views_access_id_filter_definition() {
 }
 
 /**
- * Return the array definition of the section field
+ * Return the array definition of the section field.
  *
  * This is called from workbench_access_views_pre_view to dynamically
- * add this field to given Views
+ * add this field to given Views.
  */
 function _workbench_access_views_section_field_definition() {
  return array (
