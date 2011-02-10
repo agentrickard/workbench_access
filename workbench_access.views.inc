@@ -123,7 +123,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
       //Set the new fields array on the actual view
       $view->display_handler->options['fields'] = $new_view_fields;
 
-      $view->display_handler->options['style_options']['columns']['section'] = 'section_1';
+      $view->display_handler->options['style_options']['columns']['section'] = 'section';
       $view->display_handler->options['style_options']['info']['section'] = array(
         'sortable' => 1,
         'align' => '',
