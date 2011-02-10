@@ -94,7 +94,20 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
   //Target any view with a workbench tag that uses the base_table, node
   if (is_numeric(strripos($view->tag, 'Workbench')) && $view->base_table == 'node') {
-    $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_definition();
+    $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_filter_definition();
+
+    //Add the section field
+    $view->display_handler->options['fields']['section_1'] = _workbench_access_views_section_field_definition();
+
+    //Add style options if this is a table
+    if ($view->display_handler->options['style_plugin'] == 'table') {
+      $view->display_handler->options['style_options']['columns']['section_1'] = 'section_1';
+      $view->display_handler->options['style_options']['info']['section_1'] = array(
+        'sortable' => 1,
+        'align' => '',
+        'separator' => '',
+      );
+    }
   }
 }
 
@@ -104,7 +117,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
  * This is called from workbench_access_views_pre_view to dynamically
  * add this filter to given Views
  */
-function _workbench_access_views_access_id_definition() {
+function _workbench_access_views_access_id_filter_definition() {
 
   return array (
     'id' => 'access_id',
@@ -124,5 +137,32 @@ function _workbench_access_views_access_id_definition() {
     ),
     'size' => '5',
     'group' => '0',
+  );
+}
+
+/**
+ * Return the array definition of the section field
+ *
+ * This is called from workbench_access_views_pre_view to dynamically
+ * add this field to given Views
+ */
+function _workbench_access_views_section_field_definition() {
+ return array (
+    'id' => 'section',
+    'table' => 'workbench_access',
+    'field' => 'section',
+    'alter' =>
+      array (
+        'alter_text' => 0,
+        'make_link' => 0,
+        'absolute' => 0,
+        'trim' => 0,
+        'word_boundary' => 1,
+        'ellipsis' => 1,
+        'strip_tags' => 0,
+        'html' => 0,
+      ),
+    'hide_empty' => 0,
+    'empty_zero' => 0,
   );
 }
