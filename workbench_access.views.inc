@@ -96,13 +96,35 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
   if (is_numeric(strripos($view->tag, 'Workbench')) && $view->base_table == 'node') {
     $view->display_handler->options['filters']['access_id'] = _workbench_access_views_access_id_filter_definition();
 
-    //Add the section field
-    $view->display_handler->options['fields']['section_1'] = _workbench_access_views_section_field_definition();
-
-    //Add style options if this is a table
+    //Add a section field and style options if this is a table
     if ($view->display_handler->options['style_plugin'] == 'table') {
-      $view->display_handler->options['style_options']['columns']['section_1'] = 'section_1';
-      $view->display_handler->options['style_options']['info']['section_1'] = array(
+
+      //This array will be spliced and remerged after inserting the new section field
+      $old_view_fields = $view->display_handler->options['fields'];
+
+      //Get the number of fields
+      $count = count($old_view_fields);
+
+      //We're assuming here, using base 0, that the title will always be the first item in the fields array
+      //That might not be a safe assumption
+      $position_of_title = 0;
+      $length_of_remainder = $count - ($position_of_title + 1);
+
+      //Slice from the beginning of the array to after title, this may only one element, the title
+      $new_view_fields = array_slice($old_view_fields, 0, ($position_of_title + 1), TRUE);
+
+      //Add the section field
+      $new_view_fields['section'] = _workbench_access_views_section_field_definition();
+
+      //Add the rest of the items from the old array of fields
+      $array_after_title =  array_slice($old_view_fields, -$length_of_remainder, $length_of_remainder, TRUE);
+      $new_view_fields = array_merge($new_view_fields, $array_after_title);
+
+      //Set the new fields array on the actual view
+      $view->display_handler->options['fields'] = $new_view_fields;
+
+      $view->display_handler->options['style_options']['columns']['section'] = 'section_1';
+      $view->display_handler->options['style_options']['info']['section'] = array(
         'sortable' => 1,
         'align' => '',
         'separator' => '',
