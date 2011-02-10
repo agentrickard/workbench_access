@@ -105,7 +105,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
     $current_display = $view->current_display;
 
     //If the current display uses the default filters, target the default filters.
-    if ($view->display[$current_display]->handler->options['defaults']['filters']) {
+    if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['filters']) {
       $filters = &$view->display['default']->handler->options['filters'];
     }
     //Otherwise, target this display's filters.
@@ -116,9 +116,8 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
     //Add the access_id filter to the filters array.
     $filters['access_id'] = _workbench_access_views_access_id_filter_definition();
 
-
     //If the current display uses the default style_plugin, target the default style_plugin and style options.
-    if ($view->display[$current_display]->handler->options['defaults']['style_plugin']) {
+    if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['style_plugin']) {
       $style_plugin  = &$view->display['default']->handler->options['style_plugin'];
       $style_options = &$view->display['default']->handler->options['style_options'];
     }
@@ -132,7 +131,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
     if ($style_plugin == 'table') {
 
       //If the current display uses the default fields, target the default fields.
-      if ($view->display[$current_display]->handler->options['defaults']['fields']) {
+    if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['fields']) {
         $fields = &$view->display['default']->handler->options['fields'];
       }
       //Otherwise, target this display's fields.
