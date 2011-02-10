@@ -943,13 +943,62 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
 
 /**
  * Given an access id and scheme, load the object with its data.
+ *
+ * @param $scheme
+ *   The access scheme to check, which is an array including at least an
+ *   access_type and access_type_id.
+ *
+ * @return $data
+ *   A data array containing basic information, name, descrption, access_id
+ *   and active state. Returns an empty array on failure.
  */
 function workbench_access_load_access_info($scheme) {
   $function = 'workbench_access_load_'. $scheme['access_type'];
   if (function_exists($function)) {
-    return $function($scheme);
+    $data = $function($scheme);
+    $data['active'] = workbench_access_is_active_id($scheme['access_type'], $data['access_id']);
+    return $data;
   }
   return array();
+}
+
+/**
+ * Return information for an access id.
+ *
+ * @param $access_type
+ *   The scheme type.
+ * @param $access_type_id
+ *   The access type id.
+ *
+ * @return
+ *   Information for the access id.
+ */
+function workbench_access_load($access_type, $access_type_id) {
+  workbench_access_load_include($access_type);
+  $scheme = array(
+    'access_type' => $access_type,
+    'access_id' => $access_type_id,
+  );
+  return workbench_access_load_access_info($scheme);
+}
+
+/**
+ * Return information for an access id.
+ *
+ * @param $access_type
+ *   The scheme type.
+ * @param $access_type_id
+ *   The access type id.
+ *
+ * @return
+ *   Boolean TRUE or FALSE.
+ */
+function workbench_access_is_active_id($access_type, $access_type_id) {
+  $active = workbench_access_get_active_tree();
+  if (isset($active[$access_type_id]) && $active[$access_type_id]['access_type'] != $access_type) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**

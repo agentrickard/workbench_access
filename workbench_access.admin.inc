@@ -472,8 +472,7 @@ function workbench_access_roles($access_type = NULL, $access_type_id = NULL) {
   if (is_null($access_type) || is_null($access_type_id)) {
     return 'foo';
   }
-  $active = workbench_access_get_active_tree();
-  $access_info = $active['tree'][$access_type_id];
+  $access_info = workbench_access_load($access_type, $access_type_id);
   $output = '<h2>' . t('%name editors by role', array('%name' => $access_info['name'])) . '</h2>';
   $output .= '<p>' . t('Active editors for the %section section, as determined by role.', array('%section' => $access_info['name']));
   if (user_access('assign workbench access')) {
