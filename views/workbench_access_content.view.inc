@@ -13,7 +13,6 @@ $view->disabled = FALSE; /* Edit this to true to make a default view disabled in
 
 /* Display: Defaults */
 $handler = $view->new_display('default', 'Defaults', 'default');
-$handler->display->display_options['use_ajax'] = FALSE;
 $handler->display->display_options['access']['type'] = 'perm';
 $handler->display->display_options['access']['perm'] = 'access workbench';
 $handler->display->display_options['cache']['type'] = 'none';
@@ -82,20 +81,6 @@ $handler->display->display_options['fields']['title']['alter']['html'] = 0;
 $handler->display->display_options['fields']['title']['hide_empty'] = 0;
 $handler->display->display_options['fields']['title']['empty_zero'] = 0;
 $handler->display->display_options['fields']['title']['link_to_node'] = 1;
-/* Field: Workbench Access: Section */
-$handler->display->display_options['fields']['section']['id'] = 'section';
-$handler->display->display_options['fields']['section']['table'] = 'workbench_access';
-$handler->display->display_options['fields']['section']['field'] = 'section';
-$handler->display->display_options['fields']['section']['alter']['alter_text'] = 0;
-$handler->display->display_options['fields']['section']['alter']['make_link'] = 0;
-$handler->display->display_options['fields']['section']['alter']['absolute'] = 0;
-$handler->display->display_options['fields']['section']['alter']['trim'] = 0;
-$handler->display->display_options['fields']['section']['alter']['word_boundary'] = 1;
-$handler->display->display_options['fields']['section']['alter']['ellipsis'] = 1;
-$handler->display->display_options['fields']['section']['alter']['strip_tags'] = 0;
-$handler->display->display_options['fields']['section']['alter']['html'] = 0;
-$handler->display->display_options['fields']['section']['hide_empty'] = 0;
-$handler->display->display_options['fields']['section']['empty_zero'] = 0;
 /* Field: Node: Type */
 $handler->display->display_options['fields']['type']['id'] = 'type';
 $handler->display->display_options['fields']['type']['table'] = 'node';
@@ -187,18 +172,6 @@ $handler->display->display_options['filters']['status']['exposed'] = TRUE;
 $handler->display->display_options['filters']['status']['expose']['label'] = 'Published';
 $handler->display->display_options['filters']['status']['expose']['identifier'] = 'status';
 $handler->display->display_options['filters']['status']['expose']['remember'] = 1;
-/* Filter: Workbench Access: Access filter */
-$handler->display->display_options['filters']['access_id']['id'] = 'access_id';
-$handler->display->display_options['filters']['access_id']['table'] = 'workbench_access';
-$handler->display->display_options['filters']['access_id']['field'] = 'access_id';
-$handler->display->display_options['filters']['access_id']['operator'] = 'or';
-$handler->display->display_options['filters']['access_id']['exposed'] = TRUE;
-$handler->display->display_options['filters']['access_id']['expose']['label'] = 'Sections';
-$handler->display->display_options['filters']['access_id']['expose']['identifier'] = 'access_id';
-$handler->display->display_options['filters']['access_id']['expose']['remember'] = 1;
-$handler->display->display_options['filters']['access_id']['expose']['single'] = 0;
-$handler->display->display_options['filters']['access_id']['access_id'] = array();
-$handler->display->display_options['filters']['access_id']['size'] = '5';
 
 /* Display: Block */
 $handler = $view->new_display('block', 'Block', 'block_1');
@@ -214,11 +187,9 @@ $translatables['workbench_access_content'] = array(
   t('- All -'),
   t('Offset'),
   t('Title'),
-  t('Section'),
   t('Type'),
   t('Published'),
   t('Last updated'),
   t('Edit'),
-  t('Sections'),
   t('Block'),
 );
