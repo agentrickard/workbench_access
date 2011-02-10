@@ -377,7 +377,7 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
     '#title' => t('Add editor'),
     '#autocomplete_path' => 'workbench_access/autocomplete/' . $access_type . '/' . $access_type_id,
   );
-  // User role form.
+  /* User role form. Moved to its own page.
   $roles = user_roles(FALSE, 'access workbench access by role');
   $default = array_keys(db_query("SELECT rid FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
   $form['roles'] = array(
@@ -388,6 +388,7 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
     '#description' => empty($roles) ? t('There are no roles with the proper permissions.') : t('Select the role(s) that should have all users assigned to this section.'),
   );
   $form['default_roles'] = array('#type' => 'value', '#value' => !empty($roles) ? $default : array());
+  */
   $form['workbench_access'] = array(
     '#type' => 'value',
     '#value' => $active['access_scheme'],
@@ -418,7 +419,7 @@ function workbench_access_editor_form_submit($form, &$form_state) {
       }
     }
   }
-  // Role handling.
+  /* Role handling.
   foreach ($values['roles'] as $rid => $status) {
     if (!empty($status) && !in_array($rid, $values['default_roles'])) {
       workbench_access_role_section_save($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
@@ -426,7 +427,7 @@ function workbench_access_editor_form_submit($form, &$form_state) {
     elseif (empty($status) && in_array($rid, $values['default_roles'])) {
       workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);    
     }
-  }
+  }*/
 }
 
 /**
@@ -436,8 +437,8 @@ function theme_workbench_access_editor_form($variables) {
   $form = $variables['form'];
   $scheme = $form['workbench_access']['#value'];
   $access_info = workbench_access_load_access_info($scheme);
-  $output = '<h2>' . check_plain($access_info['name']) . '</h2>';
-  $output .= '<p>' . t('Active editors for the %section section.', array('%section' => $access_info['name'])) . '</p>';
+  $output = '<h2>' . t('%name editors by account', array('%name' => $access_info['name'])) . '</h2>';
+  $output .= '<p>' . t('Active editors for the %section section, as assigned by user. <a href="!url">View editors by role</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/roles/' . $scheme['access_type'] . '/' . $scheme['access_id'])));
   $header = array(t('Editor'), t('Actions'));
   $rows = array();
   foreach (element_children($form['users']) as $key) {
@@ -470,14 +471,33 @@ function theme_workbench_access_editor_form($variables) {
  */
 function workbench_access_roles($access_type = NULL, $access_type_id = NULL) {
   if (is_null($access_type) || is_null($access_type_id)) {
-    return 'foo';
+    return workbench_access_editors();
   }
+  return drupal_get_form('workbench_access_role_form', $access_type, $access_type_id);
+}
+
+/**
+ * Generate a role overview form for a section.
+ *
+ * @param $access_type
+ *   The type of access requested (e.g.g taxonomy).
+ * @param $access_type_id
+ *   The id for this specific access (here, a taxnomy term tid).
+ *
+ * @return
+ *   A form.
+ */
+function workbench_access_role_form($form, &$form_state, $access_type, $access_type_id) {
+  $active = workbench_access_get_active_tree();
+  $active['access_scheme']['access_id'] = $access_type_id;
+  if ($active['access_scheme']['access_type'] != $access_type || !isset($active['active'][$access_type_id])) {
+    drupal_access_denied();
+    drupal_exit();
+  }
+  // Form markup elements.
   $access_info = workbench_access_load($access_type, $access_type_id);
   $output = '<h2>' . t('%name editors by role', array('%name' => $access_info['name'])) . '</h2>';
-  $output .= '<p>' . t('Active editors for the %section section, as determined by role.', array('%section' => $access_info['name']));
-  if (user_access('assign workbench access')) {
-    $output .= ' ' . t('You may <a href="!url">change these settings</a>.', array('!url' => url('admin/config/workbench/access/editors/'. $access_type . '/'. $access_type_id))) .'</p>';
-  }
+  $output .= '<p>' . t('Active editors for the %section section, as determined by role. <a href="!url">View editors by user</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_type_id)));
   $header = array(t('Editors'), t('Roles'));
   $rows = array();
   $roles = array_keys(db_query("SELECT war.rid FROM {workbench_access_role} war WHERE war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
@@ -493,7 +513,49 @@ function workbench_access_roles($access_type = NULL, $access_type_id = NULL) {
       theme('item_list', array('items' => $item['roles'], 'type' => 'ul')),
     );
   }
-  $output .= theme('table', array('header' => $header, 'rows' => $rows));
-  $build['content']['#markup'] = $output;
-  return $build;
+  $table = theme('table', array('header' => $header, 'rows' => $rows));
+  $form['content'] = array(
+    '#weight' => -5,
+    '#markup' => $output,
+  );
+  $form['table'] = array(
+    '#weight' => -3,
+    '#markup' => $table,
+  );
+  // User role form.
+  $roles = user_roles(FALSE, 'access workbench access by role');
+  $default = array_keys(db_query("SELECT rid FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
+  $form['roles'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Roles'),
+    '#options' => $roles,
+    '#default_value' => $default,
+    '#description' => empty($roles) ? t('There are no roles with the proper permissions.') : t('Select the role(s) that should have all users assigned to this section.'),
+  );
+  $form['default_roles'] = array('#type' => 'value', '#value' => !empty($roles) ? $default : array());
+  $form['workbench_access'] = array(
+    '#type' => 'value',
+    '#value' => $active['access_scheme'],
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Update roles'),
+  );
+  return $form;
+}
+
+/**
+ * Process form submission for adding roles.
+ */
+function workbench_access_role_form_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  // Role handling.
+  foreach ($values['roles'] as $rid => $status) {
+    if (!empty($status) && !in_array($rid, $values['default_roles'])) {
+      workbench_access_role_section_save($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
+    }
+    elseif (empty($status) && in_array($rid, $values['default_roles'])) {
+      workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);    
+    }
+  }
 }
