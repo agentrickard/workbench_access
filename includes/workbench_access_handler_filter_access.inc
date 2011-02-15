@@ -74,7 +74,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
 
   function query() {
     global $user;
-    $account = $user;
+    $account = $user; // Not a clone, but that's ok, since we need this data on $user.
     if (!isset($account->workbench_access)) {
       workbench_access_load_user_data($account);
     }

@@ -40,7 +40,7 @@ function workbench_access_views_data() {
     ),
   );
 
-  $data['workbench_access_node']['table']['group']  = t('Workbench Access');
+  $data['workbench_access_node']['table']['group'] = t('Workbench Access');
   $data['workbench_access_node']['nid'] = array(
     'title' => t('Nid'),
     'help' => t('Nid'),
@@ -214,5 +214,104 @@ function _workbench_access_views_section_field_definition() {
       ),
     'hide_empty' => 0,
     'empty_zero' => 0,
+  );
+}
+
+
+/**
+ * Implements hook_views_data_alter().
+ *
+ * Stub handling of the {menu_links} table for use with
+ * the menu access scheme.
+ *
+ * Note that this only loads completely if no other module defines this table.
+ */
+function workbench_access_views_data_alter(&$data) {
+  if (isset($data['menu_links'])) {
+    // Add our join to {workbench_access_node}.
+    $data['menu_links']['table']['join'] = array(
+      'workbench_access_node' => array(
+        'left_field' => 'access_id',
+        'field' => 'mlid',
+      ),
+    );
+    return;
+  }
+  // Otherwise, define a stub table for sorting.
+  $data['menu_links']['table']['group'] = t('Menu links');
+  $data['menu_links']['table']['join'] = array(
+    'workbench_access_node' => array(
+      'left_field' => 'access_id',
+      'field' => 'mlid',
+    ),
+    'node' => array(
+      'left_table' => 'workbench_access_node',
+      'left_field' => 'access_id',
+      'field' => 'mlid',
+    ),
+  );
+  // Note that these are all pretty useless in most regards.
+  $data['menu_links']['menu_name'] = array(
+    'title' => t('Menu name'),
+    'help' => t('The name of the menu.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['link_title'] = array(
+    'title' => t('Link title'),
+    'help' => t('The link text used for the menu item.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['description'] = array(
+    'title' => t('Description'),
+    'help' => t('The description used for the menu item.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['link_path'] = array(
+    'title' => t('Link path'),
+    'help' => t('The link path for the menu item.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['mlid'] = array(
+    'title' => t('Menu link id'),
+    'help' => t('The unique menu link identifier.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['plid'] = array(
+    'title' => t('Parent menu link id'),
+    'help' => t('The unique menu link identifier for this item\'s parent.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['weight'] = array(
+    'title' => t('Weight'),
+    'help' => t('The weight of the menu item.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['depth'] = array(
+    'title' => t('Depth'),
+    'help' => t('The depth of the menu item.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
+  );
+  $data['menu_links']['p1'] = array(
+    'title' => t('Parent'),
+    'help' => t('The top-level parent of the menu item.'),
+    'field' => array(
+      'click sortable' => FALSE,
+    ),
   );
 }

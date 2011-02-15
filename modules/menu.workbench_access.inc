@@ -26,7 +26,7 @@ function menu_workbench_access_info() {
       'field_table' => 'workbench_access_node',
       'name_field' => 'name',
       'adjust_join' => array(
-        'menu_term_data' => array(
+        'menu_links' => array(
           'original_table' => 'menu_links',
           'original_field' => 'mlid',
           'new_table' => 'workbench_access_node',
