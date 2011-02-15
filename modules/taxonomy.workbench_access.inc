@@ -35,13 +35,13 @@ function taxonomy_workbench_access_info() {
       ),
       'sort' => array(
         array(
-          'table' => 'taxonomy_term_hierarchy',
-          'field' => 'parent',
-        ),
-        array(
           'table' => 'taxonomy_term_data',
           'field' => 'weight',
           'order' => 'ASC',
+        ),
+        array(
+          'table' => 'taxonomy_term_hierarchy',
+          'field' => 'parent',
         ),
         array(
           'table' => 'taxonomy_term_data',

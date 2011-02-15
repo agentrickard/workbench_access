@@ -51,9 +51,15 @@ function workbench_access_views_data() {
       'left_field' => 'nid',
       'field' => 'nid',
     ),
+    //...to node_revision
     'node_revision' => array(
       'left_field' => 'nid',
       'field' => 'nid',
+    ),
+    //...to taxonomy_term_data
+    'taxonomy_term_data' => array(
+      'left_field' => 'tid',
+      'field' => 'access_id',
     ),
   );
   $data['workbench_access']['table']['join'] = array(
@@ -113,7 +119,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
     $current_display = $view->current_display;
 
     // If the current display uses the default filters, target the default filters.
-    if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['filters']) {
+    if ($current_display == 'default' || $view->display[$current_display]->handler->options['defaults']['filters']) {
       $filters = &$view->display['default']->handler->options['filters'];
     }
     // Otherwise, target this display's filters.
@@ -139,7 +145,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
     if ($style_plugin == 'table') {
 
       // If the current display uses the default fields, target the default fields.
-    if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['fields']) {
+      if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['fields']) {
         $fields = &$view->display['default']->handler->options['fields'];
       }
       // Otherwise, target this display's fields.
