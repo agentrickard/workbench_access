@@ -88,7 +88,7 @@ function workbench_access_views_handlers() {
 }
 
 /**
- * Implementation of hook_view_pre_view
+ * Implementation of hook_view_pre_view().
  *
  * Add dynamically the exposed fitlers that workbench_access provides to appropriate Views.
  *
@@ -98,49 +98,49 @@ function workbench_access_views_handlers() {
  */
 function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
-  //Target any view with a workbench tag that uses 'node' as the base_table.
+  // Target any view with a workbench tag that uses 'node' as the base_table.
   if (is_numeric(strripos($view->tag, 'Workbench')) && $view->base_table == 'node') {
 
-    //This shorthand variable will increase readability.
+    // This shorthand variable will increase readability.
     $current_display = $view->current_display;
 
-    //If the current display uses the default filters, target the default filters.
+    // If the current display uses the default filters, target the default filters.
     if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['filters']) {
       $filters = &$view->display['default']->handler->options['filters'];
     }
-    //Otherwise, target this display's filters.
+    // Otherwise, target this display's filters.
     else {
       $filters = &$view->display[$current_display]->handler->options['filters'];
     }
 
-    //Add the access_id filter to the filters array.
+    // Add the access_id filter to the filters array.
     $filters['access_id'] = _workbench_access_views_access_id_filter_definition();
 
-    //If the current display uses the default style_plugin, target the default style_plugin and style options.
+    // If the current display uses the default style_plugin, target the default style_plugin and style options.
     if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['style_plugin']) {
       $style_plugin  = &$view->display['default']->handler->options['style_plugin'];
       $style_options = &$view->display['default']->handler->options['style_options'];
     }
-    //Otherwise, target this display's style_plugin and style options.
+    // Otherwise, target this display's style_plugin and style options.
     else {
       $style_plugin = &$view->display[$current_display]->handler->options['style_plugin'];
       $style_options = &$view->display[$current_display]->handler->options['style_options'];
     }
 
-    //Only Add a section field and style options if this is a table.
+    // Only Add a section field and style options if this is a table.
     if ($style_plugin == 'table') {
 
-      //If the current display uses the default fields, target the default fields.
+      // If the current display uses the default fields, target the default fields.
     if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['fields']) {
         $fields = &$view->display['default']->handler->options['fields'];
       }
-      //Otherwise, target this display's fields.
+      // Otherwise, target this display's fields.
       else {
         $fields = &$view->display[$current_display]->handler->options['fields'];
       }
 
-      //This temporary variable will take all the values from
-      //the existing fields array and add a section field after the title.
+      // This temporary variable will take all the values from
+      // the existing fields array and add a section field after the title.
       $new_view_fields = array();
       foreach ($fields as $key => $value) {
         $new_view_fields[$key] = $value;
@@ -149,7 +149,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
         }
       }
 
-      //Set the new fields array on the actual view.
+      // Set the new fields array on the actual view.
       $fields = $new_view_fields;
 
       $style_options['columns']['section'] = 'section';
@@ -165,11 +165,10 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 /**
  * Return the array definition of the access_id exposed filter.
  *
- * This is called from workbench_access_views_pre_view to dynamically.
+ * This is called from workbench_access_views_pre_view() to dynamically.
  * add this filter to given Views.
  */
 function _workbench_access_views_access_id_filter_definition() {
-
   return array (
     'id' => 'access_id',
     'table' => 'workbench_access',
@@ -194,7 +193,7 @@ function _workbench_access_views_access_id_filter_definition() {
 /**
  * Return the array definition of the section field.
  *
- * This is called from workbench_access_views_pre_view to dynamically
+ * This is called from workbench_access_views_pre_view() to dynamically
  * add this field to given Views.
  */
 function _workbench_access_views_section_field_definition() {

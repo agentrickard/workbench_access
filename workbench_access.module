@@ -913,12 +913,11 @@ function workbench_access_options($tree, $active) {
 }
 
 /**
- * Views is weird. Since we're embedding the view (and menus are borked)
- * we have to supply the proper action.
+ * Ensure the proper action for our content form.
  */
 function workbench_access_form_views_exposed_form_alter(&$form, &$form_state) {
   if ($form['#id'] == 'views-exposed-form-workbench-access-content-default') {
-    $form['#action'] = '/' . $_GET['q'];
+    $form['#action'] = url($_GET['q']);
   }
 }
 
