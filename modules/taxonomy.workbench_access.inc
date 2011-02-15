@@ -62,7 +62,7 @@ function taxonomy_workbench_access_configuration(&$form, &$form_state) {
   $options = array();
   $vocabularies = taxonomy_get_vocabularies();
   foreach ($vocabularies as $vid => $vocabulary) {
-    $options[$vid] = $vocabulary->name;
+    $options[$vocabulary->machine_name] = $vocabulary->name;
   }
   $form['taxonomy_workbench_access_info'] = array(
     '#type' => 'fieldset',
@@ -140,21 +140,21 @@ function workbench_access_taxonomy_tree($info, $keys) {
     }
   }
   foreach ($items as $vid => $tid) {
-    $vocabulary = taxonomy_vocabulary_load($vid);
+    $vocabulary = taxonomy_vocabulary_machine_name_load($vid);
     $tree[$vocabulary->machine_name] = array(
       'access_id' => $vocabulary->machine_name,
-      'access_type_id' => $vocabulary->vid,
+      'access_type_id' => $vocabulary->machine_name,
       'name' => $vocabulary->name,
       'description' => $vocabulary->description,
       'weight' => 0,
       'depth' => 0,
       'parent' => 0,
     );
-    $children = taxonomy_get_tree($vid, $tid);
+    $children = taxonomy_get_tree($vocabulary->vid, $tid);
     foreach ($children as $child) {
       $tree[$child->tid] = array(
         'access_id' => $child->tid,
-        'access_type_id' => $child->vid,
+        'access_type_id' => $vocabulary->machine_name,
         'name' => $child->name,
         'description' => $child->description,
         'weight' => $child->weight,
@@ -230,3 +230,4 @@ function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
     workbench_access_section_delete($access_scheme);
   }
 }
+

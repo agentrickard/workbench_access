@@ -40,20 +40,53 @@ function workbench_access_settings_form($form, &$form_state) {
       }
     }
   }
-  /*
-  $options = array(
-    t('Always assert response'),
-    t('Always assert on TRUE'),
-    t('Always assert on FALSE'),
+  $form['workbench_access_auto_assign'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Automated section assignment'),
+    '#default_value' => variable_get('workbench_access_auto_assign', 1),
+    '#description' => t('Enable all sections automatically for the active scheme.'),
   );
-  $form['workbench_access_behavior'] = array(
-    '#type' => 'radios',
-    '#title' => t('Node access integration'),
-    '#options' => $options,
-    '#default_value' => variable_get('workbench_access_behavior', 0),
-    '#description' => t('Define how to intract with node access declarations.'),
+  /*
+  $form['workbench_access_custom_form'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Require a Workbench Access form element'),
+    '#default_value' => variable_get('workbench_access_defailt_form', 1),
+    '#description' => t('If not selected, Workbench Access settings will inherit from the standard node form.'),
   );*/
-  return system_settings_form($form);
+
+  $form = system_settings_form($form);
+  $form['#submit'][] = 'workbench_access_settings_submit';
+  return $form;
+}
+
+/**
+ * Set configuration.
+ */
+function workbench_access_settings_submit($form, &$form_state) {
+  // If auto-assign, then do so.
+  if (empty($form_state['values']['workbench_access_auto_assign'])) {
+    return;
+  }
+  drupal_static_reset('workbench_access_get_active_tree');
+  $active = workbench_access_get_active_tree();
+  foreach ($active['tree'] as $key => $item) {
+    $data = array_merge($active['access_scheme'], $item);
+    if (!isset($active['active'][$key]) && !empty($form_state['values']['workbench_access_' . $active['access_scheme']['access_scheme']][$item['access_type_id']])) {
+      workbench_access_section_save($data);
+    }
+    elseif (empty($form_state['values']['workbench_access_' . $active['access_scheme']['access_scheme']][$item['access_type_id']])) {
+      workbench_access_section_delete($data);
+    }
+  }
+  // Make sure we cleaned out all the old sections.
+  $sections = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type",
+    array(':access_type' => $active['access_scheme']['access_type'])
+  )->fetchAll();
+  foreach ($sections as $section) {
+    if (empty($form_state['values']['workbench_access_' . $active['access_scheme']['access_scheme']][$section->access_type_id])) {
+      workbench_access_section_delete((array) $section);
+    }
+  }
 }
 
 /**
@@ -102,6 +135,7 @@ function workbench_access_section_form($form, &$form_state) {
       '#type' => 'checkbox',
       '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
       '#default_value' => isset($active['active'][$section['access_id']]),
+      '#disabled' => variable_get('workbench_access_auto_assign', 1),
     );
     $used[] = $section['access_id'];
   }
@@ -407,7 +441,13 @@ function workbench_access_editor_form_submit($form, &$form_state) {
   // User handling.
   if (!empty($values['add_user'])) {
     $account = user_load_by_name($values['add_user']);
-    if (!empty($account->status) && !in_array($values['workbench_access']['access_id'], array_keys($account->workbench_access))) {
+    $sections = $account->workbench_access;
+    if (!empty($account->workbench_access_by_role)) {
+      foreach ($account->workbench_access_by_role as $key) {
+        unset($sections[$key]);
+      }
+    }
+    if (!empty($account->status) && !in_array($values['workbench_access']['access_id'], array_keys($sections))) {
       workbench_access_user_section_save($account->uid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
     }
   }
@@ -500,7 +540,10 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
   $header = array(t('Editors'), t('Roles'));
   $rows = array();
   $roles = array_keys(db_query("SELECT war.rid FROM {workbench_access_role} war WHERE war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
-  $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:roles)", array(':roles' => $roles));
+  $users = array();
+  if (!empty($roles)) {
+    $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:roles)", array(':roles' => $roles));
+  }
   $users_by_role = array();
   foreach ($users as $data) {
     $users_by_role[$data->uid]['name'] = $data->name;

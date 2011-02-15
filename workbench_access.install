@@ -236,6 +236,8 @@ function workbench_access_uninstall() {
   variable_del('workbench_access');
   variable_del('workbench_access_taxonomy');
   variable_del('workbench_access_menu');
+  variable_del('workbench_access_auto_assign');
+  #variable_del('workbench_access_custom_form');
 }
 
 /**
@@ -296,4 +298,40 @@ function workbench_access_update_0002() {
   );
   db_create_table('workbench_access_role', $schema);
   return t('Added the workbench_access_role table');
+}
+
+/**
+ * Use vocabulary machine names instead of ids.
+ *
+ * NOTE: This should be removed from the release version.
+ */
+function workbench_access_update_0003() {
+  if (!module_exists('taxonomy')) {
+    return t('No update is required.');
+  }
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach ($vocabularies as $vid => $vocabulary) {
+    db_update('workbench_access')
+      ->fields(array('access_type_id' => $vocabulary->machine_name))
+      ->condition('access_type_id', $vocabulary->vid)
+      ->execute();
+  }
+}
+
+/**
+ * Use vocabulary machine names, part two.
+ *
+ * NOTE: This should be removed from the release version.
+ */
+function workbench_access_update_0004() {
+  $taxonomy = variable_get('workbench_access_taxonomy', array());
+  if (!module_exists('taxonomy')) {
+    return t('No update is required.');
+  }
+  $new = array();
+  $vocabularies = taxonomy_get_vocabularies();
+  foreach ($taxonomy as $vid) {
+    $new[] = $vocabularies[$vid]->machine_name;
+  }
+  variable_set('workbench_access_taxonomy', $new);
 }

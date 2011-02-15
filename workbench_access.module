@@ -515,6 +515,8 @@ function workbench_access_load_user_data($account) {
   foreach ($result as $data) {
     if (!isset($items[$data->access_id])) {
       $items[$data->access_id] = $data;
+      // Identify the access-by-role features.
+      $account->workbench_access_by_role[] = $data->access_id;
     }
   }
   foreach ($items as $item) {
@@ -602,6 +604,10 @@ function workbench_access_section_delete($section) {
     ->condition('access_scheme', $section['access_scheme'])
     ->execute();
   db_delete('workbench_access_user')
+    ->condition('access_id', $section['access_id'])
+    ->condition('access_scheme', $section['access_scheme'])
+    ->execute();
+  db_delete('workbench_access_role')
     ->condition('access_id', $section['access_id'])
     ->condition('access_scheme', $section['access_scheme'])
     ->execute();
@@ -1007,6 +1013,7 @@ function workbench_access_is_active_id($access_type, $access_type_id) {
  */
 function workbench_access_form_alter(&$form, $form_state, $form_id) {
   global $user;
+
   // Fire any active internal module hooks.
   if (empty($form['#node_edit_form'])) {
     workbench_access_alter_form($form_id, $form, $form_state);
@@ -1135,4 +1142,40 @@ function workbench_access_menu_local_tasks_alter(&$data, $router_item, $root_pat
     '#markup' => '<li><a>' . check_plain($active['tree'][$access_id]['name']) . '</a></li>',
     '#access' => user_access('view workbench access information'),
   );
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add a sections form.
+ */
+function workbench_access_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id) {
+ # dsm($form);
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add a sections form.
+ */
+function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id) {
+ # dsm($form);
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add a sections form.
+ */
+function workbench_access_form_menu_edit_menu_alter(&$form, &$form_state, $form_id) {
+ # dsm($form);
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * Add a sections form.
+ */
+function workbench_access_form_menu_edit_item_alter(&$form, &$form_state, $form_id) {
+ # dsm($form);
 }
