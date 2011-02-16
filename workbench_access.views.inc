@@ -112,9 +112,9 @@ function workbench_access_views_handlers() {
  */
 function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
-  // Target any view with a workbench tag that uses 'node' or 'node_revision' as the base_table.
-  if (is_numeric(strripos($view->tag, 'Workbench')) && ($view->base_table == 'node' || $view->base_table == 'node_revision')) {
-
+  // Target any view with a workbench tag that uses 'node' as the base_table.
+  // TODO: support the node_revision table.
+  if (is_numeric(strripos($view->tag, 'Workbench')) && $view->base_table == 'node') {
     // This shorthand variable will increase readability.
     $current_display = $view->current_display;
 

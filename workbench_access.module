@@ -151,12 +151,10 @@ function workbench_access_theme($existing, $type, $theme, $path) {
  * Shows the view we need for the Workbench front page.
  */
 function workbench_access_workbench_content_alter(&$output) {
-  $output = array();
-  $output['field_workbench_access'] = array(
-    '#title' => t('My Sections'),
-    '#markup' => views_embed_view('workbench_access_content'),
-    '#theme' => 'workbench_element',
-  );
+  $output['workbench_recent_content']['#title'] = t('My Sections');
+  $output['workbench_recent_content']['#view'] = 'workbench_access_content';
+  $output['workbench_recent_content']['#view_display'] = 'default';
+  $output['workbench_recent_content']['#weight'] = -5;
 }
 
 /**

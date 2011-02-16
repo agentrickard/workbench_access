@@ -26,10 +26,11 @@ class workbench_access_handler_field_section extends views_handler_field {
       $this->query->add_orderby($table, $sort['field'], (isset($sort['order'])) ? $sort['order'] : $order);
     }
     // Logic to remove JOIN to the default table, which can cause duplicate results.
-    if (isset($active['access_scheme']['adjust_join'])) {
+    $base_table = $this->view->base_table;
+    if ($base_table == 'node' && isset($active['access_scheme']['adjust_join'])) {
       foreach ($active['access_scheme']['adjust_join'] as $table => $replace) {
-        $join = $this->query->get_join_data($table, 'node');
-        if ($join->left_table == $replace['original_table']) {
+        $join = $this->query->get_join_data($table, $base_table);
+        if (isset($join->left_table) && $join->left_table == $replace['original_table']) {
           $this->query->table_queue[$table]['join']->left_table = $replace['new_table'];
           $this->query->table_queue[$table]['join']->left_field = $replace['new_field'];
           unset($this->query->tables['node'][$replace['original_table']]);
