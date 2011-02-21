@@ -191,7 +191,7 @@ function workbench_access_user_form($form, &$form_state, $account) {
   );
   $form['helptext'] = array(
     '#type' => 'markup',
-    '#markup' => t('The list below shows your editorial assignments. Active assignments <strong>appear with emphasis</strong>.'),
+    '#markup' => t('The list below shows your editorial groups. You may edit any content in these sections and their children. Contact your site administrator for more information.'),
     '#access' => !user_access('assign_workbench_access'),
   );
   $sections = $account->workbench_access;
@@ -204,6 +204,7 @@ function workbench_access_user_form($form, &$form_state, $account) {
   $section_items = array_keys($sections);
   $parent = 0;
   $used = array();
+
   foreach ($active['tree'] as $section) {
     if (in_array($section['access_id'], $used)) {
       continue;
@@ -252,19 +253,21 @@ function workbench_access_user_form($form, &$form_state, $account) {
           # '#disabled' => empty($sections[$section['access_id']]),
         );
       }
-      else {
+      elseif (isset($sections[$section['access_id']])) {
         $form['sections'][$parent][$section['access_id']] = array(
           '#type' => 'markup',
           '#markup' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />',
         );
-        if (isset($sections[$section['access_id']])) {
-          $query = array(
-            'access_id[]' => $section['access_id'],
-          );
-          $form['sections'][$parent][$section['access_id']]['#prefix'] = '<strong>';
-          $form['sections'][$parent][$section['access_id']]['#suffix'] = '</strong>';
-        }
       }
+      /* Unused. Here for reference.
+      elseif (variable_get('workbench_access_display_unassigned_sections', 0)) {
+        $form['sections'][$parent][$section['access_id']] = array(
+          '#type' => 'markup',
+          '#markup' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />',
+        );
+        $form['sections'][$parent][$section['access_id']]['#prefix'] = '<span class="workbench-access-disabled">';
+        $form['sections'][$parent][$section['access_id']]['#suffix'] = '</span>';
+      } */
     }
     else {
       $form['sections'][$parent][$section['access_id']] = array(
