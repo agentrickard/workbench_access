@@ -153,13 +153,6 @@ function workbench_access_views_api() {
 }
 
 /**
- * Implementation of hook_views_default_views().
- */
-function workbench_access_views_default_views() {
-  return workbench_load_all_exports('workbench_access', 'views', 'view.inc', 'view');
-}
-
-/**
  * Implements hook_field_extra_fields()
  */
 function workbench_access_field_extra_fields() {
