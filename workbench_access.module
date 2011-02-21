@@ -446,6 +446,27 @@ function workbench_access_node_update($node) {
 }
 
 /**
+ * Implements hook_node_view().
+ */
+function workbench_access_node_view($node, $view_mode, $langcode) {
+  if ($view_mode != 'full' || !user_access('view workbench access information') || empty($node->workbench_access)) {
+    return;
+  }
+  // Get the current assignment.
+  $access_type = variable_get('workbench_access_scheme', 'taxonomy');
+  $access_id = current($node->workbench_access);
+  $section = workbench_access_load($access_type, $access_id);
+  // Check editorial access.
+  $access = node_access('update', $node);
+  if ($access) {
+    drupal_set_message(t('This content belongs to the %section section. You may edit this content.', array('%section' => $section['name'])), 'status');
+  }
+  else {
+    drupal_set_message(t('This content belongs to the %section section. You are not a member of the %section editorial group.', array('%section' => $section['name'])), 'warning');
+  }
+}
+
+/**
  * Implements hook_node_delete().
  */
 function workbench_access_node_delete($node) {
@@ -1071,63 +1092,6 @@ function workbench_access_alter_form($hook, &$form, $form_state) {
     return;
   }
   $function($form, $form_state, $active);
-}
-
-/**
- * Implements hook_menu_local_tasks_alter().
- *
- * Change the name of the edit tab, conditionally.
- *
- * If a piece of content has a published version and the published version is
- * also the current moderation revision, the "Edit" tab should be titled "Create
- * draft".
- *
- * If a piece of content has a published version and the current moderation
- * revision is a newer, the "Edit" tab should be titled "Edit draft".
- *
- * If a piece of content has no published version, the "Edit" tab should be
- * titled "Edit draft".
- *
- * Otherwise, the "Edit" tab should not be renamed.
- */
-function workbench_access_menu_local_tasks_alter(&$data, $router_item, $root_path) {
-  // Do we need to bother doing anything?
-  if (empty($data['tabs'][0]['output']) || empty($router_item['page_arguments'][0])) {
-    return;
-  }
-
-  // Check the path.
-  $arg = arg(0, $root_path);
-  $arg1 = arg(1, $root_path);
-  if ($arg != 'node' || $arg1 != '%') {
-    return;
-  }
-
-  // Devel module passes node as the first parameter, but we support it.
-  if (count($router_item['page_arguments']) > 1 && $router_item['page_arguments'][0] == 'node') {
-    array_shift($router_item['page_arguments']);
-  }
-  // Ensure that we have a proper node.
-  if (!is_object($router_item['page_arguments'][0])) {
-    return;
-  }
-  $node = $router_item['page_arguments'][0];
-  if (empty($node->vid) || empty($node->workbench_moderation['current'])) {
-    return;
-  }
-  $active = workbench_access_get_active_tree();
-  if (!isset($node->workbench_access)) {
-    return;
-  }
-  $access_id = current($node->workbench_access);
-  if (!isset($active['active'][$access_id])) {
-    return;
-  }
-  $data['tabs'][0]['count']++;
-  $data['tabs'][0]['output'][] = array(
-    '#markup' => '<li><a>' . check_plain($active['tree'][$access_id]['name']) . '</a></li>',
-    '#access' => user_access('view workbench access information'),
-  );
 }
 
 /**
