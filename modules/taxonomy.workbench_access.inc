@@ -14,7 +14,7 @@ function taxonomy_workbench_access_info() {
   return array(
     'taxonomy' => array(
       'access_scheme' => 'taxonomy',
-      'name' => 'Taxonomy',
+      'name' => t('Taxonomy'),
       'access_type' => 'taxonomy',
       'access_type_id' => array_filter(variable_get('workbench_access_taxonomy', array())),
       'description' => t('Uses a taxonomy vocabulary for assigning hierarchical access control'),
@@ -216,4 +216,3 @@ function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
     workbench_access_section_delete($access_scheme);
   }
 }
-

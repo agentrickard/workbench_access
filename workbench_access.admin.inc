@@ -28,7 +28,10 @@ function workbench_access_settings_form($form, &$form_state) {
   );
   // Get the configuration options for the active schemes.
   foreach ($info as $key => $value) {
-    if (isset($info[$key]['configuration']) && function_exists($info[$key]['configuration'])) {
+    if (!isset($info[$key]['configuration'])) {
+      $info[$key]['configuration'] = $key . '_workbench_access_configuration';
+    }
+    if (function_exists($info[$key]['configuration'])) {
       $func = $info[$key]['configuration'];
       $func($form, $form_state);
       foreach (array('validate', 'submit') as $action) {
