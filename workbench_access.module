@@ -359,13 +359,9 @@ function workbench_access_get_access_tree($account_access = array()) {
  *   An array of access_ids or a data array.
  */
 function workbench_access_tree($info, $keys = FALSE) {
-  $default = 'workbench_access_'. $info['access_type'] . '_tree';
-  $func = $info['access_scheme'] . $info['access_type'] . '_tree';
-  if (function_exists($func)) {
-    return $func($info, $keys);
-  }
-  elseif (function_exists($default)) {
-    return $default($info, $keys);
+  $function = $info['access_type'] .'_workbench_access_tree';
+  if (function_exists($function)) {
+    return $function($info, $keys);
   }
   return array();
 }
@@ -961,7 +957,7 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
  *   and active state. Returns an empty array on failure.
  */
 function workbench_access_load_access_info($scheme) {
-  $function = 'workbench_access_load_'. $scheme['access_type'];
+  $function =  $scheme['access_type'] . '_workbench_access_load';
   if (function_exists($function)) {
     $data = $function($scheme);
     $data['active'] = workbench_access_is_active_id($scheme['access_type'], $data['access_id']);

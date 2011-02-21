@@ -111,6 +111,8 @@ function _workbench_access_menu_remove_option(&$form) {
 }
 
 /**
+ * Implements hook_workbench_access_tree().
+ *
  * Get the access tree for a taxonomy term.
  *
  * @param $info
@@ -121,7 +123,7 @@ function _workbench_access_menu_remove_option(&$form) {
  * @return
  *   An array of access_ids or a data array.
  */
-function workbench_access_menu_tree($info, $keys) {
+function menu_workbench_access_tree($info, $keys) {
   $tree = array();
   $items = array();
   if (isset($info['access_id'])) {
@@ -181,9 +183,11 @@ function _workbench_access_menu_build_tree(&$tree, $link) {
 }
 
 /**
+ * Implements hook_workbench_access_load().
+ *
  * Load data for a menu.
  */
-function workbench_access_load_menu($scheme) {
+function menu_workbench_access_load($scheme) {
   // This might be a menu or a single menu item.
   if ($menu = menu_load($scheme['access_id'])) {
     $menu = (object) $menu;

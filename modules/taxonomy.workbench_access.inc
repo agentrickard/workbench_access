@@ -116,6 +116,8 @@ function _workbench_access_taxonomy_remove_option(&$form) {
 }
 
 /**
+ * Implements hook_workbench_access_tree().
+ *
  * Get the access tree for a taxonomy term.
  *
  * @param $info
@@ -126,7 +128,7 @@ function _workbench_access_taxonomy_remove_option(&$form) {
  * @return
  *   An array of access_ids or a data array.
  */
-function workbench_access_taxonomy_tree($info, $keys) {
+function taxonomy_workbench_access_tree($info, $keys) {
   $tree = array();
   $items = array();
   if (isset($info['access_id'])) {
@@ -168,9 +170,11 @@ function workbench_access_taxonomy_tree($info, $keys) {
 }
 
 /**
+ * Implements hook_workbench_access_load().
+ *
  * Load data for a taxonomy term.
  */
-function workbench_access_load_taxonomy($scheme) {
+function taxonomy_workbench_access_load($scheme) {
   if ($vocabulary = taxonomy_vocabulary_machine_name_load($scheme['access_id'])) {
     $data = array(
       'name' => $vocabulary->name,
@@ -187,22 +191,6 @@ function workbench_access_load_taxonomy($scheme) {
     );
   }
   return $data;
-}
-
-/**
- * Get the relevant taxonomy rules for this node.
- *
- * @param $node
- *   The node being requested.
- *
- * @return
- *   An array of term ids.
- *
- * @TODO: clean this up!
- */
-function workbench_access_get_node_taxonomy($node) {
-  $terms = array();
-  return $terms;
 }
 
 /**
