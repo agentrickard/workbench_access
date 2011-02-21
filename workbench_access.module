@@ -146,17 +146,6 @@ function workbench_access_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implements hook_workbench_content_alter().
- *
- * Shows the view we need for the Workbench front page.
- */
-function workbench_access_workbench_content_alter(&$output) {
-  $output['workbench_recent_content']['#title'] = t('My Sections');
-  $output['workbench_recent_content']['#view'] = 'workbench_access_content';
-  $output['workbench_recent_content']['#view_display'] = 'default';
-}
-
-/**
  * Implements hook_views_api().
  */
 function workbench_access_views_api() {
