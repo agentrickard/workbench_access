@@ -2,9 +2,7 @@
 
 /**
  * @file
- *  Taxonomy integration for Workbench.
- *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Taxonomy integration for Workbench Access.
  */
 
 /**

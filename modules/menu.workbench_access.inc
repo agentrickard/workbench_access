@@ -2,9 +2,7 @@
 
 /**
  * @file
- *  Menu integration for Workbench.
- *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Menu integration for Workbench Access.
  */
 
 /**

@@ -2,9 +2,11 @@
 
 /**
  * @file
- *  Views integration for Workbench.
+ * Views integration for Workbench Access.
  *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Field to display the active section.
+ *
+ * @TODO: support multiple sections.
  */
 
 class workbench_access_handler_field_section extends views_handler_field {

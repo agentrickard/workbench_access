@@ -3,9 +3,7 @@
 
 /**
  * @file
- *   Workbench Access module file.
- *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Workbench Access module file.
  */
 
 /**
@@ -170,7 +168,8 @@ function workbench_access_field_extra_fields() {
       'weight' => -1,
     ),
   );
-  // Seriously FieldAPI? I have to do this?!?
+  // Attach the field to all node bundles.
+  // @TODO: be more selective here.
   foreach (node_type_get_names() as $name => $value) {
     $extra['node'][$name]['form'] = $base;
     $extra['node'][$name]['display'] = $base;
@@ -184,7 +183,9 @@ function workbench_access_field_extra_fields() {
  * @param $module
  *   The name of the module file to load.
  *
- * @TODO: Allow loading from outside the module directory.
+ * @TODO: Allow loading from outside the module directory. However,
+ * this should be convered by the magic loading from hook_hook_info() and
+ * the registry system.
  */
 function workbench_access_load_include($module = NULL) {
   if (!is_null($module)) {

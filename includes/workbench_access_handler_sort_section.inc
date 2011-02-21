@@ -2,9 +2,11 @@
 
 /**
  * @file
- *  Views integration for Workbench.
+ *  Views integration for Workbench Access.
  *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Provides a sort option for sections.
+ *
+ * @TODO: Support multiple selections.
  */
 
 class workbench_access_handler_sort_section extends views_handler_sort {

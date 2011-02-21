@@ -2,9 +2,7 @@
 
 /**
  * @file
- *  Views integration for Workbench.
- *
- * @copyright (C) Copyright 2010 Palantir.net
+ *  Views integration for Workbench Access.
  */
 
 /**
@@ -77,38 +75,15 @@ function workbench_access_views_data() {
 }
 
 /**
- * Implementation of hook_views_handlers
- */
-function workbench_access_views_handlers() {
-  return array(
-    'info' => array(
-      'path' => drupal_get_path('module', 'workbench_access') . '/includes',
-    ),
-    'handlers' => array(
-      'workbench_access_handler_field_edit_node' => array(
-        'parent' => 'views_handler_field',
-      ),
-      'workbench_access_handler_field_section' => array(
-        'parent' => 'views_handler_field',
-      ),
-      'workbench_access_handler_sort_section' => array(
-        'parent' => 'views_handler_sort',
-      ),
-      'workbench_access_handler_filter_access' => array(
-        'parent' => 'views_handler_filter',
-      ),
-    ),
-  );
-}
-
-/**
  * Implementation of hook_view_pre_view().
  *
- * Add dynamically the exposed fitlers that workbench_access provides to appropriate Views.
+ * Dynamically adds the exposed fitlers that workbench_access provides to
+ * appropriate Views.
  *
- * There are a lot of 'if () {} else {}' statements in here to find out which options to target.
- * These look at a given option and check if it uses the default settings or an override.
- * The given option is then modified to add filters/fields/settings from workbench_access.
+ * There are a lot of 'if () {} else {}' statements in here to find out which
+ * options to target. These look at a given option and check if it uses the
+ * default settings or an override. The given option is then modified to add
+ * filters/fields/settings from workbench_access.
  */
 function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
@@ -118,7 +93,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
     // This shorthand variable will increase readability.
     $current_display = $view->current_display;
 
-    // If the current display uses the default filters, target the default filters.
+    // If the current display uses default filters, target them.
     if ($current_display == 'default' || $view->display[$current_display]->handler->options['defaults']['filters']) {
       $filters = &$view->display['default']->handler->options['filters'];
     }
@@ -130,7 +105,8 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
     // Add the access_id filter to the filters array.
     $filters['access_id'] = _workbench_access_views_access_id_filter_definition();
 
-    // If the current display uses the default style_plugin, target the default style_plugin and style options.
+    // If the current display uses the default style_plugin, target the default
+    // style_plugin and style options.
     if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['style_plugin']) {
       $style_plugin  = &$view->display['default']->handler->options['style_plugin'];
       $style_options = &$view->display['default']->handler->options['style_options'];
@@ -141,10 +117,10 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
       $style_options = &$view->display[$current_display]->handler->options['style_options'];
     }
 
-    // Only Add a section field and style options if this is a table.
+    // Only add a section field and style options if this is a table.
     if ($style_plugin == 'table') {
 
-      // If the current display uses the default fields, target the default fields.
+      // If the current display uses the default fields, target them.
       if ($current_display== 'default' || $view->display[$current_display]->handler->options['defaults']['fields']) {
         $fields = &$view->display['default']->handler->options['fields'];
       }
@@ -188,17 +164,14 @@ function _workbench_access_views_access_id_filter_definition() {
     'table' => 'workbench_access',
     'field' => 'access_id',
     'operator' => 'or',
-    'exposed' => true,
-    'expose' =>
-    array (
+    'exposed' => TRUE,
+    'expose' => array (
       'label' => 'Sections',
       'identifier' => 'access_id',
       'remember' => 1,
       'single' => 0,
     ),
-    'access_id' =>
-    array (
-    ),
+    'access_id' => array(),
     'size' => '5',
     'group' => '0',
   );
@@ -215,17 +188,16 @@ function _workbench_access_views_section_field_definition() {
     'id' => 'section',
     'table' => 'workbench_access',
     'field' => 'section',
-    'alter' =>
-      array (
-        'alter_text' => 0,
-        'make_link' => 0,
-        'absolute' => 0,
-        'trim' => 0,
-        'word_boundary' => 1,
-        'ellipsis' => 1,
-        'strip_tags' => 0,
-        'html' => 0,
-      ),
+    'alter' => array(
+      'alter_text' => 0,
+      'make_link' => 0,
+      'absolute' => 0,
+      'trim' => 0,
+      'word_boundary' => 1,
+      'ellipsis' => 1,
+      'strip_tags' => 0,
+      'html' => 0,
+    ),
     'hide_empty' => 0,
     'empty_zero' => 0,
   );

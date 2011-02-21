@@ -2,13 +2,11 @@
 
 /**
  * @file
- *   Workbench Access admin file.
- *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Workbench Access admin file.
  */
 
 /**
- * Test callback for admin.
+ * Settings form for Workbench Access configuration.
  */
 function workbench_access_settings_form($form, &$form_state) {
   // Make sure all hook_invocations exist.

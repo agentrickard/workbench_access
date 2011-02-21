@@ -2,9 +2,7 @@
 
 /**
  * @file
- *   Install file.
- *
- * @copyright (C) Copyright 2010 Palantir.net
+ *   Install file for Workbench Access.
  */
 
 /**
@@ -212,12 +210,11 @@ function workbench_access_enable() {
     }
   }
   // Set our vocabulary as the default.
-  // TODO: Use machine name?
-  variable_set('workbench_access_taxonomy', $vocabulary->vid);
+  variable_set('workbench_access_taxonomy', $vocabulary->machine_name);
   $section = array(
     'access_scheme' => 'taxonomy',
     'access_type' => 'taxonomy',
-    'access_type_id' => $vocabulary->vid,
+    'access_type_id' => $vocabulary->machine_name,
   );
   foreach ($ids as $id) {
     $section['access_id'] = $id;

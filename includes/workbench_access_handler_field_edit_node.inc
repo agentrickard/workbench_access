@@ -2,9 +2,9 @@
 
 /**
  * @file
- *  Views integration for Workbench.
+ * Views integration for Workbench Access.
  *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Provides a reliable 'edit' link field for nodes.
  */
 
 class workbench_access_handler_field_edit_node extends views_handler_field {

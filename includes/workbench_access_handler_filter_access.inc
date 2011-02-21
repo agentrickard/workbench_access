@@ -2,9 +2,9 @@
 
 /**
  * @file
- *  Views integration for Workbench.
+ * Views integration for Workbench.
  *
- * @copyright (C) Copyright 2010 Palantir.net
+ * Provides a filter to display nodes by assigned section.
  */
 
 class workbench_access_handler_filter_access extends views_handler_filter {
@@ -22,7 +22,6 @@ class workbench_access_handler_filter_access extends views_handler_filter {
   }
 
   function value_form(&$form, &$form_state) {
-   # $options = array(-5 => t('All sections'));
     $active = workbench_access_get_active_tree();
     $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($active['active']));
