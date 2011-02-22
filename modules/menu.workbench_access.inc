@@ -22,7 +22,6 @@ function menu_workbench_access_info() {
       'node_table' => 'workbench_access_node',
       'query_field' => 'access_id',
       'field_table' => 'workbench_access_node',
-      'name_field' => 'name',
       'adjust_join' => array(
         'menu_links' => array(
           'original_table' => 'menu_links',

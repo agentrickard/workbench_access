@@ -19,10 +19,8 @@ function taxonomy_workbench_access_info() {
       'access_type_id' => array_filter(variable_get('workbench_access_taxonomy', array())),
       'description' => t('Uses a taxonomy vocabulary for assigning hierarchical access control'),
       'configuration' => 'taxonomy_workbench_access_configuration',
-      'node_table' => 'workbench_access_node',
       'query_field' => 'access_id',
       'field_table' => 'workbench_access_node',
-      'name_field' => 'name',
       'adjust_join' => array(
         'taxonomy_term_data' => array(
           'original_table' => 'taxonomy_index',

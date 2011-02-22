@@ -591,6 +591,9 @@ function workbench_access_section_save($section) {
  * @see hook_workbench_access_section_delete().
  */
 function workbench_access_section_delete($section) {
+  // Notify other modules.
+  module_invoke_all('workbench_access_delete', $section);
+  // Now clean up.
   db_delete('workbench_access')
     ->condition('access_id', $section['access_id'])
     ->condition('access_scheme', $section['access_scheme'])
@@ -607,8 +610,6 @@ function workbench_access_section_delete($section) {
     ->condition('access_id', $section['access_id'])
     ->condition('access_scheme', $section['access_scheme'])
     ->execute();
-  // Notify other modules.
-  module_invoke_all('workbench_access_delete', $section);
 }
 
 /**

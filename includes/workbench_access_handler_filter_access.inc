@@ -94,7 +94,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
       workbench_access_build_tree($tree, array_keys($this->value));
     }
     $ids = array_keys($tree);
-    $table = $this->query->ensure_table($active['access_scheme']['node_table']);
+    $table = $this->query->ensure_table($active['access_scheme']['field_table']);
     // Using this field alias breaks the COUNT query. Views bug?
     $field = $this->query->add_field($table, $active['access_scheme']['query_field']);
     $this->query->add_where($this->options['group'], "$table." . $active['access_scheme']['query_field'], $ids, 'IN');
