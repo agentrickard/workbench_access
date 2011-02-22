@@ -210,7 +210,10 @@ function workbench_access_enable() {
     }
   }
   // Set our vocabulary as the default.
-  variable_set('workbench_access_taxonomy', $vocabulary->machine_name);
+  $current = variable_get('workbench_access_taxonomy', array());
+  if (empty($current)) {
+    variable_set('workbench_access_taxonomy', array($vocabulary->machine_name => $vocabulary->machine_name));
+  }
   $section = array(
     'access_scheme' => 'taxonomy',
     'access_type' => 'taxonomy',

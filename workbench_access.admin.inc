@@ -56,8 +56,37 @@ function workbench_access_settings_form($form, &$form_state) {
   );*/
 
   $form = system_settings_form($form);
+  $form['#validate'][] = 'workbench_access_settings_validate';
   $form['#submit'][] = 'workbench_access_settings_submit';
   return $form;
+}
+
+/**
+ * Check configuration.
+ *
+ * If no access schemes are selected, things go boom. Due to the
+ * use of JS $states in the form, we can't just make fields required.
+ */
+function workbench_access_settings_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  if (empty($values['workbench_access'])) {
+    form_set_error('workbench_access', t('You must select an access scheme.'));
+  }
+  $target = 'workbench_access_' . $values['workbench_access'];
+  $error = FALSE;
+  if (empty($values[$target])) {
+    $error = TRUE;
+  }
+  else {
+    // Can't run an empty() check on array_filter() inside an IF.
+    $selections = array_filter($values[$target]);
+    if (empty($selections)) {
+      $error = TRUE;
+    }
+  }
+  if ($error) {
+    form_set_error($target, t('You must enable at least one @type scheme.', array('@type' => $values['workbench_access'])));
+  }
 }
 
 /**

@@ -1,5 +1,4 @@
 <?php
-// $Id$
 
 /**
  * @file
@@ -628,10 +627,8 @@ function workbench_access_section_delete($section) {
  */
 function workbench_access_get_ids_by_scheme($access_scheme, $keys = FALSE) {
   $data = &drupal_static(__FUNCTION__);
+  // If no access types are active, this fails. But return an array.
   if (empty($access_scheme['access_type_id'])) {
-    if (user_access('administer workbench access')) {
-      drupal_set_message(t('You must enable at least one Workbench Access scheme.'), 'error');
-    }
     $data = array();
   }
   if (!isset($data)) {
