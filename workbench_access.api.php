@@ -358,5 +358,53 @@ function hook_workbench_access_delete($section) {
   }
 }
 
- *  hook_workbench_access_save_user()
- *  hook_workbench_access_delete_user()
+/**
+ * Responds to the saving of a Workbench Access section assignment.
+ *
+ * This hook fires when a user is assigned to a section.
+ *
+ * @param $account
+ *   The active user account.
+ * @param $access_id
+ *   The access id to store.
+ * @param $access_scheme
+ *   The active access scheme as defined by hook_workbench_access_info().
+ *
+ * @return
+ *   No return function.
+ */
+function hook_workbench_access_save_user($account, $access_id, $access_scheme) {
+  // Notify our module if the section is related to taxonomy.
+  if ($access_scheme['access_type'] == 'taxonomy') {
+    mymodule_save_user($account, $access_id);
+  }
+}
+
+/**
+ * Responds to the deletion of a Workbench Access section assignment.
+ *
+ * This hook fires when a user is removed from a section.
+ * Note that this hook fires _before_ the base tables are cleared,
+ * in case you need to retrieve data from those tables.
+ *
+ * @param $account
+ *   The active user account.
+ * @param $access_id
+ *   The access id to store.
+ * @param $access_scheme
+ *   The active access scheme as defined by hook_workbench_access_info().
+ *
+ * @return
+ *   No return function.
+ */
+function hook_workbench_access_delete_user($account, $access_id, $access_scheme) {
+  // Notify our module if the section is related to taxonomy.
+  if ($access_scheme['access_type'] == 'taxonomy') {
+    mymodule_delete_user($account, $access_id);
+  }
+}
+
+/*
+hook_workbench_access_field_form()
+hook_workbench_access_field_ui_field_settings_form()
+*/

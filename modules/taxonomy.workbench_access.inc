@@ -72,7 +72,7 @@ function taxonomy_workbench_access_configuration(&$form, &$form_state) {
   $form['taxonomy_workbench_access_info']['workbench_access_taxonomy'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Editorial vocabulary'),
-    '#description' => t('Select the vocabulary to be used for access control. <strong>Warning: changing this value in production may disrupt your workflow.</strong>'),
+    '#description' => t('Select the vocabulary to be used for access control.'),
     '#options' => $options,
     '#default_value' => variable_get('workbench_access_taxonomy', array()),
     '#states' => array(

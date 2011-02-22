@@ -18,6 +18,9 @@ function workbench_access_settings_form($form, &$form_state) {
   }
   $active = variable_get('workbench_access', 'taxonomy');
   $form = array();
+  $form['help'] = array(
+    '#markup' => '<h2>' . t('Workbench Access settings') . '</h2>',
+  );
   $form['workbench_access'] = array(
     '#type' => 'radios',
     '#title' => t('Active access scheme'),
@@ -34,6 +37,9 @@ function workbench_access_settings_form($form, &$form_state) {
     if (function_exists($info[$key]['configuration'])) {
       $func = $info[$key]['configuration'];
       $func($form, $form_state);
+      if (isset($form[$key . '_workbench_access_info'])) {
+        $form[$key . '_workbench_access_info']['#description'] = t('<em>Changing this value in production may disrupt your workflow.</em>');
+      }
       foreach (array('validate', 'submit') as $action) {
         if (function_exists($func . '_' . $action)) {
           $form['#' . $action][] = $func . '_' . $action;
@@ -134,7 +140,7 @@ function workbench_access_section_form($form, &$form_state) {
     '#value' => $active['tree'],
   );
   $form['help'] = array(
-    '#markup' => t('Below is a list of the editorial sections defined for your site.'),
+    '#markup' => '<h2>' . t('Active editorial sections') . '</h2>' . t('Below is a list of the editorial sections defined for your site.'),
   );
   $form['sections']['#tree'] = TRUE;
   $active_items = array_keys($active['active']);
@@ -361,18 +367,20 @@ function workbench_access_sections() {
  *   The type of access requested (e.g.g taxonomy).
  * @param $access_type_id
  *   The id for this specific access (here, a taxnomy term tid).
+ * @param $type
+ *   The page type being displayed (editor or role).
  *
  * @return
  *   An editing form or a list of section editors.
  *
  * @see workbench_access_editor_form()
  */
-function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
+function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $type = 'editor') {
   if (is_null($access_type) || is_null($access_type_id)) {
     $active = workbench_access_get_active_tree();
     $active['access_scheme']['access_id'] = $access_type_id;
     $active_keys = array_keys($active['active']);
-    $output = '<h2>' . t('Editorial sections') . '</h2>';
+    $output = '<h2>' . t('Editorial assignments by @type', array('@type' => $type)) . '</h2>';
     $output .= '<p>' . t('The following sections are currently active.');
     if (user_access('administer workbench access')) {
       $output .= ' ' . t('You may <a href="!url">enable or disable sections</a>.', array('!url' => url('admin/config/workbench/access/sections'))) .'</p>';
@@ -386,19 +394,24 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL) {
       if ($section['depth'] == 0 || !isset($active['active'][$section['parent']])) {
         $parent = $section['name'];
       }
-      $count = db_query("SELECT COUNT(uid) FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id",
-        array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
-        )->fetchField();
-      $count2 = db_query("SELECT COUNT(rid) FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_id",
-        array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
-        )->fetchField();
-      $rows[] = array(
+      $row = array(
         str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id),
-        l(format_plural($count, '1 editor', '@count editors'), 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id),
-        l(format_plural($count2, '1 role', '@count roles'),  'admin/config/workbench/access/roles/' . $active['access_scheme']['access_type'] . '/' . $access_id),
       );
+      if ($type == 'editor') {
+        $count = db_query("SELECT COUNT(uid) FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id",
+          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
+          )->fetchField();
+        $row[] = l(format_plural($count, '1 editor', '@count editors'), 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id);
+      }
+      else {
+        $count2 = db_query("SELECT COUNT(rid) FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_id",
+          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
+          )->fetchField();
+        $row[] = l(format_plural($count2, '1 role', '@count roles'),  'admin/config/workbench/access/roles/' . $active['access_scheme']['access_type'] . '/' . $access_id);
+      }
+      $rows[] = $row;
     }
-    $header = array(t('Section'), t('Editors'), t('Roles'));
+    $header = array(t('Section'), t('@types', array('@type' => $type)));
     $output .= theme('table', array('header' => $header, 'rows' => $rows));
     $build['content']['#markup'] = $output;
     return $build;
@@ -546,7 +559,7 @@ function theme_workbench_access_editor_form($variables) {
  */
 function workbench_access_roles($access_type = NULL, $access_type_id = NULL) {
   if (is_null($access_type) || is_null($access_type_id)) {
-    return workbench_access_editors();
+    return workbench_access_editors(NULL, NULL, 'role');
   }
   return drupal_get_form('workbench_access_role_form', $access_type, $access_type_id);
 }

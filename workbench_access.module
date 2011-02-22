@@ -701,14 +701,15 @@ function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
  * @see hook_workbench_access_section_delete().
  */
 function workbench_access_user_section_delete($uid, $access_id, $access_scheme) {
+  // Notify other modules.
+  $account = user_load($uid, TRUE);
+  module_invoke_all('workbench_access_delete_user', $account, $access_id, $access_scheme);
+  // Clean up.
   db_delete('workbench_access_user')
     ->condition('access_id', $access_id)
     ->condition('access_scheme', $access_scheme)
     ->condition('uid', $uid)
     ->execute();
-  // Notify other modules.
-  $account = user_load($uid, TRUE);
-  module_invoke_all('workbench_access_delete_user', $account, $access_id, $access_scheme);
 }
 
 /**

@@ -68,7 +68,7 @@ function menu_workbench_access_configuration(&$form, &$form_state) {
   $form['menu_workbench_access_info']['workbench_access_menu'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Editorial menus'),
-    '#description' => t('Select the menus to be used for access control. <strong>Warning: changing this value in production may disrupt your workflow.</strong>'),
+    '#description' => t('Select the menus to be used for access control.'),
     '#options' => $options,
     '#default_value' => variable_get('workbench_access_menu', array('main_menu')),
     '#states' => array(
