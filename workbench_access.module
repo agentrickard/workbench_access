@@ -1048,7 +1048,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
       '#type' => 'select',
       '#title' => t('Workbench access'),
       '#options' => $options,
-      '#required' => TRUE,
+      '#required' => !empty($options), // in case this is empty for some reason.
       '#default_value' => $default,
       '#description' => t('Select the proper editorial group for this content.'),
     );
