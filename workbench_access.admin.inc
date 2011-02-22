@@ -133,6 +133,9 @@ function workbench_access_section_form($form, &$form_state) {
     '#type' => 'value',
     '#value' => $active['tree'],
   );
+  $form['help'] = array(
+    '#markup' => t('Below is a list of the editorial sections defined for your site.'),
+  );
   $form['sections']['#tree'] = TRUE;
   $active_items = array_keys($active['active']);
   $parent = 0;
