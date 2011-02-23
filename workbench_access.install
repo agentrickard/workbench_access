@@ -139,17 +139,19 @@ function workbench_access_schema() {
 }
 
 /**
- * Implements hook_enable().
+ * Implements hook_install().
  *
  * Multistep process:
  *  1) Create our vocabulary.
  *  2) Create some sample terms.
  *  3) Set the active schema for the site.
  *  4) Set all sections to active.
+ *  5) Assign the super-user to the main section.
+ *  6) Assign all nodes to the main section.
  */
-function workbench_access_enable() {
+function workbench_access_install() {
   $vocabulary = new stdClass();
-  $vocabulary->name = 'Workbench Access';
+  $vocabulary->name = 'Museum';
   $vocabulary->module = 'workbench_access';
   $vocabulary->machine_name = 'workbench_access';
   $vocabulary->description = 'Access control for editorial content.';
@@ -164,26 +166,27 @@ function workbench_access_enable() {
     }
   }
   // If the vocabulary exists, do not create any terms for it.
-  if ($exists) {
+  if ($exists || !empty($GLOBALS['conf']['workbench_access_install_minimal'])) {
     return;
   }
   // Save.
   taxonomy_vocabulary_save($vocabulary);
   // Create some terms.
   $terms = array(
-    'foo',
-    'bar',
-    'baz',
+    'Exhibits',
+    'Library',
+    'Gift Shop',
   );
   $children = array(
-    'one',
-    'two',
+    'Staff',
+    'Visitors',
   );
   // Get the proper filter format for taxonomy descriptions.
   $account = new stdClass();
   $account->uid = 0;
+  $account->roles = array(DRUPAL_ANONYMOUS_RID);
   $format = filter_default_format($account);
-  $ids = array();
+  $ids = array('workbench_access');
   $i = -5;
   foreach ($terms as $name) {
     $term = new stdClass();
@@ -199,7 +202,7 @@ function workbench_access_enable() {
     // Create child terms.
     foreach ($children as $child) {
       $item = new stdClass();
-      $item->name = $name . '-' . $child;
+      $item->name = $name . ' ' . $child;
       $item->parent = $term->tid;
       $item->vocabulary_machine_name = 'workbench_access';
       $item->vid = $vocabulary->vid;
@@ -223,6 +226,27 @@ function workbench_access_enable() {
     $section['access_id'] = $id;
     workbench_access_section_save($section);
   }
+  // Give the admin account access to all sections.
+  workbench_access_user_section_save(1, 'workbench_access', 'taxonomy');
+
+  // Get all nodes and save them to {workbench_access_node}.
+  $nids = db_query("SELECT nid FROM {node}")->fetchAll();
+  $values = array();
+  foreach ($nids as $nid) {
+    $values[] = array(
+      'nid' => $nid->nid,
+      'access_id' => 'workbench_access',
+      'access_scheme' => 'taxonomy',
+    );
+  }
+  if (empty($values)) {
+    return;
+  }
+  $query = db_insert('workbench_access_node')->fields(array('nid', 'access_id', 'access_scheme'));
+  foreach ($values as $record) {
+    $query->values($record);
+  }
+  $query->execute();
 }
 
 /**

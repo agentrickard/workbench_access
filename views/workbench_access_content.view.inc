@@ -194,18 +194,6 @@ $handler->display->display_options['fields']['edit']['alter']['strip_tags'] = 0;
 $handler->display->display_options['fields']['edit']['alter']['html'] = 0;
 $handler->display->display_options['fields']['edit']['hide_empty'] = 0;
 $handler->display->display_options['fields']['edit']['empty_zero'] = 0;
-/* Argument: User: Uid */
-$handler->display->display_options['arguments']['uid']['id'] = 'uid';
-$handler->display->display_options['arguments']['uid']['table'] = 'users';
-$handler->display->display_options['arguments']['uid']['field'] = 'uid';
-$handler->display->display_options['arguments']['uid']['default_action'] = 'empty';
-$handler->display->display_options['arguments']['uid']['style_plugin'] = 'default_summary';
-$handler->display->display_options['arguments']['uid']['default_argument_type'] = 'fixed';
-$handler->display->display_options['arguments']['uid']['validate_type'] = 'user';
-$handler->display->display_options['arguments']['uid']['validate_options']['restrict_roles'] = 0;
-$handler->display->display_options['arguments']['uid']['validate_fail'] = 'empty';
-$handler->display->display_options['arguments']['uid']['break_phrase'] = 0;
-$handler->display->display_options['arguments']['uid']['not'] = 0;
 /* Filter: Node: Title */
 $handler->display->display_options['filters']['title']['id'] = 'title';
 $handler->display->display_options['filters']['title']['table'] = 'node';
@@ -274,6 +262,5 @@ $translatables['workbench_access_content'] = array(
   t('Published'),
   t('Last updated'),
   t('Edit'),
-  t('All'),
   t('Page'),
 );
