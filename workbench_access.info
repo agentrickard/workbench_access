@@ -5,7 +5,6 @@ package = Workbench
 core = 7.x
 configure = admin/config/workbench/access
 dependencies[] = taxonomy
-dependencies[] = views
 dependencies[] = workbench
 files[] = workbench_access.module
 files[] = workbench_access.install
