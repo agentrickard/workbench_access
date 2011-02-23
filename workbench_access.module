@@ -69,6 +69,7 @@ function workbench_access_menu() {
     'file' => 'workbench_access.admin.inc',
     'description' => 'Assign users to sections for the Workbench Access module.',
     'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
   );
   $items['admin/workbench/sections'] = array(
     'title' => 'My sections',
@@ -145,6 +146,22 @@ function workbench_access_theme($existing, $type, $theme, $path) {
  */
 function workbench_access_views_api() {
   return array('api' => 2.0);
+}
+
+/**
+ * Implementation of hook_views_default_views().
+ */
+function workbench_access_views_default_views() {
+  $return = array();
+  // Find all the files in the directory with the correct extension.
+  $files = file_scan_directory(drupal_get_path('module', 'workbench_access') . "/views", "/.view.inc/");
+  foreach ($files as $path => $file) {
+    require $path;
+    if (isset($view)) {
+      $return[$view->name] = $view;
+    }
+  }
+  return $return;
 }
 
 /**
