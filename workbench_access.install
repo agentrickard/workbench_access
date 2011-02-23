@@ -237,7 +237,6 @@ function workbench_access_uninstall() {
   variable_del('workbench_access_taxonomy');
   variable_del('workbench_access_menu');
   variable_del('workbench_access_auto_assign');
-  #variable_del('workbench_access_custom_form');
 }
 
 /**
