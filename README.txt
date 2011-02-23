@@ -302,11 +302,12 @@ interests you, see the Developer Notes section of this document.
 Install the module and enable it according to Drupal standards.
 
 When you install the module, it will create a test access scheme for you. This
-scheme is called 'Workbench Access' and it is created as a Taxonomy vocabulary.
+scheme is called 'Museum' and it is created as a Taxonomy vocabulary. (It has a
+machine name of 'workbench_access', however.)
 
 You should be able to view the structure at the path:
 
-    Admin > Structure > Taxonomy > Workbench Access
+    Admin > Structure > Taxonomy > Museum
 
 You may use this to build your access hierarchy if you wish.  Simply edit the
 term names to reflect the real use-case for your site.
