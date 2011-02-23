@@ -404,7 +404,90 @@ function hook_workbench_access_delete_user($account, $access_id, $access_scheme)
   }
 }
 
-/*
-hook_workbench_access_field_form()
-hook_workbench_access_field_ui_field_settings_form()
-*/
+/**
+ * Allows modules to edit the Workbench Access node form element.
+ *
+ * This convenience function runs a hook_form_alter() targeted only at
+ * the form element defined by Workbench Access.
+ *
+ * @param &$element
+ *   The form element defined by workbench_access_form_alter(), passed
+ *   by reference.
+ * @param &$form_state
+ *   The current form state, passed by reference.
+ * @param $active
+ *   The active data information for the access scheme.
+ *
+ * @see workbench_access_get_active_tree()
+ *
+ */
+function hook_workbench_access_node_element_alter(&$element, $form_state, $active) {
+  // Always make this element required.
+  $element['#required'] = TRUE;
+}
+
+/**
+ * Allows modules to edit forms associated with Workbench Access.
+ *
+ * This convenience function allows other modules to extend the
+ * hook_form_alter() provided by workbench_access_form_alter(). This hook allows
+ * other modules to change the behavior of the core module without worrying
+ * about execution order of their hook respective to other modules.
+ *
+ * @param &$form
+ *   The form element defined by workbench_access_form_alter(), passed
+ *   by reference.
+ * @param &$form_state
+ *   The current form state, passed by reference.
+ * @param $active
+ *   The active data information for the access scheme.
+ *
+ * @see taxonomy_workbench_access_field_form_alter()
+ */
+function hook_workbench_access_FORM_ID_alter(&$form, &$form_state, $active) {
+  /**
+   * Workbench Access provides its own taxonomy, which cannot be used
+   * in normal taxonomy selection forms. This sample alter hook operates on
+   * field forms in order to remove the workbench_access vocabulary from
+   * selection options.
+   */
+  if (!isset($form['field']['settings']['allowed_values'])) {
+    return;
+  }
+
+  foreach ($form['field']['settings']['allowed_values'] as $key => $value) {
+    if (isset($value['vocabulary']) && isset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access'])) {
+      unset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access']);
+    }
+  }
+}
+
+/**
+ * Allows modules to alter user privileges.
+ *
+ * Standard drupal_alter() hook to allow modules to modify the sections
+ * that a user is allowed to edit. This hook is largely present to allow for
+ * complex handling of content type permissions.
+ *
+ * @param &$access
+ *   An array of access data, keyed by the access id. Passed by reference.
+ * @param $account
+ *   The active user account object. Note that this object may also be altered,
+ *   since objects are implicitly passed by reference. Normally, you should not
+ *   alter the $account object with this hook.
+ */
+function hook_workbench_access_user_alter(&$access, $account) {
+  // Make content editing specific to assigned node types.
+  if (empty($account->workbench_access)) {
+    return;
+  }
+  $types = node_type_get_types();
+  foreach ($access as $id => $data) {
+    $access[$id]['update'] = array();
+    foreach ($types as $type => $value) {
+      if (user_access("edit any $type content", $account)) {
+        $access[$id]['update'][] = $type;
+      }
+    }
+  }
+}

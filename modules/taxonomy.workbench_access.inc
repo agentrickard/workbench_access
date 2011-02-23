@@ -84,16 +84,16 @@ function taxonomy_workbench_access_configuration(&$form, &$form_state) {
 }
 
 /**
- * Implements hook_workbench_access_field_form().
+ * Implements hook_workbench_access_FORM_ID_alter().
  */
-function taxonomy_workbench_access_field_form(&$form, $form_state, $active) {
+function taxonomy_workbench_access_field_form_alter(&$form, &$form_state, $active) {
   _workbench_access_taxonomy_remove_option($form);
 }
 
 /**
- * Implements hook_workbench_access_field_ui_field_settings_form().
+ * Implements hook_workbench_access_FORM_ID_alter().
  */
-function taxonomy_workbench_access_field_ui_field_settings_form(&$form, $form_state, $active) {
+function taxonomy_workbench_access_field_ui_field_settings_form_alter(&$form, &$form_state, $active) {
   _workbench_access_taxonomy_remove_option($form);
 }
 

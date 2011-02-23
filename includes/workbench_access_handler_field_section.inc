@@ -46,7 +46,7 @@ class workbench_access_handler_field_section extends views_handler_field {
     global $user;
     $account = $user;
     if (!isset($account->workbench_access)) {
-      workbench_access_load_user_data($account);
+      workbench_access_user_load_data($account);
     }
     if (!isset($values->workbench_access_id)) {
       return '';

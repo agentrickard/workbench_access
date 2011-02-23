@@ -49,7 +49,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     global $user;
     $account = $user;
     if (!isset($account->workbench_access)) {
-      workbench_access_load_user_data($account);
+      workbench_access_user_load_data($account);
     }
     $active = workbench_access_get_active_tree();
     $tree = $active['tree'];
@@ -75,7 +75,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     global $user;
     $account = $user; // Not a clone, but that's ok, since we need this data on $user.
     if (!isset($account->workbench_access)) {
-      workbench_access_load_user_data($account);
+      workbench_access_user_load_data($account);
     }
     if (empty($account->workbench_access)) {
       $table = $this->query->ensure_table('node');

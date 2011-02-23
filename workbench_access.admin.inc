@@ -352,7 +352,7 @@ function workbench_access_sections() {
   global $user;
   $account = $user;
   if (!isset($account->workbench_access)) {
-    workbench_access_load_user_data($account);
+    workbench_access_user_load_data($account);
   }
   return drupal_get_form('workbench_access_user_form', $account);
 }

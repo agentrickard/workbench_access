@@ -112,8 +112,6 @@ function workbench_access_hook_info() {
   $items = array(
     'workbench_access_info',
     'workbench_access_configuration',
-    'workbench_access_field_form',
-    'workbench_access_field_ui_field_settings_form',
     'workbench_access_node_element',
     'workbench_access_save',
     'workbench_access_delete',
@@ -214,6 +212,7 @@ function workbench_access_node_access($node, $op, $account) {
     $type = $node->type;
   }
   // Create step. User must be assigned to a section to create content.
+  // Note that we do not currently enforce complex rules here.
   if ($op == 'create' && !empty($account->workbench_access)) {
     return NODE_ACCESS_IGNORE;
   }
@@ -325,7 +324,7 @@ function workbench_access_get_access_tree($account_access = array()) {
   }
   if (empty($account_access)) {
     $account = $GLOBALS['user'];
-    workbench_access_load_user_data($account);
+    workbench_access_user_load_data($account);
     $account_access = $account->workbench_access;
   }
   $trees[$key] = array();
@@ -469,7 +468,7 @@ function workbench_access_node_delete($node) {
  */
 function workbench_access_user_load($users) {
   foreach ($users as $uid => $account) {
-    workbench_access_load_user_data($account);
+    workbench_access_user_load_data($account);
   }
 }
 
@@ -482,7 +481,7 @@ function workbench_access_user_load($users) {
  * @return
  *   No return. Add the workbench_access attribute by reference.
  */
-function workbench_access_load_user_data($account) {
+function workbench_access_user_load_data($account) {
   $lookup = drupal_static(__FUNCTION__);
   if (isset($lookup[$account->uid])) {
     $account->workbench_access = $lookup[$account->uid];
@@ -1024,7 +1023,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
   else {
     // Make sure we prepared the user.
     if (!isset($user->workbench_access)) {
-      workbench_access_load_user_data($user);
+      workbench_access_user_load_data($user);
     }
     // Prepare the form element.
     $active = workbench_access_get_active_tree();
@@ -1066,7 +1065,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
         '#markup' => t('%title is assigned to the %section editorial group and may not be changed.', array('%title' => $form['#node']->title, '%section' => $name)),
       );
     }
-    workbench_access_alter_form('node_element', $element, $active);
+    workbench_access_alter_form('node_element', $element, $form_state);
     $form['workbench_access']['workbench_access_id'] = $element;
     $form['workbench_access']['workbench_access_scheme'] = array(
       '#type' => 'value',
@@ -1078,10 +1077,10 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
 /**
  * Call the alter hook for the active schema.
  */
-function workbench_access_alter_form($hook, &$form, $form_state) {
+function workbench_access_alter_form($hook, &$form, &$form_state) {
   $active = workbench_access_get_active_tree();
   // Determine the proper field to edit.
-  $function = $active['access_scheme']['access_type'] . '_' . 'workbench_access_' . $hook;
+  $function = $active['access_scheme']['access_type'] . '_' . 'workbench_access_' . $hook . '_alter';
   // We don't do a module_invoke or drupal_alter() here so we can target just the active scheme.
   if (!function_exists($function)) {
     return;
