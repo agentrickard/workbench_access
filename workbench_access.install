@@ -226,6 +226,43 @@ function workbench_access_enable() {
 }
 
 /**
+ * Implements hook_requirements() to check if workbench_access is configured
+ *
+ * @param $phase
+ */
+function workbench_access_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+
+    $requirements['workbench_access_configuration'] = array(
+      'title' => 'Workbench Access Configuration',
+    );
+
+    if (!variable_get('workbench_access', FALSE)) {
+      $severity = REQUIREMENT_ERROR;
+      $value = t('Not Configured');
+      $description = l(t('Workbench Access needs to be configured before it will work properly.'), 'admin/config/workbench/access/settings')
+      . ' ' . t('Users will not be able to add or edit nodes until this is done.');
+    }
+    else {
+      $severity = REQUIREMENT_OK;
+      $value = t('Configured');
+      $description = t('You have configured Workbench Access.');
+    }
+
+    $requirements['workbench_access_configuration'] = array(
+      'title'       => t('Workbench Access Configuration'),
+      'value'       => $value,
+      'severity'    => $severity,
+      'description' => $description,
+    );
+  }
+
+  return $requirements;
+}
+
+/**
  * Remove our vocabulary and variables.
  */
 function workbench_access_uninstall() {
