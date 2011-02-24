@@ -235,17 +235,6 @@ function workbench_access_enable() {
 }
 
 /**
- * Return the text directing admins to Workbench Access configuration.
- */
-function workbench_access_configuration_needed_message() {
-
-  return t('You must <a href="@settings">configure Workbench Access settings</a> for Workbench Access
-           to behave properly. Users will not be able to add or edit nodes until this is done.',
-           array('@settings' => url('admin/config/workbench/access/settings'))
-  );
-}
-
-/**
  * Implements hook_requirements() to check if workbench_access is configured.
  *
  * @param $phase
@@ -259,6 +248,7 @@ function workbench_access_requirements($phase) {
       'title' => 'Workbench Access Configuration',
     );
 
+    // If this variable has not been set, workbench access is not fully configured.
     if (!variable_get('workbench_access', FALSE)) {
       $severity = REQUIREMENT_ERROR;
       $value = t('Not Configured');
