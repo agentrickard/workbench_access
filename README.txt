@@ -30,7 +30,9 @@ CONTENTS
 4.4   Assigning roles to sections
 5.  Using the module
 5.1   Assigning nodes to sections
-5.2   Viewing assigned content
+5.2   Effects of assigning content to a section
+5.3   Viewing assigned content
+5.4   Viewing assigned sections
 6.  Troubleshooting
 7.  Developer notes
 7.1   API documentation
@@ -626,7 +628,18 @@ in as user 1.
 
 
 ----
-5.2   Viewing assigned content
+5.2   Effects of assigning content to a section
+
+When content is assigned to a section, editors in that section are granted the
+following prilieges:
+
+  -- The ability to edit that content.
+  -- The ability to view that content even if it is not published.
+
+In future versions, these permissions may be modified per content type.
+
+----
+5.3   Viewing assigned content
 
 This feature is not available if using the main Workbench module, which provides
 its own 'My Workbench' content area. See the main module README for details.
@@ -660,7 +673,7 @@ to some Views.
 
 
 ----
-5.3   Viewing assigned sections
+5.4   Viewing assigned sections
 
 Workbench Access provides a tab on the user account page, labelled Sections.
 This page shows a list of all sections the user is assigned to.
