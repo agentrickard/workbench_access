@@ -140,8 +140,11 @@ function workbench_access_section_form($form, &$form_state) {
     '#value' => $active['tree'],
   );
   $form['help'] = array(
-    '#markup' => '<h2>' . t('Active editorial sections') . '</h2>' . t('Below is a list of the editorial sections defined for your site.'),
+    '#markup' => '<h2>' . t('Active editorial sections') . '</h2><p>' . t('Below is a list of the editorial sections defined for your site.') .'</p>',
   );
+  if (variable_get('workbench_access_auto_assign', 1)) {
+    $form['help']['#markup'] .= '<p>' . t('All sections are set to be active automatically. <a href="!url">Disable the <em>Automated section assignment</em> option</a> to make changes.', array('!url' => url('admin/config/workbench/access/settings'))) . '</p>';
+  }
   $form['sections']['#tree'] = TRUE;
   $active_items = array_keys($active['active']);
   $parent = 0;
@@ -178,10 +181,12 @@ function workbench_access_section_form($form, &$form_state) {
     );
     $used[] = $section['access_id'];
   }
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Save sections'),
-  );
+  if (!variable_get('workbench_access_auto_assign', 1)) {
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save sections'),
+    );
+  }
   return $form;
 }
 
