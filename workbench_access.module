@@ -88,16 +88,16 @@ function workbench_access_menu() {
 function workbench_access_permission() {
   $permissions = array(
     'administer workbench access' => array(
-      'title' => t('Administer Workbench access settings'),
+      'title' => t('Administer Workbench Access settings'),
     ),
     'assign workbench access' => array(
-      'title' => t('Assign users to Workbench sections'),
+      'title' => t('Assign users to Workbench Access sections'),
     ),
     'access workbench access by role' => array(
-      'title' => t('Allow all members of this role to be assigned to Workbench sections'),
+      'title' => t('Allow all members of this role to be assigned to Workbench Access sections'),
     ),
     'view workbench access information' => array(
-      'title' => t('View Workbench access information'),
+      'title' => t('View Workbench Access information'),
     ),
   );
   return $permissions;
@@ -1027,7 +1027,11 @@ function workbench_access_is_active_id($access_type, $access_type_id) {
 }
 
 /**
- * Alter the options when presenting a node form.
+ * Implements hook_form_alter().
+ *
+ * Alter the options when presenting a node form. Also fire any extension
+ * hooks registered with hook_workbench_access_FORM_ID_alter().
+ *
  */
 function workbench_access_form_alter(&$form, $form_state, $form_id) {
   global $user;

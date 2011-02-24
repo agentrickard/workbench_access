@@ -17,7 +17,7 @@ function menu_workbench_access_info() {
       'name' => t('Menu'),
       'access_type' => 'menu',
       'access_type_id' => array_filter(variable_get('workbench_access_menu', array('main-menu'))),
-      'description' => t('Uses a menu for assigning hierarchical access control'),
+      'description' => t('Uses the menu system for assigning hierarchical access control.'),
       'configuration' => 'menu_workbench_access_configuration',
       'node_table' => 'workbench_access_node',
       'query_field' => 'access_id',

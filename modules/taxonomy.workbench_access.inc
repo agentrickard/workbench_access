@@ -17,7 +17,7 @@ function taxonomy_workbench_access_info() {
       'name' => t('Taxonomy'),
       'access_type' => 'taxonomy',
       'access_type_id' => array_filter(variable_get('workbench_access_taxonomy', array())),
-      'description' => t('Uses a taxonomy vocabulary for assigning hierarchical access control'),
+      'description' => t('Uses taxonomy vocabularies for assigning hierarchical access control.'),
       'configuration' => 'taxonomy_workbench_access_configuration',
       'query_field' => 'access_id',
       'field_table' => 'workbench_access_node',
@@ -72,7 +72,7 @@ function taxonomy_workbench_access_configuration(&$form, &$form_state) {
   $form['taxonomy_workbench_access_info']['workbench_access_taxonomy'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Editorial vocabulary'),
-    '#description' => t('Select the vocabulary to be used for access control.'),
+    '#description' => t('Select the vocabularies to be used for access control.'),
     '#options' => $options,
     '#default_value' => variable_get('workbench_access_taxonomy', array()),
     '#states' => array(

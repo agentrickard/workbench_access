@@ -22,7 +22,10 @@ CONTENTS
 3.  Permissions
 4.  Configuration
 4.1   Access schemes
+4.1.1  Automated section assignment
 4.2   Access sections
+4.2.1  Manual section configuration
+4.2.2  Automated section configuration
 4.3   Assigning editors to sections
 4.4   Assigning roles to sections
 5.  Using the module
@@ -222,6 +225,9 @@ need the same complexity for editorial access.
 
 But don't panic. You don't have to use this feature if you don't need it.
 
+See section 4.1.1 Automated section assignment for information about enabling
+this option.
+
 
 ----
 1.3   Terminology
@@ -312,7 +318,8 @@ You should be able to view the structure at the path:
 You may use this to build your access hierarchy if you wish.  Simply edit the
 term names to reflect the real use-case for your site.
 
-The created hierarchy mimics a Museum web site, divided into three sections, each of which has child sections for Staff and Visitor pages:
+The created hierarchy mimics a Museum web site, divided into three sections,
+each of which has child sections for Staff and Visitor pages:
 
   -- Museum
     -- Exhibits
@@ -346,3 +353,412 @@ settings.php before you install the module.
 
 If you do so, you must manually configure the module before resuming normal
 content editing, since users may not have any editorial rights.
+
+----
+3.  Permissions
+
+Workbench Access comes with four permissions.
+
+  -- Administer Workbench Access settings
+  Allows users to configure Workbench Access access schemes and sections.
+
+  -- Assign users to Workbench Access sections
+  Allows users to assign editors to sections. (Note that these editors must have
+  the 'Allow all members of this role to be assigned to Workbench sections'
+  permission described below.
+
+  -- Allow all members of this role to be assigned to Workbench Access sections
+  Allows a user to be assigned as an editor of a section.
+
+  -- View Workbench Access information 
+  Allows users to see information and messages related to Workbench Access,
+  particularly section assignments of content pages. Useful for debugging and
+  support.
+
+As a general rule, none of these permissions should ever be given to the
+anonymous user role.
+
+Note that having the permission to become an editor does not automatically make
+a user an editor. Once the user has the permission, she must be assigned to
+sections in order to edit content.  See the next section for details.
+
+----
+4.  Configuration
+
+There are three steps to proper module configuration. After setting up proper
+permissions, you should proceed through the steps below.
+
+----
+4.1   Access schemes
+
+As discussed in the Installation section, Workbench Access auto-installs a test
+configuration for you. This process is designed to help you understand how the
+module functions.
+
+When you are done testing, the next step is to decide on the active access
+scheme for the site. The access scheme defines how editorial sections are
+defined and managed.
+
+The Workbench Access settings page (admin/config/workbench/access/settings)
+shows the available access schemes. By default, these are Menu and Taxonomy.
+
+The form element will look similar to:
+
+    Active access scheme *
+    ( ) Menu
+    Uses the menu system for assigning hierarchical access control.
+    (*) Taxonomy 
+    Uses taxonomy vocabularies for assigning hierarchical access control.
+
+You must select one option (Taxonomy is the default). Note that once your site
+goes live, changing this value may disrupt your workflow.
+
+After selecting the active scheme, you can enable the top-level sections for
+that scheme. For Taxonomy-based access, these are Vocabularies. For Menu-based
+access, these are Menus.
+
+The form element will look similar to:
+
+    Taxonomy scheme settings
+    Changing this value in production may disrupt your workflow.
+
+    Editorial vocabulary
+    [*] Museum
+    [ ] Tags
+    Select the vocabularies to be used for access control.
+
+You may activate multiple top-level sections. In our example documentation, The
+University would be a top-level section. By default, the active top-level
+section is the Museum vocabulary created during installation.
+
+Select your options and Save configuration.
+
+
+----
+4.1.1  Automated section assignment
+
+On the settings page is another checkbox, labeled 'Automated section
+assignment'. This optional setting is enabled by default.
+
+    [*] Automated section assignment
+    Enable all sections automatically for the active scheme.
+
+This convenient setting automatically declares that all elements of the selected
+access scheme are active editorial sections. if you need the advanced
+configuration options described in 1.2.2  Ignoring sections, then you should
+uncheck this box.
+
+If you leave this box checked, you can skip section 4.2, since your sections are
+automatically configured for you.
+
+
+----
+4.2   Access sections
+
+Once you have declared an access scheme, you may enable the sections for that
+scheme. This process can be automated (as explained above) or manual.
+
+Access sections are configured at the Sections tab of the settings
+(admin/config/workbench/access/sections). This page shows the hierarchy of all
+the active schemes on your site.
+
+Once you have configured these options, you may assign editors to sections.
+
+
+----
+4.2.1  Manual section configuration
+
+Each top-level item and its children are displayed in a separate fieldset. If a
+fieldset has no active sections, it will display collapsed.
+
+The default page looks like so:
+
+  + Museum
+    [*] All of Museum
+    [*] - Exhibits
+    [*] -- Exhibits Staff
+    [*] -- Exhibits Visitors
+    [*] - Library
+    [*] -- Library Staff
+    [*] -- Library Visitors
+    [*] - Gift Shop
+    [*] -- Gift Shop Staff
+    [*] -- Gift Shop Visitors
+
+Items are ordered by their parent->child relationship. The hierarchy of your
+access scheme is represented by the -- marks in the interface. In this case, we
+can see that:
+
+    Library Visitors is a child of Library is a child of All of Museum.
+
+Your editors may be assigned to any active section. To disable a section,
+uncheck the option and save the configuration.
+
+Note that disabling a section will remove any editors from an existing setting.
+We recommend configuring this screen once for your site.
+
+
+----
+4.2.2  Automated section configuration
+
+If using automated sections, as described in 4.1.1, you will see a message at
+the top of the Sections page:
+
+  All sections are set to be active automatically. Disable the Automated section
+  assignment option to make changes.
+
+If this is the case, all options will be disabled and the submit button will be
+removed.
+
+----
+4.3   Assigning editors to sections
+
+The Editors tab shows you the active editorial sections for your site and the
+number of users assigned to each section. The page is located at:
+(admin/config/workbench/access).
+
+This page shows all active sections, ordered according to the hierarchy.
+
+In the secondary column is the count of the users assigned to the section as
+editors. In a default installation, only one editor is assigned (user 1) to the
+Museum section.
+
+Clicking either the section title link or the editors count link will take you
+to a screen that shows a list of active editors for that section.
+
+From this screen, you may add editors by using the autocomplete text form
+labeled 'Add editors'. Simply start typing the username to find a list of
+matching records. Once you have selected a user, submit the 'Update editors'
+button to save the changes.
+
+You may remove an active editor by checking the 'remove' option next to a
+username and submitting the form.
+
+Users who may 'Assign users to Workbench sections' may also assign editors from
+a user account page. Click on the 'Sections' tab of the user's account to see a
+list of all sections. Simply check the boxes for the desired assignments.
+
+When adding an editor, remember that permissions cascade from parent to child.
+If you want an editor to access the entire Library section, you only need to
+assign that user to the Library section, the child permissions are inherited
+automatically.
+
+
+----
+4.4   Assigning roles to sections
+
+Similar to the Editors tab, the Roles tab presents an overview of active
+editorial sections and the assigned roles for those sections. The Roles tab is
+located at (admin/config/workbench/access/roles).
+
+Click either the section or role count links to enter the role assignment
+screen. This screen also has two parts. The first is a table showing all users
+who are in the roles assigned to the section. The user's role(s) that grant this
+access are shown as well.
+
+The second element is a set of checkboxes for each role which has the 'Allow all
+members of this role to be assigned to Workbench sections' permission. This part
+of the form will look similar to:
+
+    Roles
+    [ ] authenticated user
+    [ ] administrator
+    Select the role(s) that should have all users assigned to this section.
+
+Simply check the roles that you wish to use for this section. This feature will
+automatically assign all users of that roles to be editors of the section.
+
+Technical note: The role settings are applied dynamically and not stored with
+the user account. In effect, if you assign an editor to a section, the editor
+must be manually removed from that section to remove access. However, if you
+assign a role to a section, all editors in that role can be removed by disabling
+the role's access.
+
+For example, if a user named 'falstaff' is assigned as a Museum editor, and
+falstaff is in the 'administrator' role, removing the administrator role from
+the Museum section will remove all administrators _except for_ falstaff, since
+his assignment is specific to his account.
+
+
+----
+5.  Using the module
+
+Now that we have configured our access scheme and assigned editors, we can
+resume normal site operations. The major feature of Workbench Access is to
+assign content (or Drupal 'node') to a specific editorial section.
+
+Note that users who are not assigned to an editorial section may not be allowed
+to create content on the site.
+
+
+----
+5.1   Assigning nodes to sections
+
+By design, Workbench Access provides its own editing form element. This element
+is assigned to all content types on your site.
+
+On the content editing screen, the Workbench Access element will appear as a
+selection list. This form element is specific to the current editor. The
+selection options will only display the sections that the user can access. For
+example, our Library editor will have a form similar to:
+
+    Workbench access *
+    <select>
+      - Library
+      -- Library Staff
+      -- Library Visitors
+    </select>
+    Select the proper editorial group for this content.
+
+The editor may select the proper section using this form element. At this time,
+only single-section assignments are supported.
+
+Note that Drupal may allow the user to edit content that is not in the user's
+assigned sections if another access control module intervenes. In this case, the
+user will see a message indicating the current section:
+
+    Workbench access 
+    Test article is assigned to the Museum editorial group and may not be
+    changed.
+
+Most frequently, this is true if the user can 'Bypass node access' or is logged
+in as user 1.
+
+
+----
+5.2   Viewing assigned content
+
+Workbench Access provides a tab on the user account page, labelled Content.
+This page shows a list of all content assigned to the user's editorial sections.
+
+This table may be sorted and searched to help editors find content quickly.
+
+The 'Section' column of the table shows the current section the content is
+assigned to. If the editor is assigned to that section, the section name is
+shown. If the editor is assigned to a parent section, the parent which grants
+the access is shown with an > preceding the actual section assignment.
+
+For example, if the editor is assigned to the Library section, the table may
+look like so:
+
+    Title           Section
+    -----           -------
+    Library hours   Library
+    Return policy   Library > Library Visitors
+    Vacation rules  Library > Library Staff
+
+This format is designed to show editors why they have access to the content.
+
+
+----
+5.3   Viewing assigned sections
+
+Workbench Access provides a tab on the user account page, labelled Sections.
+This page shows a list of all sections the user is assigned to.
+
+If viewed by a user who may 'Assign users to Workbench Access sections', this
+page will be a form that allows section assignment. Check the boxes to set the
+proper sections for the user.
+
+
+----
+6.  Troubleshooting
+
+Some helpful tips to make answering questions easier.
+
+-- Users who are not assigned to an editorial section may not be allowed
+to create content on the site.
+
+-- Editorial access applies to _all_ content types in a given section.
+
+-- Editorial access assigned to an individual user is not removed if that user's
+role is removed from an editorial section.
+
+-- Role-based access is added dynamically to all users in the role.
+
+-- When viewing content as a user with the 'View Workbench Access information'
+permission, a message will be displayed at the top of the page indicating the
+assigned section and whether or not the user may edit the page.
+
+-- For advanced access debugging, download the Devel module
+(http://drupal.org/project/devel) and enable the Devel Node Access module and
+the 'Devel Node Access by User' block. This block will output the access control
+rules for recent visitors to any content.
+
+
+----
+7.  Developer notes
+
+The following section documents technical details of interest to developers.
+
+
+----
+7.1   API documentation
+
+Workbench Access is designed to be a pluggable access control system. New access
+control systems should be possible by following the documentation in
+workbench_access.api.php, distributed with the module.
+
+Currently, new plugins must be loaded from the /modules folder inside the
+workbench_access directory. Fixing that is on the Feature roadmap.
+
+Note also that we do not use Field API for data storage. This decision is
+deliberate for three reasons:
+
+  -- Section data for nodes is 'stateless'. That is, it is permanent data that
+  is independent of node revisions.
+  -- Doing the necessary queries and joins to custom table data is easier than
+  using the Field API, and likely faster.
+  -- To properly integrate with Views, we need direct control over the table
+  structures of our data.
+
+However, we may consider moving to Field storage in later versions.
+
+
+----
+7.2   Database schema
+
+Workbench Access creates four tables in your Drupal installation.
+
+  -- workbench_access
+  Stores data for the active access schemes on the site.
+
+  -- workbench_access_node
+  Stores the section assignments for each node.
+
+  -- workbench_access_role
+  Stores the section assignements for each role.
+
+  -- workbench_access_user
+  Stores the section assignements for each user.
+
+See workbench_access_scheme() in workbench_access.install for table definitions.
+
+
+----
+7.3   Views integration
+
+Workbench Access provides Views integration in three distinct ways.
+
+  -- It provides the necessary fields, sort handlers, and filters for using node
+  section assignments with Views.
+
+  -- It provides a definition for menu_links table data if one is not present.
+  This integration is very lightweight and only useful for sorting and filtering
+  content when menu module controls the access scheme.
+
+  -- When using the full Workbench suite, it adds a Sections filter and field to
+  any View defined by Workbench modules. (These are identified by a 'Workbench'
+  Views tag.)
+
+Note that the Views integration has to alter how Views joins to taxonomy tables
+when taxonomy-based sections are used.
+
+
+----
+8.  Feature roadmap
+
+  -- Allows plugin registration from other modules.
+  -- Allow native form elements (like taxonomy) to set access permissions.
+  -- Support multiple section selection for content.
+  -- Support per-content-type settings for access.

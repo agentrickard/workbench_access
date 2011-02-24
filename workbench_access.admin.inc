@@ -400,7 +400,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
         $parent = $section['name'];
       }
       $row = array(
-        str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id),
+        str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/' . "{$type}s/" . $active['access_scheme']['access_type'] . '/' . $access_id),
       );
       if ($type == 'editor') {
         $count = db_query("SELECT COUNT(uid) FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id",
