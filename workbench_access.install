@@ -142,14 +142,22 @@ function workbench_access_schema() {
  * Implements hook_install().
  *
  * Multistep process:
- *  1) Create our vocabulary.
- *  2) Create some sample terms.
- *  3) Set the active schema for the site.
- *  4) Set all sections to active.
- *  5) Assign the super-user to the main section.
- *  6) Assign all nodes to the main section.
+ *  1) Tell the user to configure this module.
+ *  2) Create our vocabulary.
+ *  3) Create some sample terms.
+ *  4) Set the active schema for the site.
+ *  5) Set all sections to active.
+ *  6) Assign the super-user to the main section.
+ *  7) Assign all nodes to the main section.
  */
 function workbench_access_install() {
+
+  // If Workbench Access has not been configured, direct the user to configuration.
+  if (!variable_get('workbench_access', FALSE)) {
+    $message = workbench_access_configuration_needed_message();
+    drupal_set_message($message, 'warning', $repeat = FALSE);
+  }
+
   $vocabulary = new stdClass();
   $vocabulary->name = 'Museum';
   $vocabulary->module = 'workbench_access';
@@ -212,6 +220,7 @@ function workbench_access_install() {
       $ids[] = $item->tid;
     }
   }
+
   // Set our vocabulary as the default.
   $current = variable_get('workbench_access_taxonomy', array());
   if (empty($current)) {
@@ -247,6 +256,43 @@ function workbench_access_install() {
     $query->values($record);
   }
   $query->execute();
+}
+
+/**
+ * Implements hook_requirements() to check if workbench_access is configured.
+ *
+ * @param $phase
+ */
+function workbench_access_requirements($phase) {
+  $requirements = array();
+
+  if ($phase == 'runtime') {
+
+    $requirements['workbench_access_configuration'] = array(
+      'title' => 'Workbench Access Configuration',
+    );
+
+    // If this variable has not been set, workbench access is not fully configured.
+    if (!variable_get('workbench_access', FALSE)) {
+      $severity = REQUIREMENT_ERROR;
+      $value = t('Not Configured');
+      $description = workbench_access_configuration_needed_message();
+    }
+    else {
+      $severity = REQUIREMENT_OK;
+      $value = t('Configured');
+      $description = t('Workbench Access is configured.');
+    }
+
+    $requirements['workbench_access_configuration'] = array(
+      'title'       => t('Workbench Access Configuration'),
+      'value'       => $value,
+      'severity'    => $severity,
+      'description' => $description,
+    );
+  }
+
+  return $requirements;
 }
 
 /**
