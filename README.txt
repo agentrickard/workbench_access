@@ -628,6 +628,12 @@ in as user 1.
 ----
 5.2   Viewing assigned content
 
+This feature is not available if using the main Workbench module, which provides
+its own 'My Workbench' content area. See the main module README for details.
+
+To use this feature, you must first install the Views module
+(http://drupal.org/project/views).
+
 Workbench Access provides a tab on the user account page, labelled Content.
 This page shows a list of all content assigned to the user's editorial sections.
 
@@ -648,6 +654,9 @@ look like so:
     Vacation rules  Library > Library Staff
 
 This format is designed to show editors why they have access to the content.
+
+When using the main Workbench module, this column will automatically be added
+to some Views.
 
 
 ----
@@ -738,7 +747,8 @@ See workbench_access_scheme() in workbench_access.install for table definitions.
 ----
 7.3   Views integration
 
-Workbench Access provides Views integration in three distinct ways.
+If Views is enabled, Workbench Access provides Views integration in three
+distinct ways.
 
   -- It provides the necessary fields, sort handlers, and filters for using node
   section assignments with Views.
@@ -758,7 +768,7 @@ when taxonomy-based sections are used.
 ----
 8.  Feature roadmap
 
-  -- Allows plugin registration from other modules.
+  -- Allow plugin registration from other modules.
   -- Allow native form elements (like taxonomy) to set access permissions.
   -- Support multiple section selection for content.
   -- Support per-content-type settings for access.

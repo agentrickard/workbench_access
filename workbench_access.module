@@ -61,6 +61,14 @@ function workbench_access_menu() {
     'description' => 'Settings for the Workbench Access module.',
     'type' => MENU_LOCAL_TASK,
   );
+  $items['admin/workbench/sections'] = array(
+    'title' => 'My sections',
+    'page callback' => 'workbench_access_sections',
+    'access arguments' => array('access workbench'),
+    'weight' => 5,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'workbench_access.admin.inc',
+  );
   $items['user/%user/sections'] = array(
     'title' => 'Sections',
     'access arguments' => array('assign workbench access'),
@@ -71,15 +79,34 @@ function workbench_access_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
   );
-  $items['admin/workbench/sections'] = array(
-    'title' => 'My sections',
-    'page callback' => 'workbench_access_sections',
-    'access arguments' => array('access workbench'),
-    'weight' => 5,
-    'type' => MENU_LOCAL_TASK,
-    'file' => 'workbench_access.admin.inc',
-  );
+  // Provide a content tab if not using workbench.
+  if (module_exists('views') && !module_exists('workbench')) {
+    $items['user/%user/workbench_access'] = array(
+      'title' => 'Content',
+      'access arguments' => array(1),
+      'access callback' => 'workbench_access_views_access',
+      'page callback' => 'views_embed_view',
+      'page arguments' => array('workbench_access_content', 'default'),
+      'description' => 'View content assigned to my sections.',
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 2,
+    );
+  }
   return $items;
+}
+
+/**
+ * Access callback for content user tab.
+ */
+function workbench_access_views_access($account) {
+  global $user;
+  if ($user->uid != $account->uid) {
+    return FALSE;
+  }
+  if (user_access('access workbench access by role')) {
+    return TRUE;
+  }
+  return FALSE;
 }
 
 /**
@@ -101,6 +128,17 @@ function workbench_access_permission() {
     ),
   );
   return $permissions;
+}
+
+/**
+ * Implements hook_admin_paths().
+ */
+function workbench_access_admin_paths() {
+  $paths = array(
+    'user/*/sections' => TRUE,
+    'user/*/workbench_access' => TRUE,
+  );
+  return $paths;
 }
 
 /**

@@ -236,13 +236,6 @@ $handler->display->display_options['filters']['access_id']['expose']['single'] =
 $handler->display->display_options['filters']['access_id']['access_id'] = array();
 $handler->display->display_options['filters']['access_id']['size'] = '5';
 
-/* Display: Page */
-$handler = $view->new_display('page', 'Page', 'page_1');
-$handler->display->display_options['path'] = 'user/%/workbench_access';
-$handler->display->display_options['menu']['type'] = 'tab';
-$handler->display->display_options['menu']['title'] = 'Content';
-$handler->display->display_options['menu']['description'] = 'Content assigned to my sections';
-$handler->display->display_options['menu']['weight'] = '1';
 $translatables['workbench_access_content'] = array(
   t('Defaults'),
   t('Content'),

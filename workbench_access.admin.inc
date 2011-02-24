@@ -235,9 +235,11 @@ function workbench_access_user_form($form, &$form_state, $account) {
   );
   $form['helptext'] = array(
     '#type' => 'markup',
-    '#markup' => t('The list below shows your editorial groups. You may edit any content in these sections and their children. Contact your site administrator for more information.'),
-    '#access' => !user_access('assign_workbench_access'),
+    '#markup' => '<p>' . t('The list below shows your editorial groups. You may edit any content in these sections and their children.') . '</p>',
   );
+  if (user_access('assign_workbench_access')) {
+    $form['helptext']['#markup'] .= '<p>' . t('You may edit these settings by checking the proper options.') . '</p>';
+  }
   $sections = $account->workbench_access;
   $form['user_sections'] = array(
     '#type' => 'value',
