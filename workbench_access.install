@@ -142,12 +142,20 @@ function workbench_access_schema() {
  * Implements hook_enable().
  *
  * Multistep process:
- *  1) Create our vocabulary.
- *  2) Create some sample terms.
- *  3) Set the active schema for the site.
- *  4) Set all sections to active.
+ *  1) Tell the user to configure this module.
+ *  2) Create our vocabulary.
+ *  3) Create some sample terms.
+ *  4) Set the active schema for the site.
+ *  5) Set all sections to active.
  */
 function workbench_access_enable() {
+
+  // If Workbench Access has not been configured, direct the user to configuration.
+  if (!variable_get('workbench_access', FALSE)) {
+    $message = workbench_access_configuration_needed_message();
+    drupal_set_message($message, 'warning', $repeat = FALSE);
+  }
+
   $vocabulary = new stdClass();
   $vocabulary->name = 'Workbench Access';
   $vocabulary->module = 'workbench_access';
@@ -209,6 +217,7 @@ function workbench_access_enable() {
       $ids[] = $item->tid;
     }
   }
+
   // Set our vocabulary as the default.
   $current = variable_get('workbench_access_taxonomy', array());
   if (empty($current)) {
@@ -226,7 +235,18 @@ function workbench_access_enable() {
 }
 
 /**
- * Implements hook_requirements() to check if workbench_access is configured
+ * Return the text directing admins to Workbench Access configuration.
+ */
+function workbench_access_configuration_needed_message() {
+
+  return t('You must <a href="@settings">configure Workbench Access settings</a> for Workbench Access
+           to behave properly. Users will not be able to add or edit nodes until this is done.',
+           array('@settings' => url('admin/config/workbench/access/settings'))
+  );
+}
+
+/**
+ * Implements hook_requirements() to check if workbench_access is configured.
  *
  * @param $phase
  */
@@ -242,13 +262,12 @@ function workbench_access_requirements($phase) {
     if (!variable_get('workbench_access', FALSE)) {
       $severity = REQUIREMENT_ERROR;
       $value = t('Not Configured');
-      $description = l(t('Workbench Access needs to be configured before it will work properly.'), 'admin/config/workbench/access/settings')
-      . ' ' . t('Users will not be able to add or edit nodes until this is done.');
+      $description = workbench_access_configuration_needed_message();
     }
     else {
       $severity = REQUIREMENT_OK;
       $value = t('Configured');
-      $description = t('You have configured Workbench Access.');
+      $description = t('Workbench Access is configured.');
     }
 
     $requirements['workbench_access_configuration'] = array(
