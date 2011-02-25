@@ -502,10 +502,10 @@ function workbench_access_node_view($node, $view_mode, $langcode) {
   // Check editorial access.
   $access = node_access('update', $node);
   if ($access) {
-    drupal_set_message(t('This content belongs to the %section section. You may edit this content.', array('%section' => $section['name'])), 'status');
+    drupal_set_message(t('This content belongs to the %section section. You may edit this content.', array('%section' => $section['name'])), 'status', FALSE);
   }
   else {
-    drupal_set_message(t('This content belongs to the %section section. You are not a member of the %section editorial group.', array('%section' => $section['name'])), 'warning');
+    drupal_set_message(t('This content belongs to the %section section. You are not a member of the %section editorial group.', array('%section' => $section['name'])), 'warning', FALSE);
   }
 }
 
