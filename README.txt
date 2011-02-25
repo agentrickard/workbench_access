@@ -30,9 +30,7 @@ CONTENTS
 4.4   Assigning roles to sections
 5.  Using the module
 5.1   Assigning nodes to sections
-5.2   Effects of assigning content to a section
-5.3   Viewing assigned content
-5.4   Viewing assigned sections
+5.2   Viewing assigned content
 6.  Troubleshooting
 7.  Developer notes
 7.1   API documentation
@@ -54,7 +52,7 @@ able to edit the content.
 A user may be granted editorial rights to a section specific to his account or
 by his assigned role on the site.
 
-As of this writing, the module support Taxonomy and Menu modules for the
+As of this writing, the module supports Taxonomy and Menu modules for the
 management of access hierarchies.
 
 Note that the module only controls access to content editing. It does not
@@ -62,7 +60,7 @@ provide any content filtering of access restrictions for users trying to view
 that content.
 
 ----
-1.2  Use-case
+1.1  Use-case
 
 The above description is abstract, so let's look at a practical use-case.
 
@@ -126,10 +124,10 @@ In practice, this means that the Dean can have wide authority over that part of
 the website that she is responsible for, while a student intern might have very
 limited roles.
 
-In our Unversity, we have three types of web site users:
+In our University, we have three types of web site users:
 
   - Editors are responsible for the entire site.
-  - Deans responsible for an entire College.
+  - Deans are responsible for an entire College.
   - Writers are responsible for specific departments.
 
 In this scenario, Workbench Access would be configured as follows:
@@ -154,7 +152,8 @@ In this scenario, Workbench Access would be configured as follows:
     -- Assigned to the Dentistry section.
       -- Can edit content in the Dentistry section.
       
-What makes this system powerful is the inheritance of permissions based on the organizational hierarchy.  Put another way, you will see that:
+What makes this system powerful is the inheritance of permissions based on the
+organizational hierarchy.  Put another way, you will see that:
 
   -- Jane Doe
     -- Can edit all content, including that posted by:
@@ -185,7 +184,7 @@ as follows:
     -- Courses
     -- Faculty
     -- Policies
-      -- Regulatory ompliance
+      -- Regulatory compliance
       -- University regulations
       
 Suppose, then, that one of our new hires is Pete Peterson, an expert in
@@ -197,7 +196,7 @@ site.
 1.2.2  Ignoring sections
 
 By default, all elements of a hierarchy are set as editorial sections. But it
-may be that your orginization doesn't need the full complexity. Perhaps your
+may be that your organization does not need the full complexity. Perhaps your
 hierarchy can stop at the Students level.
 
 For this case, Workbench Access allows you to disable select terms within the
@@ -263,7 +262,7 @@ terms.
       User roles assigned to an editorial section.
 
 If you find part of the user interface violating these definitions, please file
-a bug report at http://drupal.org/project/workbench.
+a bug report at http://drupal.org/project/workbench_access.
 
 
 ----
@@ -300,8 +299,8 @@ If you need to restrict the ability to view content, you may wish to consider
 another module, such as Organic Groups (http://drupal.org/project/og) or
 Domain Access (http://drupal.org/project/domain).
 
-You could also write an extension module that handles this for us. If that
-interests you, see the Developer Notes section of this document.
+You could also write an extension module that handles this for Workbench. If
+that interests you, see the Developer Notes section of this document.
 
 
 ----
@@ -628,24 +627,7 @@ in as user 1.
 
 
 ----
-5.2   Effects of assigning content to a section
-
-When content is assigned to a section, editors in that section are granted the
-following prilieges:
-
-  -- The ability to edit that content.
-  -- The ability to view that content even if it is not published.
-
-In future versions, these permissions may be modified per content type.
-
-----
-5.3   Viewing assigned content
-
-This feature is not available if using the main Workbench module, which provides
-its own 'My Workbench' content area. See the main module README for details.
-
-To use this feature, you must first install the Views module
-(http://drupal.org/project/views).
+5.2   Viewing assigned content
 
 Workbench Access provides a tab on the user account page, labelled Content.
 This page shows a list of all content assigned to the user's editorial sections.
@@ -668,12 +650,9 @@ look like so:
 
 This format is designed to show editors why they have access to the content.
 
-When using the main Workbench module, this column will automatically be added
-to some Views.
-
 
 ----
-5.4   Viewing assigned sections
+5.3   Viewing assigned sections
 
 Workbench Access provides a tab on the user account page, labelled Sections.
 This page shows a list of all sections the user is assigned to.
@@ -760,8 +739,7 @@ See workbench_access_scheme() in workbench_access.install for table definitions.
 ----
 7.3   Views integration
 
-If Views is enabled, Workbench Access provides Views integration in three
-distinct ways.
+Workbench Access provides Views integration in three distinct ways.
 
   -- It provides the necessary fields, sort handlers, and filters for using node
   section assignments with Views.
@@ -781,7 +759,7 @@ when taxonomy-based sections are used.
 ----
 8.  Feature roadmap
 
-  -- Allow plugin registration from other modules.
+  -- Allows plugin registration from other modules.
   -- Allow native form elements (like taxonomy) to set access permissions.
   -- Support multiple section selection for content.
   -- Support per-content-type settings for access.
