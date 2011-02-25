@@ -993,12 +993,14 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
   $string = trim($string);
   $matches = array();
   if (!empty($string)) {
-    $result = db_query("SELECT DISTINCT(u.name) FROM {users} u 
-      WHERE u.name LIKE :string AND 
-      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))",
-      array(':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id));
-    foreach ($result as $user) {
-      $matches[$user->name] = check_plain($user->name);
+    $result = db_query_range("SELECT DISTINCT(u.uid), u.name FROM {users} u
+      INNER JOIN {users_roles} ur USING (uid) INNER JOIN {role_permission} USING (rid)
+      WHERE permission = :permission
+      AND u.name LIKE :string AND 
+      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))", 0, 10,
+      array(':permission' => 'access workbench access by role', ':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id))->FetchAll();
+    foreach ($result as $data) {
+      $matches[$data->name] = $data->name;
     }
   }
   drupal_json_output($matches);
