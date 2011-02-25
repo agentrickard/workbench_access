@@ -629,8 +629,12 @@ in as user 1.
 ----
 5.2   Viewing assigned content
 
-Workbench Access provides a tab on the user account page, labelled Content.
-This page shows a list of all content assigned to the user's editorial sections.
+When Workbench Access is installed without Workbench, , it provides a tab on the
+user account page, labeled Content.  This page shows a list of all content
+assigned to the user's editorial sections.
+
+When Workbench Access and Workbench are both enabled, you can find this same
+functionality in Workbench -> My Content -> All Recent Content.
 
 This table may be sorted and searched to help editors find content quickly.
 
@@ -654,7 +658,7 @@ This format is designed to show editors why they have access to the content.
 ----
 5.3   Viewing assigned sections
 
-Workbench Access provides a tab on the user account page, labelled Sections.
+Workbench Access provides a tab on the user account page, labeled Sections.
 This page shows a list of all sections the user is assigned to.
 
 If viewed by a user who may 'Assign users to Workbench Access sections', this
