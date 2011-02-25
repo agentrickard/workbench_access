@@ -103,7 +103,9 @@ function workbench_access_settings_submit($form, &$form_state) {
   if (empty($form_state['values']['workbench_access_auto_assign'])) {
     return;
   }
-  drupal_static_reset('workbench_access_get_active_tree');
+  // Reset the tree.
+  workbench_access_reset_tree();
+  // Get the new tree rules and check for changes.
   $active = workbench_access_get_active_tree();
   foreach ($active['tree'] as $key => $item) {
     $data = array_merge($active['access_scheme'], $item);
@@ -466,18 +468,6 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
     '#title' => t('Add editor'),
     '#autocomplete_path' => 'workbench_access/autocomplete/' . $access_type . '/' . $access_type_id,
   );
-  /* User role form. Moved to its own page.
-  $roles = user_roles(FALSE, 'access workbench access by role');
-  $default = array_keys(db_query("SELECT rid FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
-  $form['roles'] = array(
-    '#type' => 'checkboxes',
-    '#title' => t('Roles'),
-    '#options' => $roles,
-    '#default_value' => $default,
-    '#description' => empty($roles) ? t('There are no roles with the proper permissions.') : t('Select the role(s) that should have all users assigned to this section.'),
-  );
-  $form['default_roles'] = array('#type' => 'value', '#value' => !empty($roles) ? $default : array());
-  */
   $form['workbench_access'] = array(
     '#type' => 'value',
     '#value' => $active['access_scheme'],
@@ -487,6 +477,20 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
     '#value' => t('Update editors'),
   );
   return $form;
+}
+
+/**
+ * Process form submission for adding editors.
+ */
+function workbench_access_editor_form_validate($form, &$form_state) {
+  $values = $form_state['values'];
+  // User handling.
+  if (!empty($values['add_user'])) {
+    $account = user_load_by_name($values['add_user']);
+    if (empty($account)) {
+      form_set_error('add_user', t('The selected user does not exist.'));
+    }
+  }
 }
 
 /**

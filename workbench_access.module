@@ -447,7 +447,7 @@ function workbench_access_get_active_tree() {
  * Implements hook_node_load().
  */
 function workbench_access_node_load($nodes, $types) {
-  static $scheme;
+  $scheme = &drupal_static(__FUNCTION__);
   if (!isset($scheme)) {
     $scheme = variable_get('workbench_access', 'taxonomy');
   }
@@ -502,10 +502,10 @@ function workbench_access_node_view($node, $view_mode, $langcode) {
   // Check editorial access.
   $access = node_access('update', $node);
   if ($access) {
-    drupal_set_message(t('This content belongs to the %section section. You may edit this content.', array('%section' => $section['name'])), 'status');
+    drupal_set_message(t('This content belongs to the %section section. You may edit this content.', array('%section' => $section['name'])), 'status', FALSE);
   }
   else {
-    drupal_set_message(t('This content belongs to the %section section. You are not a member of the %section editorial group.', array('%section' => $section['name'])), 'warning');
+    drupal_set_message(t('This content belongs to the %section section. You are not a member of the %section editorial group.', array('%section' => $section['name'])), 'warning', FALSE);
   }
 }
 
@@ -664,6 +664,19 @@ function workbench_access_section_delete($section) {
     ->condition('access_id', $section['access_id'])
     ->condition('access_scheme', $section['access_scheme'])
     ->execute();
+}
+
+/**
+ * Reset tree data stored in statics.
+ *
+ * Necessary when rebuilding the active tree settings.
+ */
+function workbench_access_reset_tree() {
+  drupal_static_reset('workbench_access_get_access_tree');
+  drupal_static_reset('workbench_access_get_active_tree');
+  drupal_static_reset('workbench_access_get_ids_by_scheme');
+  drupal_static_reset('workbench_access_user_load_data');
+  drupal_static_reset('workbench_access_node_load');
 }
 
 /**
@@ -993,12 +1006,14 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
   $string = trim($string);
   $matches = array();
   if (!empty($string)) {
-    $result = db_query("SELECT DISTINCT(u.name) FROM {users} u 
-      WHERE u.name LIKE :string AND 
-      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))",
-      array(':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id));
-    foreach ($result as $user) {
-      $matches[$user->name] = check_plain($user->name);
+    $result = db_query_range("SELECT DISTINCT(u.uid), u.name FROM {users} u
+      INNER JOIN {users_roles} ur USING (uid) INNER JOIN {role_permission} USING (rid)
+      WHERE permission = :permission
+      AND u.name LIKE :string AND 
+      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))", 0, 10,
+      array(':permission' => 'access workbench access by role', ':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id))->FetchAll();
+    foreach ($result as $data) {
+      $matches[$data->name] = $data->name;
     }
   }
   drupal_json_output($matches);
