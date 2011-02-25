@@ -447,7 +447,7 @@ function workbench_access_get_active_tree() {
  * Implements hook_node_load().
  */
 function workbench_access_node_load($nodes, $types) {
-  static $scheme;
+  $scheme = &drupal_static(__FUNCTION__);
   if (!isset($scheme)) {
     $scheme = variable_get('workbench_access', 'taxonomy');
   }
@@ -664,6 +664,19 @@ function workbench_access_section_delete($section) {
     ->condition('access_id', $section['access_id'])
     ->condition('access_scheme', $section['access_scheme'])
     ->execute();
+}
+
+/**
+ * Reset tree data stored in statics.
+ *
+ * Necessary when rebuilding the active tree settings.
+ */
+function workbench_access_reset_tree() {
+  drupal_static_reset('workbench_access_get_access_tree');
+  drupal_static_reset('workbench_access_get_active_tree');
+  drupal_static_reset('workbench_access_get_ids_by_scheme');
+  drupal_static_reset('workbench_access_user_load_data');
+  drupal_static_reset('workbench_access_node_load');
 }
 
 /**

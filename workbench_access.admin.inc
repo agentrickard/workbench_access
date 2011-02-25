@@ -103,7 +103,9 @@ function workbench_access_settings_submit($form, &$form_state) {
   if (empty($form_state['values']['workbench_access_auto_assign'])) {
     return;
   }
-  drupal_static_reset('workbench_access_get_active_tree');
+  // Reset the tree.
+  workbench_access_reset_tree();
+  // Get the new tree rules and check for changes.
   $active = workbench_access_get_active_tree();
   foreach ($active['tree'] as $key => $item) {
     $data = array_merge($active['access_scheme'], $item);
