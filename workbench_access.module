@@ -813,14 +813,15 @@ function workbench_access_role_section_save($rid, $access_id, $access_scheme) {
  * @see hook_workbench_access_section_delete().
  */
 function workbench_access_role_section_delete($rid, $access_id, $access_scheme) {
+  // Notify other modules.
+  $role = user_role_load($rid, TRUE);
+  module_invoke_all('workbench_access_delete_role', $role, $access_id, $access_scheme);
+  // Clean up.
   db_delete('workbench_access_role')
     ->condition('access_id', $access_id)
     ->condition('access_scheme', $access_scheme)
     ->condition('rid', $rid)
     ->execute();
-  // Notify other modules.
-  $role = user_role_load($rid, TRUE);
-  module_invoke_all('workbench_access_delete_role', $role, $access_id, $access_scheme);
 }
 
 /**
