@@ -19,6 +19,7 @@ CONTENTS
 1.5   Access control notes
 2.  Installation
 2.1   Advanced installation options
+2.2   Dependencies
 3.  Permissions
 4.  Configuration
 4.1   Access schemes
@@ -58,6 +59,11 @@ management of access hierarchies.
 Note that the module only controls access to content editing. It does not
 provide any content filtering of access restrictions for users trying to view
 that content.
+
+While Workbench Access is part of a larger module suite, it may be run as a
+stand-alone module with no dependencies.
+
+For more information about Workbench, see http://drupal.org/project/workbench.
 
 ----
 1.1  Use-case
@@ -354,6 +360,12 @@ settings.php before you install the module.
 
 If you do so, you must manually configure the module before resuming normal
 content editing, since users may not have any editorial rights.
+
+
+----
+2.2   Dependencies
+
+Workbench Access requires the core Taxonomy module to be active on your site.
 
 ----
 3.  Permissions
