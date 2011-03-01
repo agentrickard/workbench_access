@@ -18,7 +18,9 @@ class workbench_access_handler_sort_section extends views_handler_sort {
     $order = $this->options['order'];
     foreach ($active['access_scheme']['sort'] as $sort) {
       $table = $this->query->ensure_table($sort['table']);
-      $this->query->add_orderby($table, $sort['field'], (isset($sort['order'])) ? $sort['order'] : $order);
+      if (!empty($table)) {
+        $this->query->add_orderby($table, $sort['field'], (isset($sort['order'])) ? $sort['order'] : $order);
+      }
     }
     // Logic to remove JOIN to the default table, which can cause duplicate results.
     $base_table = $this->view->base_table;
