@@ -79,8 +79,20 @@ function workbench_access_menu() {
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
   );
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ *
+ * If Workbench is disabled, modify the menu.
+ */
+function workbench_access_menu_alter(&$items) {
+  if (module_exists('workbench')) {
+    return;
+  }
   // Provide a content tab if not using workbench.
-  if (module_exists('views') && !module_exists('workbench')) {
+  if (module_exists('views')) {
     $items['user/%user/workbench_access'] = array(
       'title' => 'Content',
       'access arguments' => array(1),
@@ -92,7 +104,20 @@ function workbench_access_menu() {
       'weight' => 2,
     );
   }
-  return $items;
+  // It is possible that another module added this item.
+  if (isset($items['admin/config/workbench'])) {
+    return;
+  }
+  // Add a top-level menu item.
+  $items['admin/config/workbench'] = array(
+    'title' => 'Workbench',
+    'description' => 'Workbench configuration',
+    'page callback' => 'system_admin_menu_block_page',
+    'access arguments' => array('administer site configuration'),
+    'position' => 'right',
+    'file' => 'system.admin.inc',
+    'file path' => drupal_get_path('module', 'system'),
+  );
 }
 
 /**
