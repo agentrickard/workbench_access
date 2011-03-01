@@ -1,4 +1,3 @@
-;$Id$
 name = Workbench Access
 description = Extensible editorial access for the Workbench suite.
 package = Workbench
