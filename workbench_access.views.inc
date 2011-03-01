@@ -144,7 +144,9 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
 
       $style_options['columns']['section'] = 'section';
       $style_options['info']['section'] = array(
-        'sortable' => 1,
+        // Only do a sortable section column on Views using the node table.
+        // A PDO error occurs with the node_revisions table.
+        'sortable' => ($view->base_table == 'node'),
         'align' => '',
         'separator' => '',
       );
