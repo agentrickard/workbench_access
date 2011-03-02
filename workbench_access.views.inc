@@ -166,7 +166,7 @@ function _workbench_access_views_access_id_filter_definition() {
     'field' => 'access_id',
     'operator' => 'or',
     'exposed' => TRUE,
-    'expose' => array (
+    'expose' => array(
       'label' => 'Sections',
       'identifier' => 'access_id',
       'remember' => 1,
