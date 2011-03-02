@@ -75,7 +75,7 @@ function workbench_access_views_data() {
 }
 
 /**
- * Implementation of hook_view_pre_view().
+ * Implements hook_view_pre_view().
  *
  * Dynamically adds the exposed fitlers that workbench_access provides to
  * appropriate Views.
@@ -86,7 +86,6 @@ function workbench_access_views_data() {
  * filters/fields/settings from workbench_access.
  */
 function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
-
   // Target any view with a workbench tag that uses 'node' as the base_table.
   // TODO: support the node_revision table.
   if (is_numeric(strripos($view->tag, 'Workbench')) && ($view->base_table == 'node' || $view->base_table == 'node_revision')) {
@@ -161,7 +160,7 @@ function workbench_access_views_pre_view(&$view, &$display_id, &$args) {
  * add this filter to given Views.
  */
 function _workbench_access_views_access_id_filter_definition() {
-  return array (
+  return array(
     'id' => 'access_id',
     'table' => 'workbench_access',
     'field' => 'access_id',
@@ -186,7 +185,7 @@ function _workbench_access_views_access_id_filter_definition() {
  * add this field to given Views.
  */
 function _workbench_access_views_section_field_definition() {
- return array (
+  return array(
     'id' => 'section',
     'table' => 'workbench_access',
     'field' => 'section',

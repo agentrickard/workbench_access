@@ -44,7 +44,7 @@ function workbench_access_schema() {
     ),
     'primary key' => array('access_id', 'access_scheme'),
   );
-  
+
   $schema['workbench_access_user'] = array(
     'description' => 'Maps user access to sections',
     'fields' => array(
@@ -151,13 +151,6 @@ function workbench_access_schema() {
  *  7) Assign all nodes to the main section.
  */
 function workbench_access_install() {
-
-  // If Workbench Access has not been configured, direct the user to configuration.
-  if (!variable_get('workbench_access', FALSE)) {
-    $message = workbench_access_configuration_needed_message();
-    drupal_set_message($message, 'warning', $repeat = FALSE);
-  }
-
   $vocabulary = new stdClass();
   $vocabulary->name = 'Museum';
   $vocabulary->module = 'workbench_access';
@@ -168,7 +161,7 @@ function workbench_access_install() {
   $existing = taxonomy_get_vocabularies();
   $exists = FALSE;
   // Ensure that this is a unique vocabulary.
-  foreach($existing as $voc) {
+  foreach ($existing as $voc) {
     if ($voc->machine_name == $vocabulary->machine_name) {
       $exists = TRUE;
     }
@@ -201,7 +194,7 @@ function workbench_access_install() {
     $term->name = $name;
     $term->vocabulary_machine_name = 'workbench_access';
     $term->vid = $vocabulary->vid;
-    $term->description = t('Test term for Workbench Access.');
+    $term->description = st('Test term for Workbench Access.');
     $term->format = $format;
     $term->weight = $i;
     taxonomy_term_save($term);
@@ -226,6 +219,9 @@ function workbench_access_install() {
   if (empty($current)) {
     variable_set('workbench_access_taxonomy', array($vocabulary->machine_name => $vocabulary->machine_name));
   }
+  // Set taxonomy as the active scheme.
+  variable_set('workbench_access', 'taxonomy');
+  // Set up the sections.
   $section = array(
     'access_scheme' => 'taxonomy',
     'access_type' => 'taxonomy',
@@ -259,6 +255,19 @@ function workbench_access_install() {
 }
 
 /**
+ * Implements hook_enable().
+ *
+ * Check the module configuration requirements.
+ */
+function workbench_access_enable() {
+  // If Workbench Access has not been configured, direct the user to configuration.
+  if (!variable_get('workbench_access', FALSE)) {
+    $message = workbench_access_configuration_needed_message();
+    drupal_set_message($message, 'warning', $repeat = FALSE);
+  }
+}
+
+/**
  * Implements hook_requirements() to check if workbench_access is configured.
  *
  * @param $phase
@@ -267,11 +276,6 @@ function workbench_access_requirements($phase) {
   $requirements = array();
 
   if ($phase == 'runtime') {
-
-    $requirements['workbench_access_configuration'] = array(
-      'title' => 'Workbench Access Configuration',
-    );
-
     // If this variable has not been set, workbench access is not fully configured.
     if (!variable_get('workbench_access', FALSE)) {
       $severity = REQUIREMENT_ERROR;
@@ -281,13 +285,12 @@ function workbench_access_requirements($phase) {
     else {
       $severity = REQUIREMENT_OK;
       $value = t('Configured');
-      $description = t('Workbench Access is configured.');
+      $description = t('Workbench Access is configured properly, using %scheme as the access scheme.', array('%scheme' => variable_get('workbench_access', 'taxonomy')));
     }
-
-    $requirements['workbench_access_configuration'] = array(
-      'title'       => t('Workbench Access Configuration'),
-      'value'       => $value,
-      'severity'    => $severity,
+    $requirements['workbench_access'] = array(
+      'title' => t('Workbench Access'),
+      'value' => $value,
+      'severity' => $severity,
       'description' => $description,
     );
   }
@@ -310,11 +313,11 @@ function workbench_access_uninstall() {
 }
 
 /**
- * Upgrade existing sites.
+ * Allow for multiple term selection.
  *
- * NOTE: This should be removed from the release version.
+ * NOTE: This update only affects sites on the pre-drupal.org release.
  */
-function workbench_access_update_0001() {
+function workbench_access_update_7000() {
   $taxonomy = variable_get('workbench_access_taxonomy', 0);
   if (!is_array($taxonomy)) {
     if (empty($taxonomy)) {
@@ -328,11 +331,11 @@ function workbench_access_update_0001() {
 }
 
 /**
- * Upgrade existing sites.
+ * Add the role-based storage table.
  *
- * NOTE: This should be removed from the release version.
+ * NOTE: This update only affects sites on the pre-drupal.org release.
  */
-function workbench_access_update_0002() {
+function workbench_access_update_7001() {
   if (db_table_exists('workbench_access_role')) {
     return t('Update not required.');
   }
@@ -372,9 +375,9 @@ function workbench_access_update_0002() {
 /**
  * Use vocabulary machine names instead of ids.
  *
- * NOTE: This should be removed from the release version.
+ * NOTE: This update only affects sites on the pre-drupal.org release.
  */
-function workbench_access_update_0003() {
+function workbench_access_update_7002() {
   if (!module_exists('taxonomy')) {
     return t('No update is required.');
   }
@@ -390,9 +393,9 @@ function workbench_access_update_0003() {
 /**
  * Use vocabulary machine names, part two.
  *
- * NOTE: This should be removed from the release version.
+ * NOTE: This update only affects sites on the pre-drupal.org release.
  */
-function workbench_access_update_0004() {
+function workbench_access_update_7003() {
   $taxonomy = variable_get('workbench_access_taxonomy', array());
   if (!module_exists('taxonomy')) {
     return t('No update is required.');

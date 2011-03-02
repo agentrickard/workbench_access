@@ -10,7 +10,7 @@
 class workbench_access_handler_field_edit_node extends views_handler_field {
   // No query for this field.
   function query() {}
-  
+
   /**
    * Render the link.
    */

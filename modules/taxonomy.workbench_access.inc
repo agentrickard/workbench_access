@@ -178,7 +178,7 @@ function taxonomy_workbench_access_load($scheme) {
       'name' => $vocabulary->name,
       'description' => $vocabulary->description,
       'access_id' => $vocabulary->machine_name,
-    );  
+    );
   }
   else {
     $term = taxonomy_term_load($scheme['access_id']);

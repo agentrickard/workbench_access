@@ -116,7 +116,7 @@ function menu_workbench_access_tree($info, $keys) {
     );
     $menu = menu_tree_all_data($name);
     foreach ($menu as $link) {
-       _workbench_access_menu_build_tree($tree, $link);
+      _workbench_access_menu_build_tree($tree, $link);
     }
   }
   if ($keys) {

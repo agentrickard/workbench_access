@@ -142,7 +142,7 @@ function workbench_access_section_form($form, &$form_state) {
     '#value' => $active['tree'],
   );
   $form['help'] = array(
-    '#markup' => '<h2>' . t('Active editorial sections') . '</h2><p>' . t('Below is a list of the editorial sections defined for your site.') .'</p>',
+    '#markup' => '<h2>' . t('Active editorial sections') . '</h2><p>' . t('Below is a list of the editorial sections defined for your site.') . '</p>',
   );
   if (variable_get('workbench_access_auto_assign', 1)) {
     $form['help']['#markup'] .= '<p>' . t('All sections are set to be active automatically. <a href="!url">Disable the <em>Automated section assignment</em> option</a> to make changes.', array('!url' => url('admin/config/workbench/access/settings'))) . '</p>';
@@ -392,7 +392,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
     $output = '<h2>' . t('Editorial assignments by @type', array('@type' => $type)) . '</h2>';
     $output .= '<p>' . t('The following sections are currently active.');
     if (user_access('administer workbench access')) {
-      $output .= ' ' . t('You may <a href="!url">enable or disable sections</a>.', array('!url' => url('admin/config/workbench/access/sections'))) .'</p>';
+      $output .= ' ' . t('You may <a href="!url">enable or disable sections</a>.', array('!url' => url('admin/config/workbench/access/sections'))) . '</p>';
     }
     $rows = array();
     foreach ($active['tree'] as $access_id => $section) {
@@ -448,7 +448,7 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
     drupal_exit();
   }
   $query = db_select('users', 'u')
-    ->fields('u', array('uid', 'name'));    
+    ->fields('u', array('uid', 'name'));
   $query->join('workbench_access_user', 'wau', 'u.uid = wau.uid');
   $query->condition('wau.access_scheme', $access_type)
     ->condition('wau.access_id', $access_type_id)
@@ -457,7 +457,7 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
   $rows = array();
   $form['users']['#tree'] = TRUE;
   foreach ($result as $account) {
-    $form['users'][$account->uid]['name'] = array('#markup' => l($account->name, 'user/'. $account->uid));
+    $form['users'][$account->uid]['name'] = array('#markup' => l($account->name, 'user/' . $account->uid));
     $form['users'][$account->uid]['remove'] = array(
       '#type' => 'checkbox',
       '#title' => t('Remove'),
@@ -611,7 +611,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
   }
   foreach ($users_by_role as $uid => $item) {
     $rows[] = array(
-      l($item['name'], 'user/'. $uid),
+      l($item['name'], 'user/' . $uid),
       theme('item_list', array('items' => $item['roles'], 'type' => 'ul')),
     );
   }
@@ -657,7 +657,7 @@ function workbench_access_role_form_submit($form, &$form_state) {
       workbench_access_role_section_save($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
     }
     elseif (empty($status) && in_array($rid, $values['default_roles'])) {
-      workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);    
+      workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
     }
   }
 }

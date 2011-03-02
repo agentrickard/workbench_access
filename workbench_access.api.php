@@ -65,7 +65,7 @@
  *    value is used to prevent duplicate results. See
  *    taxonomy_workbench_access_info() for sample usage.
  *  - 'sort'
- *    The table(s) and fields to use for Views sorting. 
+ *    The table(s) and fields to use for Views sorting.
  *
  */
 function hook_workbench_access_info() {
@@ -114,7 +114,7 @@ function hook_workbench_access_info() {
  * The structure of your array should look like the following example:
  *
  *   array (
- *     'workbench_access' => 
+ *     'workbench_access' =>
  *     array (
  *       'access_id' => 'workbench_access',
  *       'access_type_id' => 'workbench_access',
@@ -124,7 +124,7 @@ function hook_workbench_access_info() {
  *       'depth' => 0,
  *       'parent' => 0,
  *     ),
- *     1 => 
+ *     1 =>
  *     array (
  *       'access_id' => '1',
  *       'access_type_id' => 'workbench_access',
@@ -134,7 +134,7 @@ function hook_workbench_access_info() {
  *       'depth' => 1,
  *       'parent' => 'workbench_access',
  *     ),
- *     2 => 
+ *     2 =>
  *     array (
  *       'access_id' => '2',
  *       'access_type_id' => 'workbench_access',
@@ -144,7 +144,7 @@ function hook_workbench_access_info() {
  *       'depth' => 2,
  *       'parent' => '1',
  *     ),
- *     3 => 
+ *     3 =>
  *     array (
  *       'access_id' => '3',
  *       'access_type_id' => 'workbench_access',
@@ -250,7 +250,7 @@ function hook_workbench_access_load($scheme) {
       'name' => $vocabulary->name,
       'description' => $vocabulary->description,
       'access_id' => $vocabulary->machine_name,
-    );  
+    );
   }
   else {
     $term = taxonomy_term_load($scheme['access_id']);

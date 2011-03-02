@@ -135,7 +135,7 @@ function workbench_access_views_access($account) {
 }
 
 /**
- * Implements hook_permission()
+ * Implements hook_permission().
  */
 function workbench_access_permission() {
   $permissions = array(
@@ -212,7 +212,7 @@ function workbench_access_views_api() {
 }
 
 /**
- * Implementation of hook_views_default_views().
+ * Implements hook_views_default_views().
  */
 function workbench_access_views_default_views() {
   $return = array();
@@ -426,7 +426,7 @@ function workbench_access_get_access_tree($account_access = array()) {
 /**
  * Return the access tree for a rule set.
  *
- * @see hook_workbench_access_info().
+ * @see hook_workbench_access_info()
  *
  * @param $info
  *   The rule information.
@@ -437,7 +437,7 @@ function workbench_access_get_access_tree($account_access = array()) {
  *   An array of access_ids or a data array.
  */
 function workbench_access_tree($info, $keys = FALSE) {
-  $function = $info['access_type'] .'_workbench_access_tree';
+  $function = $info['access_type'] . '_workbench_access_tree';
   if (function_exists($function)) {
     return $function($info, $keys);
   }
@@ -651,7 +651,7 @@ function workbench_access_rebuild_scheme($access_scheme, $sections = array()) {
  * @param $section
  *   The access scheme to save. Follows the format of hook_workbench_access_info().
  *
- * @see hook_workbench_access_section_save().
+ * @see hook_workbench_access_section_save()
  */
 function workbench_access_section_save($section) {
   drupal_write_record('workbench_access', $section);
@@ -667,7 +667,7 @@ function workbench_access_section_save($section) {
  * @param $section
  *   The access scheme to delete. Follows the format of hook_workbench_access_info().
  *
- * @see hook_workbench_access_section_delete().
+ * @see hook_workbench_access_section_delete()
  */
 function workbench_access_section_delete($section) {
   // Notify other modules.
@@ -769,7 +769,7 @@ function workbench_access_rebuild_user($uid, $access_scheme, $sections = array()
  * @param $access_scheme
  *   The active access scheme
  *
- * @see hook_workbench_access_save_user().
+ * @see hook_workbench_access_save_user()
  */
 function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
   $record['uid'] = $uid;
@@ -790,7 +790,7 @@ function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
  * @param $access_scheme
  *   The active access scheme.
  *
- * @see hook_workbench_access_section_delete().
+ * @see hook_workbench_access_section_delete()
  */
 function workbench_access_user_section_delete($uid, $access_id, $access_scheme) {
   // Notify other modules.
@@ -814,7 +814,7 @@ function workbench_access_user_section_delete($uid, $access_id, $access_scheme) 
  * @param $access_scheme
  *   The active access scheme
  *
- * @see hook_workbench_access_save_role().
+ * @see hook_workbench_access_save_role()
  */
 function workbench_access_role_section_save($rid, $access_id, $access_scheme) {
   $record['rid'] = $rid;
@@ -835,7 +835,7 @@ function workbench_access_role_section_save($rid, $access_id, $access_scheme) {
  * @param $access_scheme
  *   The active access scheme.
  *
- * @see hook_workbench_access_section_delete().
+ * @see hook_workbench_access_section_delete()
  */
 function workbench_access_role_section_delete($rid, $access_id, $access_scheme) {
   // Notify other modules.
@@ -953,7 +953,7 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
       }
       // Remove sections that should not be shown.
       foreach ($tree as $access_id => $data) {
-        if(!isset($new_tree[$access_id])) {
+        if (!isset($new_tree[$access_id])) {
           unset($tree[$access_id]);
         }
       }
@@ -1035,7 +1035,7 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
     $result = db_query_range("SELECT DISTINCT(u.uid), u.name FROM {users} u
       INNER JOIN {users_roles} ur USING (uid) INNER JOIN {role_permission} USING (rid)
       WHERE permission = :permission
-      AND u.name LIKE :string AND 
+      AND u.name LIKE :string AND
       (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))", 0, 10,
       array(':permission' => 'access workbench access by role', ':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id))->FetchAll();
     foreach ($result as $data) {
@@ -1202,13 +1202,11 @@ function workbench_access_alter_form($hook, &$form, &$form_state) {
  * Return the text directing admins to Workbench Access configuration.
  */
 function workbench_access_configuration_needed_message() {
-
   return t('You must <a href="@settings">configure Workbench Access settings</a> for Workbench Access
-           to behave properly. Users will not be able to add or edit nodes until this is done.',
-           array('@settings' => url('admin/config/workbench/access/settings'))
+    to behave properly. Users will not be able to add or edit nodes until this is done.',
+    array('@settings' => url('admin/config/workbench/access/settings'))
   );
 }
-
 
 /**
  * Implements hook_form_alter().

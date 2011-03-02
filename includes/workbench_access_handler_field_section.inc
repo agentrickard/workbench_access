@@ -17,7 +17,7 @@ class workbench_access_handler_field_section extends views_handler_field {
     // Using this field alias breaks the COUNT query. Views bug?
     $field = $this->query->add_field($field_table, $active['access_scheme']['query_field'], 'workbench_access_id');
   }
-  
+
   function click_sort($order) {
     $active = workbench_access_get_active_tree();
     if (empty($active['access_scheme']['sort'])) {
@@ -43,7 +43,7 @@ class workbench_access_handler_field_section extends views_handler_field {
       }
     }
   }
-  
+
   function render($values) {
     global $user;
     $account = $user;

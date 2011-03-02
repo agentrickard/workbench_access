@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ *  Default content view for Workbench Access.
+ */
+
 $view = new view;
 $view->name = 'workbench_access_content';
 $view->description = 'Content assigned to the user\'s editorial sections.';
