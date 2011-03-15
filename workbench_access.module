@@ -514,27 +514,6 @@ function workbench_access_node_update($node) {
 }
 
 /**
- * Implements hook_node_view().
- */
-function workbench_access_node_view($node, $view_mode, $langcode) {
-  if ($view_mode != 'full' || !user_access('view workbench access information') || empty($node->workbench_access)) {
-    return;
-  }
-  // Get the current assignment.
-  $access_type = variable_get('workbench_access_scheme', 'taxonomy');
-  $access_id = current($node->workbench_access);
-  $section = workbench_access_load($access_type, $access_id);
-  // Check editorial access.
-  $access = node_access('update', $node);
-  if ($access) {
-    drupal_set_message(t('This content belongs to the %section section. You may edit this content.', array('%section' => $section['name'])), 'status', FALSE);
-  }
-  else {
-    drupal_set_message(t('This content belongs to the %section section. You are not a member of the %section editorial group.', array('%section' => $section['name'])), 'warning', FALSE);
-  }
-}
-
-/**
  * Implements hook_node_delete().
  */
 function workbench_access_node_delete($node) {
@@ -1242,4 +1221,26 @@ function workbench_access_form_menu_edit_menu_alter(&$form, &$form_state, $form_
  */
 function workbench_access_form_menu_edit_item_alter(&$form, &$form_state, $form_id) {
  # dsm($form);
+}
+
+/**
+ * Implements hook_block_view_workbench_block_alter().
+ *
+ * Show the editorial status of this node.
+ */
+function workbench_access_workbench_block() {
+  // Add editing information to this page (if it's a node).
+  if ($node = menu_get_object()) {
+    if (user_access('view workbench access information')) {
+      if (empty($node->workbench_access)) {
+        return array(t('Workbench Access: <em>Unassigned</em>'));
+      }
+      else {
+        $access_type = variable_get('workbench_access_scheme', 'taxonomy');
+        $access_id = current($node->workbench_access);
+        $section = workbench_access_load($access_type, $access_id);
+        return array(t('Workbench Access: <em>%section</em>', array('%section' => $section['name'])));
+      }
+    }
+  }
 }
