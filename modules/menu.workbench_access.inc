@@ -190,6 +190,27 @@ function workbench_access_menu_delete($menu) {
 }
 
 /**
+ * Implements hook_menu_link_insert().
+ *
+ * If an new link is added, check to see if we need to create a section.
+ */
+function workbench_access_menu_link_insert($link) {
+  if (variable_get('workbench_access', 'taxonomy') != 'menu' || !variable_get('workbench_access_auto_assign', 1)) {
+    return;
+  }
+  $active = array_filter(variable_get('workbench_access_menu', array()));
+  if (in_array($link['menu_name'], $active)) {
+    $section = array(
+      'access_id' => $link['mlid'],
+      'access_type' => 'menu',
+      'access_scheme' => 'menu',
+      'access_type_id' => $link['menu_name'],
+    );
+    workbench_access_section_save($section);
+  }
+}
+
+/**
  * Implements hook_menu_link_delete().
  *
  * If an active menu link is deleted, cascade the change through our system.

@@ -192,6 +192,27 @@ function taxonomy_workbench_access_load($scheme) {
 }
 
 /**
+ * Implements hook_taxonomy_term_insert().
+ *
+ * If an new term is added, check to see if we need to create a section.
+ */
+function workbench_access_taxonomy_term_insert($term) {
+  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy' || !variable_get('workbench_access_auto_assign', 1)) {
+    return;
+  }
+  $active = array_filter(variable_get('workbench_access_taxonomy', array()));
+  if (in_array($term->vocabulary_machine_name, $active)) {
+    $section = array(
+      'access_id' => $term->tid,
+      'access_type' => 'taxonomy',
+      'access_scheme' => 'taxonomy',
+      'access_type_id' => $term->vocabulary_machine_name,
+    );
+    workbench_access_section_save($section);
+  }
+}
+
+/**
  * Implements hook_taxonomy_term_delete().
  *
  * If an active term is deleted, cascade the change through our system.
