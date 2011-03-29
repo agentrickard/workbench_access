@@ -88,9 +88,15 @@ function workbench_access_menu() {
  * If Workbench is disabled, modify the menu.
  */
 function workbench_access_menu_alter(&$items) {
+  // Hide our taxonomy view pages.
+  $items['taxonomy/term/%taxonomy_term']['access callback'] = 'workbench_access_taxonomy_page_access';
+  $items['taxonomy/term/%taxonomy_term']['access arguments'] = array(2);
+
+  // Only needed if Workbench module is disabled.
   if (module_exists('workbench')) {
     return;
   }
+
   // Provide a content tab if not using workbench.
   if (module_exists('views')) {
     $items['user/%user/workbench_access'] = array(
@@ -118,6 +124,25 @@ function workbench_access_menu_alter(&$items) {
     'file' => 'system.admin.inc',
     'file path' => drupal_get_path('module', 'system'),
   );
+}
+
+/**
+ * Custom access callback for taxonomy/term/%.
+ *
+ * Hide the vocabulary created by Workbench Access unless the
+ * user has specific permission to view these pages.
+ *
+ * @param $term
+ *   The taxonomy term being viewed.
+ *
+ * @return
+ *   Booelan TRUE or FALSE.
+ */
+function workbench_access_taxonomy_page_access($term) {
+  if (!user_access('access content') || ($term->vocabulary_machine_name == 'workbench_access' && !user_access('view workbench taxonomy pages'))) {
+    return FALSE;
+  }
+  return TRUE;
 }
 
 /**
@@ -150,6 +175,9 @@ function workbench_access_permission() {
     ),
     'view workbench access information' => array(
       'title' => t('View Workbench Access information'),
+    ),
+    'view workbench taxonomy pages' => array(
+      'title' => t('View taxonomy term pages for Workbench Access vocabulary'),
     ),
   );
   return $permissions;
