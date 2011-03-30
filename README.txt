@@ -389,12 +389,12 @@ Workbench Access comes with four permissions.
   support.
 
   -- View taxonomy term pages for Workbench Access vocabulary
-  Workbench Access can create its own Vocabulary for data storage. Typically,
-  this vocabulary should not be shown to site visitors. This permission restricts
-  access to taxonomy pages (taxonomy/term/%) defined by Workbench Access.
-  Normal access to custom vocabularies is not affected. Only give this permission
-  to roles that need to view these term pages, effectively treating them as
-  standard taxonomy terms.
+  Workbench Access can create its own vocabulary for data storage. Typically,
+  this vocabulary should not be shown to site visitors. This permission
+  restricts access to taxonomy pages (taxonomy/term/%) defined by Workbench
+  Access. Normal access to custom vocabularies is not affected. Only give this
+  permission to roles that need to view these term pages, effectively treating
+  them as standard taxonomy terms.
 
 As a general rule, none of these permissions should ever be given to the
 anonymous user role.
