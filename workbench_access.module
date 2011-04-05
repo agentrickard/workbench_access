@@ -1264,7 +1264,7 @@ function workbench_access_workbench_block() {
         return array(t('Workbench Access: <em>Unassigned</em>'));
       }
       else {
-        $access_type = variable_get('workbench_access_scheme', 'taxonomy');
+        $access_type = variable_get('workbench_access', 'taxonomy');
         $access_id = current($node->workbench_access);
         $section = workbench_access_load($access_type, $access_id);
         return array(t('Workbench Access: <em>%section</em>', array('%section' => $section['name'])));
