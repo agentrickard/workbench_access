@@ -1216,21 +1216,124 @@ function workbench_access_configuration_needed_message() {
 }
 
 /**
- * Implements hook_form_alter().
+ * Implements hook_form_FORM_ID_alter().
  *
- * Add a sections form.
+ * Add a sections form to native vocabulary editing.
  */
 function workbench_access_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id) {
- # dsm($form);
+  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+    return;
+  }
+  $vocabulary = $form['#vocabulary'];
+  $active = array_filter(variable_get('workbench_access_taxonomy', array()));
+  if (!in_array($vocabulary->machine_name, $active)) {
+    // TODO: allow this to be made a category.
+    return;
+  }
+  $access_id = isset($vocabulary->machine_name) ? $vocabulary->machine_name : NULL;
+  workbench_access_edit_form_alter($form, $access_id, 'vocabulary');
 }
 
 /**
- * Implements hook_form_alter().
+ * Submit callback for vocabulary forms.
+ */
+function workbench_access_vocabulary_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  if (!isset($values['workbench_access'])) {
+    return;
+  }
+  $section = array(
+    'access_id' => $values['machine_name'],
+    'access_type' => 'taxonomy',
+    'access_scheme' => 'taxonomy',
+    'access_type_id' => $values['machine_name'],
+  );
+  workbench_access_edit_form_submit($values, $section, $values['name']);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
  *
- * Add a sections form.
+ * Add a sections form to native term editing.
  */
 function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id) {
- # dsm($form);
+  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+    return;
+  }
+  $term = $form['#term'];
+  $active = array_filter(variable_get('workbench_access_taxonomy', array()));
+  if (!in_array($term['vocabulary_machine_name'], $active)) {
+    return;
+  }
+  $access_id = isset($form['#term']['tid']) ? $form['#term']['tid'] : NULL;
+  workbench_access_edit_form_alter($form, $access_id, 'term');
+}
+
+/**
+ * Generic form for adding a section checkbox to another form.
+ *
+ * @param &$form
+ *   The form being altered.
+ * @param $access_id
+ *   The access_id defined by the form.
+ * @param $type
+ *   The type of entity being saved (term, vocabulary, menu_link, etc.)
+ */
+function workbench_access_edit_form_alter(&$form, $access_id, $type) {
+  $active = workbench_access_get_active_tree();
+  $form['workbench_access'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Workbench Access editorial section'),
+    '#default_value' => variable_get('workbench_access_auto_assign', 1) == 1 ? 1 : isset($active['active'][$access_id]),
+    '#disabled' => variable_get('workbench_access_auto_assign', 1),
+    '#description' => t('Enable this !type as an active editorial section.', array('!type' => str_replace('_', ' ', $type))),
+    '#weight' => 1,
+  );
+  $form['workbench_access_exists'] = array(
+    '#type' => 'value',
+    '#value' => isset($active['active'][$access_id]),
+  );
+  $form['#submit'][] = 'workbench_access_' . $type . '_submit';
+}
+
+/**
+ * Submit callback for term forms.
+ */
+function workbench_access_term_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  if (!isset($values['workbench_access'])) {
+    return;
+  }
+  $section = array(
+    'access_id' => $values['tid'],
+    'access_type' => 'taxonomy',
+    'access_scheme' => 'taxonomy',
+    'access_type_id' => $values['vocabulary_machine_name'],
+  );
+  workbench_access_edit_form_submit($values, $section, $values['name']);
+}
+
+/**
+ * Generic submit handler for adding sections to forms.
+ *
+ * @param $values
+ *   The values passed through the form.
+ * @param $section
+ *   The section defined by this item.
+ * @param $name
+ *   The human-readable name of this item.
+ */
+function workbench_access_edit_form_submit($values, $section, $name) {
+  if (!empty($values['workbench_access'])) {
+    if (empty($values['workbench_access_exists'])) {
+      workbench_access_section_save($section);
+      drupal_set_message(t('Added %section to active editorial groups.', array('%section' => $name)));
+    }
+  }
+  else {
+    workbench_access_section_delete($section);
+    drupal_set_message(t('Deleted %section from active editorial groups.', array('%section' => $name)));
+  }
 }
 
 /**
@@ -1239,7 +1342,34 @@ function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $f
  * Add a sections form.
  */
 function workbench_access_form_menu_edit_menu_alter(&$form, &$form_state, $form_id) {
- # dsm($form);
+  if (variable_get('workbench_access', 'taxonomy') != 'menu') {
+    return;
+  }
+  $menu = $form['menu_name']['#default_value'];
+  $active = array_filter(variable_get('workbench_access_menu', array()));
+  if (!in_array($menu, $active)) {
+    // TODO: allow this to be made a category.
+    return;
+  }
+  $access_id = $menu;
+  workbench_access_edit_form_alter($form, $access_id, 'menu');
+}
+
+/**
+ * Submit callback for menu forms.
+ */
+function workbench_access_menu_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  if (!isset($values['workbench_access'])) {
+    return;
+  }
+  $section = array(
+    'access_id' => $values['menu_name'],
+    'access_type' => 'menu',
+    'access_scheme' => 'menu',
+    'access_type_id' => $values['menu_name'],
+  );
+  workbench_access_edit_form_submit($values, $section, $values['title']);
 }
 
 /**
@@ -1248,7 +1378,33 @@ function workbench_access_form_menu_edit_menu_alter(&$form, &$form_state, $form_
  * Add a sections form.
  */
 function workbench_access_form_menu_edit_item_alter(&$form, &$form_state, $form_id) {
- # dsm($form);
+  if (variable_get('workbench_access', 'taxonomy') != 'menu') {
+    return;
+  }
+  $menu = $form['original_item']['#value']['menu_name'];
+  $active = array_filter(variable_get('workbench_access_menu', array()));
+  if (!in_array($menu, $active)) {
+    return;
+  }
+  $access_id = $form['mlid']['#value'];
+  workbench_access_edit_form_alter($form, $access_id, 'menu_link');
+}
+
+/**
+ * Submit callback for menu_link forms.
+ */
+function workbench_access_menu_link_submit($form, &$form_state) {
+  $values = $form_state['values'];
+  if (!isset($values['workbench_access'])) {
+    return;
+  }
+  $section = array(
+    'access_id' => $values['mlid'],
+    'access_type' => 'menu',
+    'access_scheme' => 'menu',
+    'access_type_id' => $values['menu_name'],
+  );
+  workbench_access_edit_form_submit($values, $section, $values['link_title']);
 }
 
 /**
