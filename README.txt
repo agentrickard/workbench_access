@@ -27,6 +27,7 @@ CONTENTS
 4.2   Access sections
 4.2.1  Manual section configuration
 4.2.2  Automated section configuration
+4.2.3 Editing sections in native forms
 4.3   Assigning editors to sections
 4.4   Assigning roles to sections
 5.  Using the module
@@ -518,7 +519,6 @@ uncheck the option and save the configuration.
 Note that disabling a section will remove any editors from an existing setting.
 We recommend configuring this screen once for your site.
 
-
 ----
 4.2.2  Automated section configuration
 
@@ -530,6 +530,25 @@ the top of the Sections page:
 
 If this is the case, all options will be disabled and the submit button will be
 removed.
+
+----
+4.2.3 Editing sections in native forms
+
+When using the Menu or Taxonomy schemes, you may enable or disable sections
+when using the native editing forms for those modules. Only roles with the
+'Administer Workbench Access settings' permission may perform this action.
+
+At the bottom of a form, look for the checkbox:
+
+    [ ] Workbench Access editorial section
+    Enable this menu as an active editorial section.
+
+If using Automated section configuration, these checkboxes may be selected
+and disabled for you. Otherwise, select the proper status for each item as you
+edit.
+
+Note that removing a section also removes all editors and content from that
+section.
 
 ----
 4.3   Assigning editors to sections

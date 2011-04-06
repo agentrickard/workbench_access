@@ -1221,7 +1221,7 @@ function workbench_access_configuration_needed_message() {
  * Add a sections form to native vocabulary editing.
  */
 function workbench_access_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id) {
-  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
     return;
   }
   $vocabulary = $form['#vocabulary'];
@@ -1257,7 +1257,7 @@ function workbench_access_vocabulary_submit($form, &$form_state) {
  * Add a sections form to native term editing.
  */
 function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id) {
-  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
     return;
   }
   $term = $form['#term'];
@@ -1342,7 +1342,7 @@ function workbench_access_edit_form_submit($values, $section, $name) {
  * Add a sections form.
  */
 function workbench_access_form_menu_edit_menu_alter(&$form, &$form_state, $form_id) {
-  if (variable_get('workbench_access', 'taxonomy') != 'menu') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'menu') {
     return;
   }
   $menu = $form['menu_name']['#default_value'];
@@ -1378,7 +1378,7 @@ function workbench_access_menu_submit($form, &$form_state) {
  * Add a sections form.
  */
 function workbench_access_form_menu_edit_item_alter(&$form, &$form_state, $form_id) {
-  if (variable_get('workbench_access', 'taxonomy') != 'menu') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'menu') {
     return;
   }
   $menu = $form['original_item']['#value']['menu_name'];
