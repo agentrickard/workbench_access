@@ -105,9 +105,9 @@ function _workbench_access_taxonomy_remove_option(&$form) {
   if (!isset($form['field']['settings']['allowed_values'])) {
     return;
   }
-  // Cannot trust positional arrays.
+  // Cannot trust positional arrays to find the options.
   foreach ($form['field']['settings']['allowed_values'] as $key => $value) {
-    if (isset($value['vocabulary']) && isset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access'])) {
+    if (is_array($value) && isset($value['vocabulary']) && isset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access'])) {
       unset($form['field']['settings']['allowed_values'][$key]['vocabulary']['#options']['workbench_access']);
     }
   }
