@@ -621,6 +621,44 @@ function workbench_access_user_load_data($account) {
 }
 
 /**
+ * Build an access tree for a user account.
+ *
+ * @param $account
+ *   An optional account object.
+ *
+ * @return
+ *  An access tree representing the user's active sections.
+ */
+function workbench_access_get_user_tree($account = NULL) {
+  $accounts = &drupal_static(__FUNCTION__, array());
+  if (is_null($account)) {
+    global $user;
+    $account = $user;
+  }
+  if (isset($accounts[$account->uid])) {
+    return $accounts[$account->uid];
+  }
+  // Make sure we prepared the user.
+  if (!isset($account->workbench_access)) {
+    workbench_access_user_load_data($account);
+  }
+  // Prepare the form element.
+  $active = workbench_access_get_active_tree();
+
+  $tree = $active['tree'];
+  // We should never get this far, really.
+  if (empty($user->workbench_access)) {
+    $tree = array();
+  }
+  else {
+    workbench_access_build_tree($tree, array_keys($user->workbench_access));
+  }
+  // Set the static lookup.
+  $accounts[$account->uid] = $tree;
+  return $accounts[$account->uid];
+}
+
+/**
  * Rebuild the section access tables.
  *
  * @param $access_scheme
@@ -707,6 +745,7 @@ function workbench_access_reset_tree() {
   drupal_static_reset('workbench_access_get_access_tree');
   drupal_static_reset('workbench_access_get_active_tree');
   drupal_static_reset('workbench_access_get_ids_by_scheme');
+  drupal_static_reset('workbench_access_get_user_tree');
   drupal_static_reset('workbench_access_user_load_data');
   drupal_static_reset('workbench_access_node_load');
 }
@@ -1134,15 +1173,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     }
     // Prepare the form element.
     $active = workbench_access_get_active_tree();
-
-    $tree = $active['tree'];
-    // We should never get this far, really.
-    if (empty($user->workbench_access)) {
-      $tree = array();
-    }
-    else {
-      workbench_access_build_tree($tree, array_keys($user->workbench_access));
-    }
+    $tree = workbench_access_get_user_tree();
     // Generate options so we can check for access.
     $options = workbench_access_options($tree, $active['active']);
      // TODO: multi-select
