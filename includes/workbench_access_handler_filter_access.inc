@@ -77,21 +77,21 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     if (!isset($account->workbench_access)) {
       workbench_access_user_load_data($account);
     }
+    // If empty, return nothing by forcing a null return.
     if (empty($account->workbench_access)) {
-      $table = $this->query->ensure_table('node');
-      $field = $this->query->add_field('node', 'nid');
-      $this->query->add_where($this->options['group'], "$table.$field", -1, '=');
+      $table = $this->view->base_table;
+      $this->query->add_where($this->options['group'], "$table.nid", -1, '=');
       return;
     }
     $active = workbench_access_get_active_tree();
     $tree = $active['tree'];
     // No selection? Use the user's tree.
-    if (empty($this->value) || $this->value == -5) {
+    if (empty($this->value) || $this->value[0] == -5) {
       workbench_access_build_tree($tree, array_keys($account->workbench_access));
     }
     // Build the selection tree.
     else {
-      workbench_access_build_tree($tree, array_keys($this->value));
+      workbench_access_build_tree($tree, array_keys($this->value[0]));
     }
     $ids = array_keys($tree);
     $table = $this->query->ensure_table($active['access_scheme']['field_table']);
