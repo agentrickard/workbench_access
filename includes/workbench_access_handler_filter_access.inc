@@ -46,14 +46,9 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     // Prevent parent form errors by using a value.
     $form['value'] = array('#type' => 'value', '#value' => '');
     parent::exposed_form($form, $form_state);
-    global $user;
-    $account = $user;
-    if (!isset($account->workbench_access)) {
-      workbench_access_user_load_data($account);
-    }
+    // Build our form element.
     $active = workbench_access_get_active_tree();
-    $tree = $active['tree'];
-    workbench_access_build_tree($tree, array_keys($account->workbench_access));
+    $tree = workbench_access_get_user_tree();
     $options = workbench_access_options($tree, $active['active']);
     $form['access_id'] = array(
       '#type' => 'select',
