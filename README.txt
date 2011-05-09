@@ -33,6 +33,8 @@ CONTENTS
 5.  Using the module
 5.1   Assigning nodes to sections
 5.2   Viewing assigned content
+5.3   Viewing assigned sections
+5.4   Batch updating content
 6.  Troubleshooting
 7.  Developer notes
 7.1   API documentation
@@ -387,7 +389,12 @@ Workbench Access comes with four permissions.
   permission described below.
 
   -- Allow all members of this role to be assigned to Workbench Access sections
-  Allows a user to be assigned as an editor of a section.
+  Allows a user to be assigned as an editor of a section. This permission is
+  used to check whether a user can access Workbench Access forms and features.
+
+  -- Batch update section assignments for content
+  Allows a user to access the batch update form at admin/content. See section
+  5.4 for details.
 
   -- View Workbench Access information 
   Allows users to see information and messages related to Workbench Access,
@@ -708,6 +715,20 @@ This page shows a list of all sections the user is assigned to.
 If viewed by a user who may 'Assign users to Workbench Access sections', this
 page will be a form that allows section assignment. Check the boxes to set the
 proper sections for the user.
+
+----
+5.4   Batch updating content
+
+Workbench Access provides an option on the Content batch review screen which
+allows editors with the 'Batch update section assignments for content'
+permission to set the section for content during batch updates.
+
+If you go to admin/content, you will see an Update Options form select list.
+If you are assigned to editorial sections, the form will display a 'Set
+editorial section' option with a list of the sections you may assign.
+
+Note that this is a powerful tool and will override choices made by other users.
+Any content can be reassigned when using this form.
 
 
 ----

@@ -182,6 +182,9 @@ function workbench_access_permission() {
     'access workbench access by role' => array(
       'title' => t('Allow all members of this role to be assigned to Workbench Access sections'),
     ),
+    'batch update workbench access' => array(
+      'title' => t('Batch update section assignments for content'),
+    ),
     'view workbench access information' => array(
       'title' => t('View Workbench Access information'),
     ),
@@ -1170,7 +1173,6 @@ function workbench_access_is_active_id($access_type, $access_type_id) {
  */
 function workbench_access_form_alter(&$form, $form_state, $form_id) {
   global $user;
-
   // Fire any active internal module hooks.
   if (empty($form['#node_edit_form'])) {
     workbench_access_alter_form($form_id, $form, $form_state);
@@ -1466,6 +1468,76 @@ function workbench_access_workbench_block() {
         $section = workbench_access_load($access_type, $access_id);
         return array(t('Workbench Access: <em>%section</em>', array('%section' => $section['name'])));
       }
+    }
+  }
+}
+
+/**
+ * Implements hook_node_operations().
+ */
+function workbench_access_node_operations($form = array(), $form_state = array()) {
+  if (!user_access('batch update workbench access')) {
+    return;
+  }
+  $tree = workbench_access_get_user_tree();
+  $active = workbench_access_get_active_tree();
+  $options = workbench_access_options($tree, $active['tree']);
+  if (empty($options)) {
+    return;
+  }
+  $operations = array('workbench_access' => array('label' => t('Editorial section')));
+  foreach ($options as $key => $value) {
+    $operations['workbench_access-' . $key] = array(
+      'label' => $value,
+      'callback' => 'workbench_access_mass_update',
+      'callback arguments' => array('access_id' => $key, 'access_scheme' => $active['access_scheme']),
+    );
+  }
+  return $operations;
+}
+
+/**
+ * Mass update callback for hook_node_operations().
+ *
+ * @param $nodes
+ *   The nodes to be edited.
+ * @param $access_id
+ *   The new access id to set.
+ * @param $access_scheme
+ *   An array representing the active access scheme.
+ */
+function workbench_access_mass_update($nodes, $access_id, $access_scheme) {
+  foreach ($nodes as $nid) {
+    $data = array(
+      'nid' => $nid,
+      'workbench_access_id' => $access_id,
+      'workbench_access_scheme' => $access_scheme,
+    );
+    $node = (object) $data;
+    workbench_access_node_update($node);
+  }
+  drupal_set_message(t('Editorial sections updated'));
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Helper function to nest the node operations form properly.
+ */
+function workbench_access_form_node_admin_content_alter(&$form, &$form_state) {
+  if (empty($form['admin']['options']['operation']['#options'])) {
+    return;
+  }
+  $options = &$form['admin']['options']['operation']['#options'];
+  foreach ($form['admin']['options']['operation']['#options'] as $key => $value) {
+    if ($key == 'workbench_access') {
+      unset($options[$key]);
+      $item = t('Set editorial section');
+      $options[$item] = array();
+    }
+    if (substr($key, 0, 17) == 'workbench_access-') {
+      unset($options[$key]);
+      $options[$item][$key] = $value;
     }
   }
 }
