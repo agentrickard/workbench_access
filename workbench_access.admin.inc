@@ -59,6 +59,12 @@ function workbench_access_settings_form($form, &$form_state) {
     '#default_value' => variable_get('workbench_access_auto_assign', 1),
     '#description' => t('Enable all sections automatically for the active scheme.'),
   );
+  $form['workbench_access_label'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Workbench Access message label'),
+    '#default_value' => variable_get('workbench_access_label', t('Workbench Access')),
+    '#description' => t('Text that will be shown in front of Workbench Access messages.'),
+  );
   /*
   $form['workbench_access_custom_form'] = array(
     '#type' => 'checkbox',

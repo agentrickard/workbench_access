@@ -1208,7 +1208,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     // The base form element.
     $element = array(
       '#type' => 'select',
-      '#title' => t('Workbench access'),
+      '#title' => t('@message_label', array('@message_label' => variable_get('workbench_access_label'))),
       '#options' => $options,
       '#required' => TRUE,
       '#default_value' => $default,
@@ -1462,13 +1462,13 @@ function workbench_access_workbench_block() {
   if ($node = menu_get_object()) {
     if (user_access('view workbench access information')) {
       if (empty($node->workbench_access)) {
-        return array(t('Workbench Access: <em>Unassigned</em>'));
+        return array(t('@message_label: <em>Unassigned</em>', array('@message_label' => variable_get('workbench_access_label'))));
       }
       else {
         $access_type = variable_get('workbench_access', 'taxonomy');
         $access_id = current($node->workbench_access);
         $section = workbench_access_load($access_type, $access_id);
-        return array(t('Workbench Access: <em>%section</em>', array('%section' => $section['name'])));
+        return array(t('@message_label: <em>%section</em>', array('@message_label' => variable_get('workbench_access_label'), '%section' => $section['name'])));
       }
     }
   }

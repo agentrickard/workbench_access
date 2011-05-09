@@ -18,12 +18,12 @@ CONTENTS
 1.4   Managing editorial sections
 1.5   Access control notes
 2.  Installation
-2.1   Advanced installation options
-2.2   Dependencies
+2.1   Dependencies
 3.  Permissions
 4.  Configuration
 4.1   Access schemes
 4.1.1  Automated section assignment
+4.1.2  Workbench Access message label
 4.2   Access sections
 4.2.1  Manual section configuration
 4.2.2  Automated section configuration
@@ -357,21 +357,8 @@ editorial section may no longer be able to create or edit content. This is
 normal. Since Workbench Access now controls who can create and edit content, you
 will need to configure the module before resuming normal site operations.
 
-
 ----
-2.1  Advanced installation options
-
-You may disable this installation behavior by adding the following line to
-settings.php before you install the module.
-
-  $conf['workbench_access_install_minimal'] = 1;
-
-If you do so, you must manually configure the module before resuming normal
-content editing, since users may not have any editorial rights.
-
-
-----
-2.2   Dependencies
+2.1   Dependencies
 
 Workbench Access requires the core Taxonomy module to be active on your site.
 
@@ -485,6 +472,15 @@ uncheck this box.
 If you leave this box checked, you can skip section 4.2, since your sections are
 automatically configured for you.
 
+
+----
+4.1.2  Workbench Access message label
+
+In the user interface, Workbench Access sets certain messages, such as the
+assigned editorial sections and the form label.
+
+This settings lets you change how the item is labelled. The default is
+"Workbench Access". You may prefer "Sections" or "Editorial Team" instead.
 
 ----
 4.2   Access sections
