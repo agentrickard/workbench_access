@@ -21,6 +21,12 @@ function workbench_access_settings_form($form, &$form_state) {
   $form['help'] = array(
     '#markup' => '<h2>' . t('Workbench Access settings') . '</h2>',
   );
+  // Check for proper installation.
+  $vocabulary = workbench_access_sample_vocabulary();
+  $exists = workbench_access_vocabulary_exists($vocabulary);
+  if ($active == 'taxonomy' && !$exists) {
+    $form['help']['#markup'] .= t('Install the <a href="!url">test vocabulary for Workbench</a>.', array('!url' => url('admin/config/workbench/access/install')));
+  }
   $form['workbench_access'] = array(
     '#type' => 'radios',
     '#title' => t('Active access scheme'),
@@ -660,4 +666,154 @@ function workbench_access_role_form_submit($form, &$form_state) {
       workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
     }
   }
+}
+
+/**
+ * Install a test vocabulary.
+ *
+ * Multistep process:
+ *  1) Tell the user to configure this module.
+ *  2) Create our vocabulary.
+ *  3) Create some sample terms.
+ *  4) Set the active schema for the site.
+ *  5) Set all sections to active.
+ *  6) Assign the super-user to the main section.
+ *  7) Assign all nodes to the main section.
+ *
+ * @param $redirect
+ *   Indicates whether to redirect the user or not. Calling
+ *   functions should pass no value or a Drupal path.
+ */
+function workbench_access_example_taxonomy($redirect = NULL) {
+  $vocabulary = workbench_access_sample_vocabulary();
+  $exists = workbench_access_vocabulary_exists($vocabulary);
+  // If the vocabulary exists, do not create any terms for it.
+  if ($exists) {
+    if (!empty($redirect)) {
+      drupal_set_message(t('Workbench Access vocabulary installed.'));
+      drupal_goto($redirect);
+    }
+    return;
+  }
+  // Save.
+  taxonomy_vocabulary_save($vocabulary);
+  // Create some terms.
+  $terms = array(
+    t('Exhibits'),
+    t('Library'),
+    t('Gift Shop'),
+  );
+  $children = array(
+    t('Staff'),
+    t('Visitors'),
+  );
+  // Get the proper filter format for taxonomy descriptions.
+  $account = new stdClass();
+  $account->uid = 0;
+  $account->roles = array(DRUPAL_ANONYMOUS_RID);
+  $format = filter_default_format($account);
+  $ids = array('workbench_access');
+  $i = -5;
+  foreach ($terms as $name) {
+    $term = new stdClass();
+    $term->name = $name;
+    $term->vocabulary_machine_name = 'workbench_access';
+    $term->vid = $vocabulary->vid;
+    $term->description = st('Test term for Workbench Access.');
+    $term->format = $format;
+    $term->weight = $i;
+    taxonomy_term_save($term);
+    $i = $i +5;
+    $ids[] = $term->tid;
+    // Create child terms.
+    foreach ($children as $child) {
+      $item = new stdClass();
+      $item->name = $name . ' ' . $child;
+      $item->parent = $term->tid;
+      $item->vocabulary_machine_name = 'workbench_access';
+      $item->vid = $vocabulary->vid;
+      $item->format = $format;
+      $item->description = t('Test child term for Workbench Access.');
+      taxonomy_term_save($item);
+      $ids[] = $item->tid;
+    }
+  }
+
+  // Set our vocabulary as the default.
+  variable_set('workbench_access_taxonomy', array($vocabulary->machine_name => $vocabulary->machine_name));
+  // Set taxonomy as the active scheme.
+  variable_set('workbench_access', 'taxonomy');
+  // Set up the sections.
+  $section = array(
+    'access_scheme' => 'taxonomy',
+    'access_type' => 'taxonomy',
+    'access_type_id' => $vocabulary->machine_name,
+  );
+  foreach ($ids as $id) {
+    $section['access_id'] = $id;
+    workbench_access_section_save($section);
+  }
+  // Give the admin account access to all sections.
+  workbench_access_user_section_save(1, 'workbench_access', 'taxonomy');
+
+  // Get all nodes and save them to {workbench_access_node}.
+  $nids = db_query("SELECT nid FROM {node}")->fetchAll();
+  $values = array();
+  foreach ($nids as $nid) {
+    $values[] = array(
+      'nid' => $nid->nid,
+      'access_id' => 'workbench_access',
+      'access_scheme' => 'taxonomy',
+    );
+  }
+  if (empty($values)) {
+    return;
+  }
+  $query = db_insert('workbench_access_node')->fields(array('nid', 'access_id', 'access_scheme'));
+  foreach ($values as $record) {
+    $query->values($record);
+  }
+  $query->execute();
+  // Redirect, if requested.
+  if (!empty($redirect)) {
+    drupal_set_message(t('Workbench Access vocabulary installed.'));
+    drupal_goto($redirect);
+  }
+}
+
+/**
+ * Check to see if our vocabulary is installed.
+ *
+ * @param $vocabulary
+ *   A vocabulary object,
+ *
+ * @return
+ *   Boolean TRUE or FALSE.
+ */
+function workbench_access_vocabulary_exists($vocabulary) {
+  // Ensure that this is a unique vocabulary.
+  $existing = taxonomy_get_vocabularies();
+  foreach ($existing as $voc) {
+    if ($voc->machine_name == $vocabulary->machine_name) {
+      return TRUE;
+    }
+  }
+  return FALSE;
+}
+
+/**
+ * Define a sample vocabulary for testing.
+ *
+ * @return
+ *   A vocabulary object.
+ */
+function workbench_access_sample_vocabulary() {
+  $vocabulary = new stdClass();
+  $vocabulary->name = t('Museum');
+  $vocabulary->module = 'workbench_access';
+  $vocabulary->machine_name = 'workbench_access';
+  $vocabulary->description = t('Access control for editorial content.');
+  $vocabulary->hierarchy = 1;
+  $vocabulary->weight = -10;
+  return $vocabulary;
 }

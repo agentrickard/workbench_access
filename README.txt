@@ -315,9 +315,14 @@ that interests you, see the Developer Notes section of this document.
 
 Install the module and enable it according to Drupal standards.
 
-When you install the module, it will create a test access scheme for you. This
-scheme is called 'Museum' and it is created as a Taxonomy vocabulary. (It has a
-machine name of 'workbench_access', however.)
+After enabling the module, you wil be asked to configure its settings.
+On the configuration screen, you may choose to install a test
+vocabulary. This vocabulary will help you learn how Workbench Access
+works.
+
+When you install the test vocabulary, it will create a test access scheme for
+you. This scheme is called 'Museum' and it is created as a Taxonomy vocabulary.
+(It has a machine name of 'workbench_access', however.)
 
 You should be able to view the structure at the path:
 

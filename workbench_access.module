@@ -61,6 +61,15 @@ function workbench_access_menu() {
     'description' => 'Settings for the Workbench Access module.',
     'type' => MENU_LOCAL_TASK,
   );
+  $items['admin/config/workbench/access/install'] = array(
+    'title' => 'Install',
+    'access arguments' => array('administer workbench access'),
+    'page callback' => 'workbench_access_example_taxonomy',
+    'page arguments' => array('admin/config/workbench/access/settings'),
+    'file' => 'workbench_access.admin.inc',
+    'description' => 'Installs a test vocabulary for the Workbench Access module.',
+    'type' => MENU_CALLBACK,
+  );
   $items['admin/workbench/sections'] = array(
     'title' => 'My sections',
     'page callback' => 'workbench_access_sections',
@@ -268,6 +277,7 @@ function workbench_access_field_extra_fields() {
   );
   // Attach the field to all node bundles.
   // @TODO: be more selective here.
+  $extra = array();
   foreach (node_type_get_names() as $name => $value) {
     $extra['node'][$name]['form'] = $base;
     $extra['node'][$name]['display'] = $base;
@@ -1241,7 +1251,7 @@ function workbench_access_alter_form($hook, &$form, &$form_state) {
  */
 function workbench_access_configuration_needed_message() {
   return t('You must <a href="@settings">configure Workbench Access settings</a> for Workbench Access
-    to behave properly. Users will not be able to add or edit nodes until this is done.',
+    to behave properly. Users will not be able to add or edit content until this is done.',
     array('@settings' => url('admin/config/workbench/access/settings'))
   );
 }
