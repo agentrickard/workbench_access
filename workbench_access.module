@@ -439,14 +439,14 @@ function workbench_access_in_tree($access_id, $account_access) {
  */
 function workbench_access_get_access_tree($account_access = array()) {
   $trees = &drupal_static(__FUNCTION__);
-  $key = implode($account_access);
-  if (isset($trees[$key])) {
-    return $trees[$key];
-  }
   if (empty($account_access)) {
     $account = $GLOBALS['user'];
     workbench_access_user_load_data($account);
-    $account_access = $account->workbench_access;
+    $account_access = array_keys($account->workbench_access);
+  }
+  $key = implode($account_access);
+  if (isset($trees[$key])) {
+    return $trees[$key];
   }
   $trees[$key] = array();
   if (empty($account_access)) {

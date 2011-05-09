@@ -130,7 +130,12 @@ function taxonomy_workbench_access_tree($info, $keys) {
   $tree = array();
   $items = array();
   if (isset($info['access_id'])) {
-    $items[$info['access_type_id']] = $info['access_id'];
+    if ($info['access_type_id'] != $info['access_id']) {
+      $items[$info['access_type_id']] = $info['access_id'];
+    }
+    else {
+      $items[$info['access_type_id']] = 0;
+    }
   }
   else {
     foreach (array_filter($info['access_type_id']) as $vid) {
@@ -139,15 +144,17 @@ function taxonomy_workbench_access_tree($info, $keys) {
   }
   foreach ($items as $vid => $tid) {
     $vocabulary = taxonomy_vocabulary_machine_name_load($vid);
-    $tree[$vocabulary->machine_name] = array(
-      'access_id' => $vocabulary->machine_name,
-      'access_type_id' => $vocabulary->machine_name,
-      'name' => $vocabulary->name,
-      'description' => $vocabulary->description,
-      'weight' => 0,
-      'depth' => 0,
-      'parent' => 0,
-    );
+    if ($tid == 0) {
+      $tree[$vocabulary->machine_name] = array(
+        'access_id' => $vocabulary->machine_name,
+        'access_type_id' => $vocabulary->machine_name,
+        'name' => $vocabulary->name,
+        'description' => $vocabulary->description,
+        'weight' => 0,
+        'depth' => 0,
+        'parent' => $vocabulary->machine_name,
+      );
+    }
     $children = taxonomy_get_tree($vocabulary->vid, $tid);
     foreach ($children as $child) {
       $tree[$child->tid] = array(

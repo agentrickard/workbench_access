@@ -158,6 +158,8 @@ function hook_workbench_access_info() {
  *
  * A few things to note:
  *
+ * Be sure to start at the top of the requested $info tree.
+ *
  * The access_ids are the array keys. These are stored in the database as
  * VARCHARS, which allows us to mix machine names (strings) and serial ids
  * (integers) in our storage. This process allows us to use entire vocabularies
@@ -190,7 +192,12 @@ function hook_workbench_access_tree($info, $keys) {
   $tree = array();
   $items = array();
   if (isset($info['access_id'])) {
-    $items[$info['access_type_id']] = $info['access_id'];
+    if ($info['access_type_id'] != $info['access_id']) {
+      $items[$info['access_type_id']] = $info['access_id'];
+    }
+    else {
+      $items[$info['access_type_id']] = 0;
+    }
   }
   else {
     foreach (array_filter($info['access_type_id']) as $vid) {

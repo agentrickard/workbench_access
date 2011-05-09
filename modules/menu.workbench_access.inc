@@ -82,7 +82,7 @@ function menu_workbench_access_configuration(&$form, &$form_state) {
 /**
  * Implements hook_workbench_access_tree().
  *
- * Get the access tree for a taxonomy term.
+ * Get the access tree for a menu item.
  *
  * @param $info
  *   An array defining the access scheme.
@@ -96,7 +96,12 @@ function menu_workbench_access_tree($info, $keys) {
   $tree = array();
   $items = array();
   if (isset($info['access_id'])) {
-    $items[$info['access_type_id']] = $info['access_id'];
+    if ($info['access_type_id'] != $info['access_id']) {
+      $items[$info['access_type_id']] = $info['access_id'];
+    }
+    else {
+      $items[$info['access_type_id']] = 0;
+    }
   }
   else {
     foreach (array_filter($info['access_type_id']) as $key) {
@@ -116,7 +121,14 @@ function menu_workbench_access_tree($info, $keys) {
     );
     $menu = menu_tree_all_data($name);
     foreach ($menu as $link) {
-      _workbench_access_menu_build_tree($tree, $link);
+      // Ensure that we start at the top of the current request.
+      if ($mlid > 0 && $link['link']['mlid'] == $mlid) {
+        $tree = array();
+        _workbench_access_menu_build_tree($tree, $link);
+      }
+      elseif ($mlid == 0) {
+        _workbench_access_menu_build_tree($tree, $link);
+      }
     }
   }
   if ($keys) {
