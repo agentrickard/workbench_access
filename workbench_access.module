@@ -835,6 +835,7 @@ function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
   $record['access_id'] = $access_id;
   $record['access_scheme'] = $access_scheme;
   drupal_write_record('workbench_access_user', $record);
+  drupal_static_reset('workbench_access_user_load_data');
   $account = user_load($uid, TRUE);
   module_invoke_all('workbench_access_save_user', $account, $access_id, $access_scheme);
 }
@@ -861,6 +862,7 @@ function workbench_access_user_section_delete($uid, $access_id, $access_scheme) 
     ->condition('access_scheme', $access_scheme)
     ->condition('uid', $uid)
     ->execute();
+  drupal_static_reset('workbench_access_user_load_data');
 }
 
 /**
