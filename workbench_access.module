@@ -1305,7 +1305,8 @@ function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $f
   if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
     return;
   }
-  $term = $form['#term'];
+  // On delete, the term may be an object. Be consistent, core!
+  $term = (array) $form['#term'];
   $active = array_filter(variable_get('workbench_access_taxonomy', array()));
   if (!in_array($term['vocabulary_machine_name'], $active)) {
     return;
