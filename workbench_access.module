@@ -1338,7 +1338,11 @@ function workbench_access_edit_form_alter(&$form, $access_id, $type) {
     '#type' => 'value',
     '#value' => isset($active['active'][$access_id]),
   );
-  $form['#submit'][] = 'workbench_access_' . $type . '_submit';
+  // If auto-assign is OFF, then add a submit handler.
+  // See workbench_access_taxonomy_term_insert().
+  if (!variable_get('workbench_access_auto_assign', 1)) {
+    $form['#submit'][] = 'workbench_access_' . $type . '_submit';
+  }
 }
 
 /**
