@@ -212,6 +212,7 @@ function workbench_access_section_form_submit(&$form, &$form_state) {
   $access_tree = $form_state['values']['access_tree'];
   $results = $form_state['values']['sections'];
   $selection = array();
+  $sections = array();
   foreach ($results as $result) {
     $selection = array_merge($selection, array_keys(array_filter($result)));
   }
@@ -220,7 +221,7 @@ function workbench_access_section_form_submit(&$form, &$form_state) {
   }
   workbench_access_rebuild_scheme($access_scheme, $sections);
   if (empty($sections)) {
-    drupal_set_message(t('There are now no editorial sections for your site.'), 'warning');
+    drupal_set_message(workbench_access_sections_needed_message(), 'warning');
   }
   else {
     drupal_set_message(t('Editorial sections saved.'));

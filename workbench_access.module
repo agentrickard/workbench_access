@@ -523,14 +523,18 @@ function workbench_access_node_load($nodes, $types) {
   if (!isset($scheme)) {
     $scheme = variable_get('workbench_access', 'taxonomy');
   }
-  $result = db_query("SELECT nid, access_id FROM {workbench_access_node} WHERE nid IN (:nid) AND access_scheme = :access_scheme", array(':nid' => array_keys($nodes), ':access_scheme' => $scheme))->fetchAllAssoc('nid');
+  $tree = workbench_access_get_active_tree();
+  $result = array();
+  if (!empty($tree['active'])) {
+    $result = db_query("SELECT nid, access_id FROM {workbench_access_node} WHERE nid IN (:nid) AND access_scheme = :access_scheme", array(':nid' => array_keys($nodes), ':access_scheme' => $scheme))->fetchAllAssoc('nid');
+  }
   foreach ($nodes as $node) {
     // Cannot load if the node has not been created yet.
     if (empty($node->nid)) {
       continue;
     }
     $nodes[$node->nid]->workbench_access = array();
-    if (isset($result[$node->nid])) {
+    if (isset($result[$node->nid]->access_id) && in_array($result[$node->nid]->access_id, array_keys($tree['active']))) {
       $nodes[$node->nid]->workbench_access[$result[$node->nid]->access_id] = $result[$node->nid]->access_id;
     }
   }
@@ -595,6 +599,12 @@ function workbench_access_user_load_data($account) {
   }
   $access = array();
   $access_scheme = variable_get('workbench_access', 'taxonomy');
+  $active = workbench_access_get_active_tree();
+  if (empty($active['tree'])) {
+    $lookup[$account->uid] = $access;
+    $account->workbench_access = $lookup[$account->uid];
+    return;
+  }
   // Get the user's assigned access sections.
   $query = db_select('workbench_access_user', 'wau')
     ->addTag('workbench_access_user')
@@ -621,6 +631,9 @@ function workbench_access_user_load_data($account) {
     }
   }
   foreach ($items as $item) {
+    if (!in_array($item->access_id, array_keys($active['tree']))) {
+      continue;
+    }
     // Get the permissions for those sections.
     // @TODO: complex permission handling.
     $access[$item->access_id] = array(
@@ -1193,6 +1206,10 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     }
     // Prepare the form element.
     $active = workbench_access_get_active_tree();
+    if (empty($tree['active'])) {
+      drupal_set_message(workbench_access_sections_needed_message(), 'warning');
+      return;
+    }
     $tree = workbench_access_get_user_tree();
     // Generate options so we can check for access.
     $options = workbench_access_options($tree, $active['active']);
@@ -1264,6 +1281,13 @@ function workbench_access_configuration_needed_message() {
     to behave properly. Users will not be able to add or edit content until this is done.',
     array('@settings' => url('admin/config/workbench/access/settings'))
   );
+}
+
+/**
+ * Return text directing admins to section configuration.
+ */
+function workbench_access_sections_needed_message() {
+  return t('There are no active <a href="!url">editorial sections</a> for Workbench Access. Editorial access control will not be enforced.', array('!url' => url('admin/config/workbench/access/sections')));
 }
 
 /**

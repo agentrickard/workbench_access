@@ -64,6 +64,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid")->fetchField();
     $this->assertTrue($count == 10, t('Initial nodes assigned access data.'));
     // Check that the vocabulary is setup correctly.
+    workbench_access_reset_tree();
     $active = workbench_access_get_active_tree();
     $this->assertTrue(!empty($active['access_scheme']), t('Active access scheme set.'));
     $this->assertTrue(!empty($active['tree']), t('Active access tree set.'));
