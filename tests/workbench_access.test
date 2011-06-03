@@ -26,7 +26,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
       'edit any page content',
       'delete any page content',
     );
-    // TODO: This isn't working.
+
     $this->editor_role = $this->drupalCreateRole($permissions);
 
     // Create some nodes and users.
@@ -41,7 +41,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
       $edit = array(
         'name' => $this->randomName(32),
         'mail' => $this->randomName(32) . '@example.com',
-        'roles' => array(DRUPAL_AUTHENTICATED_RID, $this->editor_role),
+        'roles' => drupal_map_assoc(array(DRUPAL_AUTHENTICATED_RID, $this->editor_role)),
         'status' => 1,
       );
       $this->user_list[] = user_save(NULL, $edit);
