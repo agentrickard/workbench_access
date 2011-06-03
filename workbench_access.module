@@ -1311,7 +1311,7 @@ function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $f
   if (!in_array($term['vocabulary_machine_name'], $active)) {
     return;
   }
-  $access_id = isset($form['#term']['tid']) ? $form['#term']['tid'] : NULL;
+  $access_id = isset($term['tid']) ? $term['tid'] : NULL;
   workbench_access_edit_form_alter($form, $access_id, 'term');
 }
 
