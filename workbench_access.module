@@ -323,6 +323,12 @@ function workbench_access_load_include($module = NULL) {
  * @TODO: what about unpublished nodes?
  */
 function workbench_access_node_access($node, $op, $account) {
+  // If not configured, do nothing.
+  $tree = workbench_access_get_active_tree();
+  if (empty($tree['active'])) {
+    return NODE_ACCESS_IGNORE;
+  }
+  // Now check the user account.
   if (!isset($account->workbench_access)) {
     $account = user_load($account->uid);
   }

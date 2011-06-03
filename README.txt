@@ -357,6 +357,9 @@ editorial section may no longer be able to create or edit content. This is
 normal. Since Workbench Access now controls who can create and edit content, you
 will need to configure the module before resuming normal site operations.
 
+Workbench Access rules will not be enforced until an active editorial section is
+created.
+
 ----
 2.1   Dependencies
 
