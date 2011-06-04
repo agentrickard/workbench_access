@@ -1206,7 +1206,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     }
     // Prepare the form element.
     $active = workbench_access_get_active_tree();
-    if (empty($tree['active'])) {
+    if (empty($active['active'])) {
       drupal_set_message(workbench_access_sections_needed_message(), 'warning');
       return;
     }
