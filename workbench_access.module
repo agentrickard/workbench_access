@@ -679,11 +679,11 @@ function workbench_access_get_user_tree($account = NULL) {
 
   $tree = $active['tree'];
   // We should never get this far, really.
-  if (empty($user->workbench_access)) {
+  if (empty($account->workbench_access)) {
     $tree = array();
   }
   else {
-    workbench_access_build_tree($tree, array_keys($user->workbench_access));
+    workbench_access_build_tree($tree, array_keys($account->workbench_access));
   }
   // Set the static lookup.
   $accounts[$account->uid] = $tree;
