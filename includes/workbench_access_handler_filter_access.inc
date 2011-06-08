@@ -60,7 +60,7 @@ class workbench_access_handler_filter_access extends views_handler_filter {
     unset($form['size']);
   }
 
-  function exposed_submit($form, &$form_state) {
+  function exposed_submit(&$form, &$form_state) {
     if (empty($form_state['values']['access_id'])) {
       $form_state['values']['access_id'] = -5;
     }
