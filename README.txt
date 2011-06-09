@@ -381,6 +381,8 @@ Workbench Access comes with four permissions.
   -- Allow all members of this role to be assigned to Workbench Access sections
   Allows a user to be assigned as an editor of a section. This permission is
   used to check whether a user can access Workbench Access forms and features.
+  Users without this permission will not be allowed to create, edit or delete
+  content.
 
   -- Batch update section assignments for content
   Allows a user to access the batch update form at admin/content. See section

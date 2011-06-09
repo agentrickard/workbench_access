@@ -420,15 +420,22 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
         str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/' . "{$type}s/" . $active['access_scheme']['access_type'] . '/' . $access_id),
       );
       if ($type == 'editor') {
-        $count = db_query("SELECT COUNT(uid) FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id",
-          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
-          )->fetchField();
+        $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
+          INNER JOIN {users_roles} ur ON wau.uid = ur.uid
+          INNER JOIN {role_permission} rp ON ur.rid = rp.rid
+          WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id
+          AND rp.permission = :permission",
+          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':permission' => 'access workbench access by role')
+        )->fetchField();
         $row[] = l(format_plural($count, '1 editor', '@count editors'), 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id);
       }
       else {
-        $count2 = db_query("SELECT COUNT(rid) FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_id",
-          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
-          )->fetchField();
+        $count2 = db_query("SELECT COUNT(war.rid) FROM {workbench_access_role} war
+          INNER JOIN {role_permission} rp ON war.rid = rp.rid
+          WHERE war.access_scheme = :access_scheme AND war.access_id = :access_id
+          AND rp.permission = :permission",
+          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':permission' => 'access workbench access by role')
+        )->fetchField();
         $row[] = l(format_plural($count2, '1 role', '@count roles'),  'admin/config/workbench/access/roles/' . $active['access_scheme']['access_type'] . '/' . $access_id);
       }
       $rows[] = $row;
@@ -463,8 +470,11 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
   $query = db_select('users', 'u')
     ->fields('u', array('uid', 'name'));
   $query->join('workbench_access_user', 'wau', 'u.uid = wau.uid');
+  $query->join('users_roles', 'ur', 'u.uid = ur.uid');
+  $query->join('role_permission', 'rp', 'rp.rid = ur.rid');
   $query->condition('wau.access_scheme', $access_type)
     ->condition('wau.access_id', $access_type_id)
+    ->condition('rp.permission', 'access workbench access by role')
     ->extend('PagerDefault')->limit(25);
   $result = $query->execute();
   $rows = array();
@@ -612,7 +622,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
   $output .= '<p>' . t('Active editors for the %section section, as determined by role. <a href="!url">View editors by user</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_type_id)));
   $header = array(t('Editors'), t('Roles'));
   $rows = array();
-  $roles = array_keys(db_query("SELECT war.rid FROM {workbench_access_role} war WHERE war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
+  $roles = array_keys(db_query("SELECT war.rid FROM {workbench_access_role} war INNER JOIN {role_permission} rp ON rp.rid = war.rid WHERE rp.permission = :permission AND war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':permission' => 'access workbench access by role', ':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
   $users = array();
   if (!empty($roles)) {
     $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:roles)", array(':roles' => $roles));

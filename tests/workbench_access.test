@@ -25,6 +25,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
       'create page content',
       'edit any page content',
       'delete any page content',
+      'access workbench access by role',
     );
 
     $this->editor_role = $this->drupalCreateRole($permissions);
@@ -133,6 +134,15 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
       }
       $this->assertTrue(!empty($status[$action]), t('Test user can now @action content.', array('@action' => $action)));
     }
+    // Remove the permission to 'access workbench access by role' and check again.
+    user_role_revoke_permissions($this->editor_role, array('access workbench access by role'));
+    $account = user_load($account->uid, TRUE);
+    $this->assertTrue(empty($account->workbench_access['workbench_access']), t('Permission revoked and test user not assigned to a section.'));
+    // Now give them permissions again.
+    user_role_grant_permissions($this->editor_role, array('access workbench access by role'));
+    $account = user_load($account->uid, TRUE);
+    $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('Permission reinstated and test user assigned to a section.'));
+
   }
 
 }

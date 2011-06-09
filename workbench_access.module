@@ -80,7 +80,8 @@ function workbench_access_menu() {
   );
   $items['user/%user/sections'] = array(
     'title' => 'Sections',
-    'access arguments' => array('assign workbench access'),
+    'access callback' => 'workbench_access_assign_user',
+    'access arguments' => array(1),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('workbench_access_user_form', 1),
     'file' => 'workbench_access.admin.inc',
@@ -163,6 +164,18 @@ function workbench_access_views_access($account) {
     return FALSE;
   }
   if (user_access('access workbench access by role')) {
+    return TRUE;
+  }
+  return FALSE;
+}
+
+/**
+ * Access callback for user sections tab.
+ */
+function workbench_access_assign_user($account) {
+  // Can the current user assign editors and is
+  // the account being viewed eligible.
+  if (user_access('assign workbench access') && user_access('access workbench access by role', $account)) {
     return TRUE;
   }
   return FALSE;
@@ -600,7 +613,8 @@ function workbench_access_user_load_data($account) {
   $access = array();
   $access_scheme = variable_get('workbench_access', 'taxonomy');
   $active = workbench_access_get_active_tree();
-  if (empty($active['tree'])) {
+  // There must be active sections, and the user must be allowed to use one.
+  if (empty($active['tree']) || !user_access('access workbench access by role', $account)) {
     $lookup[$account->uid] = $access;
     $account->workbench_access = $lookup[$account->uid];
     return;
