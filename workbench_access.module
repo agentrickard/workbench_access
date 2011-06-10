@@ -64,8 +64,8 @@ function workbench_access_menu() {
   $items['admin/config/workbench/access/install'] = array(
     'title' => 'Install',
     'access arguments' => array('administer workbench access'),
-    'page callback' => 'workbench_access_example_taxonomy',
-    'page arguments' => array('admin/config/workbench/access/settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('workbench_access_install_form', 'admin/config/workbench/access/settings'),
     'file' => 'workbench_access.admin.inc',
     'description' => 'Installs a test vocabulary for the Workbench Access module.',
     'type' => MENU_CALLBACK,

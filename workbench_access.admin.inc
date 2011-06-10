@@ -697,19 +697,13 @@ function workbench_access_role_form_submit($form, &$form_state) {
  *  6) Assign the super-user to the main section.
  *  7) Assign all nodes to the main section.
  *
- * @param $redirect
- *   Indicates whether to redirect the user or not. Calling
- *   functions should pass no value or a Drupal path.
  */
-function workbench_access_example_taxonomy($redirect = NULL) {
+function workbench_access_example_taxonomy() {
   $vocabulary = workbench_access_sample_vocabulary();
   $exists = workbench_access_vocabulary_exists($vocabulary);
   // If the vocabulary exists, do not create any terms for it.
   if ($exists) {
-    if (!empty($redirect)) {
-      drupal_set_message(t('Workbench Access vocabulary installed.'));
-      drupal_goto($redirect);
-    }
+    drupal_set_message(t('Workbench Access vocabulary already installed.'));
     return;
   }
   // Save.
@@ -791,11 +785,7 @@ function workbench_access_example_taxonomy($redirect = NULL) {
     $query->values($record);
   }
   $query->execute();
-  // Redirect, if requested.
-  if (!empty($redirect)) {
-    drupal_set_message(t('Workbench Access vocabulary installed.'));
-    drupal_goto($redirect);
-  }
+  drupal_set_message('Sample configuration installed.');
 }
 
 /**
@@ -833,4 +823,34 @@ function workbench_access_sample_vocabulary() {
   $vocabulary->hierarchy = 1;
   $vocabulary->weight = -10;
   return $vocabulary;
+}
+
+/**
+ * Confirm install of the sample configuration.
+ */
+function workbench_access_install_form($form, &$form_state, $path = 'admin/config/workbench/access/settings') {
+  $actions['items'] = array(
+    t('Creates a sample <em>Museum</em> vocabulary.'),
+    t('Creates taxonomy terms in that vocabulary.'),
+    t('Enables all terms as site editorial sections.'),
+    t('Assigns all site content to the <em>Museum</em> section.'),
+    t('Assigns user 1 to the <em>Museum</em> section.'),
+  );
+  $form['help'] = array(
+    '#markup' => t('The sample installation will perform the following actions: !actions', array('!actions' => theme('item_list', $actions))),
+  );
+  $form['path'] = array(
+    '#type' => 'value',
+    '#value' => $path,
+  );
+  $question = t('Install test configuration');
+  return confirm_form($form, $question, $path);
+}
+
+/**
+ * Install the sample configuration.
+ */
+function workbench_access_install_form_submit(&$form, &$form_state) {
+  $form_state['redirect'] = $form_state['values']['path'];
+  workbench_access_example_taxonomy();
 }
