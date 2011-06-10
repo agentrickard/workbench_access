@@ -62,7 +62,7 @@ function workbench_access_settings_form($form, &$form_state) {
   $form['workbench_access_label'] = array(
     '#type' => 'textfield',
     '#title' => t('Workbench Access message label'),
-    '#default_value' => variable_get('workbench_access_label', t('Workbench Access')),
+    '#default_value' => variable_get('workbench_access_label', 'Section'),
     '#description' => t('Text that will be shown in front of Workbench Access messages.'),
   );
   /*
