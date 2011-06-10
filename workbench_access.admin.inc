@@ -25,7 +25,7 @@ function workbench_access_settings_form($form, &$form_state) {
   $vocabulary = workbench_access_sample_vocabulary();
   $exists = workbench_access_vocabulary_exists($vocabulary);
   if ($active == 'taxonomy' && !$exists) {
-    $form['help']['#markup'] .= t('Install the <a href="!url">test vocabulary for Workbench</a>.', array('!url' => url('admin/config/workbench/access/install')));
+    $form['help']['#markup'] .= '<p>' . t('Install the <a href="!url">test configuration for Workbench</a>.', array('!url' => url('admin/config/workbench/access/install'))) .'</p>';
   }
   $form['workbench_access'] = array(
     '#type' => 'radios',
