@@ -53,26 +53,18 @@ function workbench_access_settings_form($form, &$form_state) {
       }
     }
   }
-  $form['workbench_access_auto_assign'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Automated section assignment'),
-    '#default_value' => variable_get('workbench_access_auto_assign', 1),
-    '#description' => t('Enable all sections automatically for the active scheme.'),
-  );
   $form['workbench_access_label'] = array(
     '#type' => 'textfield',
     '#title' => t('Workbench Access message label'),
     '#default_value' => variable_get('workbench_access_label', 'Section'),
     '#description' => t('Text that will be shown in front of Workbench Access messages.'),
   );
-  /*
-  $form['workbench_access_custom_form'] = array(
+  $form['workbench_access_auto_assign'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Require a Workbench Access form element'),
-    '#default_value' => variable_get('workbench_access_defailt_form', 1),
-    '#description' => t('If not selected, Workbench Access settings will inherit from the standard node form.'),
-  );*/
-
+    '#title' => t('Automated section assignment'),
+    '#default_value' => variable_get('workbench_access_auto_assign', 1),
+    '#description' => t('Enable all sections automatically for the active scheme.'),
+  );
   $form = system_settings_form($form);
   $form['#validate'][] = 'workbench_access_settings_validate';
   $form['#submit'][] = 'workbench_access_settings_submit';
