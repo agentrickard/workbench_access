@@ -505,6 +505,9 @@ function workbench_access_editor_form_validate($form, &$form_state) {
     if (empty($account)) {
       form_set_error('add_user', t('The selected user does not exist.'));
     }
+    elseif (!user_access('access workbench access by role', $account)) {
+      form_set_error('add_user', t('The selected user does not have permission to be added as an editor.'));
+    }
   }
 }
 
