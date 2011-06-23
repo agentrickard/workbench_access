@@ -538,8 +538,12 @@ function workbench_access_node_load($nodes, $types) {
   }
   $tree = workbench_access_get_active_tree();
   $result = array();
-  if (!empty($tree['active'])) {
-    $result = db_query("SELECT nid, access_id FROM {workbench_access_node} WHERE nid IN (:nid) AND access_scheme = :access_scheme", array(':nid' => array_keys($nodes), ':access_scheme' => $scheme))->fetchAllAssoc('nid');
+  if (!empty($tree['active']) && !empty($nodes)) {
+   $result = db_query("SELECT nid, access_id FROM {workbench_access_node} WHERE nid IN (:nid) AND access_scheme = :access_scheme", array(':nid' => array_keys($nodes), ':access_scheme' => $scheme))->fetchAll();
+  }
+  $data = array();
+  foreach ($result as $obj) {
+    $data[$obj->nid][$obj->access_id] = $obj->access_id;
   }
   foreach ($nodes as $node) {
     // Cannot load if the node has not been created yet.
@@ -547,8 +551,13 @@ function workbench_access_node_load($nodes, $types) {
       continue;
     }
     $nodes[$node->nid]->workbench_access = array();
-    if (isset($result[$node->nid]->access_id) && in_array($result[$node->nid]->access_id, array_keys($tree['active']))) {
-      $nodes[$node->nid]->workbench_access[$result[$node->nid]->access_id] = $result[$node->nid]->access_id;
+    if (empty($data[$node->nid])) {
+      continue;
+    }
+    foreach ($data[$node->nid] as $access_id) {
+      if (in_array($access_id, array_keys($tree['active']))) {
+        $nodes[$node->nid]->workbench_access[$access_id] = $access_id;
+      }
     }
   }
 }
@@ -562,12 +571,35 @@ function workbench_access_node_insert($node) {
     return;
   }
   workbench_access_node_delete($node);
-  $record = array(
-    'nid' => $node->nid,
-    'access_id' => $node->workbench_access_id,
-    'access_scheme' => $node->workbench_access_scheme['access_scheme'],
-  );
-  drupal_write_record('workbench_access_node', $record);
+  if (empty($node->workbench_access_id)) {
+    return;
+  }
+  if (!is_array($node->workbench_access_id)) {
+    $node->workbench_access_id = array($node->workbench_access_id);
+  }
+  foreach ($node->workbench_access_id as $id) {
+    $record = array(
+      'nid' => $node->nid,
+      'access_id' => $id,
+      'access_scheme' => $node->workbench_access_scheme['access_scheme'],
+    );
+    drupal_write_record('workbench_access_node', $record);
+  }
+}
+
+/**
+ * Implements hook_node_presave().
+ */
+function workbench_access_node_presave($node) {
+  if (isset($node->workbench_access_id) && isset($node->workbench_access_fixed)) {
+    if (!is_array($node->workbench_access_id)) {
+      $node->workbench_access_id = array($node->workbench_access_id);
+    }
+    if (!is_array($node->workbench_access_fixed)) {
+      $node->workbench_access_fixed = array($node->workbench_access_fixed);
+    }
+    $node->workbench_access_id += $node->workbench_access_fixed;
+  }
 }
 
 /**
@@ -1227,12 +1259,10 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     $tree = workbench_access_get_user_tree();
     // Generate options so we can check for access.
     $options = workbench_access_options($tree, $active['active']);
-     // TODO: multi-select
-    $default = NULL;
+    $default = array();
     if (!empty($form['#node']->workbench_access)) {
-      $default = current(array_keys($form['#node']->workbench_access));
+      $default = array_keys($form['#node']->workbench_access);
     }
-
     // If there are no options and the 'workbench_access' variable has not been set
     // then it seems that Workbench Access has not been configured.
     if (empty($options) && !variable_get('workbench_access', FALSE)) {
@@ -1243,26 +1273,50 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     }
 
     // The base form element.
+    $multiple = variable_get('workbench_access_allow_multiple', 0);
     $element = array(
       '#type' => 'select',
       '#title' => t('@message_label', array('@message_label' => variable_get('workbench_access_label', 'Section'))),
       '#options' => $options,
       '#required' => TRUE,
       '#default_value' => $default,
-      '#description' => t('Select the proper editorial group for this content.'),
+      '#multiple' => $multiple,
+      '#description' => ($multiple) ? t('Select the proper editorial group(s) for this content.') : t('Select the proper editorial group for this content.'),
     );
     // If the default is set and is not in the user's range, then pass hidden and
     // display a message.
     // TODO: $default might legitimately be zero in some edge cases.
-    if (!empty($default) && !isset($options[$default]) && isset($active['tree'][$default])) {
-      $name = check_plain($active['tree'][$default]['name']);
-      $element['#type'] = 'value';
-      $element['#value'] = $element['#default_value'];
-      $form['workbench_access']['message'] = array(
-        '#type' => 'item',
-        '#title' => t('Workbench access'),
-        '#markup' => t('%title is assigned to the %section editorial group and may not be changed.', array('%title' => $form['#node']->title, '%section' => $name)),
-      );
+    if (!empty($default)) {
+      $all = array();
+      $disallowed = array();
+      foreach ($default as $item) {
+        if (isset($active['tree'][$item]['name'])) {
+          $all[$active['tree'][$item]['access_id']] = check_plain($active['tree'][$item]['name']);
+          if (!isset($options[$item])) {
+            $disallowed[$active['tree'][$item]['access_id']] = check_plain($active['tree'][$item]['name']);
+          }
+        }
+      }
+      if (!empty($disallowed)) {
+        $diff = array_diff($all, $disallowed);
+        // TODO: If we toggle from single to multiple, then this can get messy.
+        if (empty($diff) || !variable_get('workbench_access_allow_multiple', 0)) {
+          $element['#type'] = 'value';
+          $element['#value'] = $element['#default_value'];
+          $form['workbench_access']['message'] = array(
+            '#type' => 'item',
+            '#title' => t('Workbench access'),
+            '#markup' => t('%title is assigned to the %section editorial group(s), which may not be changed.', array('%title' => $form['#node']->title, '%section' => implode(', ', $disallowed))),
+          );
+        }
+        else {
+          $form['workbench_access']['workbench_access_fixed'] = array(
+            '#type' => 'value',
+            '#value' => array_keys($disallowed),
+          );
+          $element['#description'] = $element['#description'] . '<br />' . t('%title is also assigned to the %section editorial group(s), which may not be changed.', array('%title' => $form['#node']->title, '%section' => implode(', ', $disallowed)));
+        }
+      }
     }
     workbench_access_alter_form('node_element', $element, $form_state);
     $form['workbench_access']['workbench_access_id'] = $element;
@@ -1513,11 +1567,14 @@ function workbench_access_workbench_block() {
         return array(t('@message_label: <em>Unassigned</em>', array('@message_label' => variable_get('workbench_access_label', 'Section'))));
       }
       else {
+        $names = array();
         $access_type = variable_get('workbench_access', 'taxonomy');
-        $access_id = current($node->workbench_access);
-        $section = workbench_access_load($access_type, $access_id);
-        return array(t('@message_label: <em>%section</em>', array('@message_label' => variable_get('workbench_access_label', 'Section'), '%section' => $section['name'])));
-      }
+        foreach ($node->workbench_access as $access_id) {
+          $section = workbench_access_load($access_type, $access_id);
+          $names[] = check_plain($section['name']);
+        }
+        return array(t('Workbench Access: <em>%section</em>', array('%section' => implode(', ', $names))));
+       }
     }
   }
 }

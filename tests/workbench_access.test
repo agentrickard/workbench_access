@@ -8,6 +8,7 @@
 class WorkbenchAccessTestCase extends DrupalWebTestCase {
   protected $user_list;
   protected $editor_role;
+  protected $permissions;
 
   public static function getInfo() {
     return array(
@@ -20,7 +21,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
   function setUp() {
     parent::setUp('workbench_access');
     // Add an editor role.
-    $permissions = array(
+    $this->permissions = array(
       'access content',
       'create page content',
       'edit any page content',
@@ -28,7 +29,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
       'access workbench access by role',
     );
 
-    $this->editor_role = $this->drupalCreateRole($permissions);
+    $this->editor_role = $this->drupalCreateRole($this->permissions);
 
     // Create some nodes and users.
     for ($i = 0; $i < 10; $i++) {
@@ -44,6 +45,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
         'mail' => $this->randomName(32) . '@example.com',
         'roles' => drupal_map_assoc(array(DRUPAL_AUTHENTICATED_RID, $this->editor_role)),
         'status' => 1,
+        'pass' => 'fubar',
       );
       $this->user_list[] = user_save(NULL, $edit);
     }
@@ -142,7 +144,24 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     user_role_grant_permissions($this->editor_role, array('access workbench access by role'));
     $account = user_load($account->uid, TRUE);
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('Permission reinstated and test user assigned to a section.'));
-
+    // Form testing in Drupal is horribly broken.
+    // We can confirm that a form page is loaded, but cannot perform
+    // any introspection on the $form array.
+    $account->pass_raw = 'fubar';
+    $this->drupalLogin($account);
+    // Set the form label.
+    // Attempt to access edit page.
+    $this->drupalGet("node/$node->nid/edit");
+    $this->assertResponse(200);
+    $this->assertRaw('Section', t('Workbench Access field was found.'));
+    $this->assertRaw('<select id="edit-workbench-access-id" name="workbench_access_id" class="form-select required">', t('Form presents a select list with no multiple select.'));
+    // Change some values and try again.
+    variable_set('workbench_access_allow_multiple', 1);
+    variable_set('workbench_access_label', 'TestWA');
+    $this->drupalGet("node/$node->nid/edit");
+    $this->assertRaw('TestWA', t('Workbench Access field was renamed.'));
+    $this->assertRaw('<select multiple="multiple" name="workbench_access_id[]" id="edit-workbench-access-id" class="form-select required">', t('Form presents a select list with multiple select.'));
+    // TODO: Test form options.
   }
 
 }

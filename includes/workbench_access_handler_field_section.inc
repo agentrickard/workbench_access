@@ -9,13 +9,19 @@
  * @TODO: support multiple sections.
  */
 
-class workbench_access_handler_field_section extends views_handler_field {
-  // No query for this field.
+class workbench_access_handler_field_section extends views_handler_field_prerender_list {
+  function init(&$view, &$options) {
+    parent::init($view, $options);
+    if ($view->base_table == 'node_revisions') {
+      $this->additional_fields['nid'] = array('table' => 'node_revisions', 'field' => 'nid');
+    }
+    else {
+      $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
+    }
+  }
+  // Add the additional fields.
   function query() {
-    $active = workbench_access_get_active_tree();
-    $field_table = $this->query->ensure_table($active['access_scheme']['field_table']);
-    // Using this field alias breaks the COUNT query. Views bug?
-    $field = $this->query->add_field($field_table, $active['access_scheme']['query_field'], 'workbench_access_id');
+    $this->add_additional_fields();
   }
 
   function click_sort($order) {
@@ -44,32 +50,45 @@ class workbench_access_handler_field_section extends views_handler_field {
     }
   }
 
-  function render($values) {
-    global $user;
-    $account = $user;
-    if (!isset($account->workbench_access)) {
-      workbench_access_user_load_data($account);
-    }
-    if (!isset($values->workbench_access_id)) {
-      return '';
-    }
-    $active = workbench_access_get_active_tree();
-    $name = '';
-    $tree = $active['tree'];
-    workbench_access_build_tree($tree, array_keys($account->workbench_access));
-    if (isset($account->workbench_access[$values->workbench_access_id])) {
-      $name = $tree[$values->workbench_access_id]['name'];
-    }
-    else {
-      foreach ($account->workbench_access as $id => $data) {
-        if (!empty($tree[$id]['children'])) {
-          $children = $tree[$id]['children'];
-          if (in_array($values->workbench_access_id, $children)) {
-            $name = $tree[$id]['name'] . ' > ' . $tree[$values->workbench_access_id]['name'];
-          }
-        }
+  function pre_render(&$values) {
+    // We have to find the sections assigned to each node.
+    $this->field_alias = $this->aliases['nid'];
+    $nids = array();
+    foreach ($values as $result) {
+      if (!empty($result->{$this->aliases['nid']})) {
+        $nids[] = $result->{$this->aliases['nid']};
       }
     }
-    return check_plain($name);
+    foreach ($values as $result) {
+      if (!empty($result->{$this->aliases['nid']})) {
+        $nids[$result->{$this->aliases['nid']}] = new stdClass();
+        $nids[$result->{$this->aliases['nid']}]->nid = $result->{$this->aliases['nid']};
+      }
+    }
+    workbench_access_node_load($nids, array());
+    $active = workbench_access_get_active_tree();
+    foreach ($values as $value) {
+      if (isset($value->nid) && isset($nids[$value->nid]->workbench_access)) {
+        foreach ($nids[$value->nid]->workbench_access as $access_id) {
+          $value->workbench_access[] = check_plain($active['tree'][$access_id]['name']);
+          $this->items[$value->nid][$access_id]['value'] = check_plain($active['tree'][$access_id]['name']);
+        }
+      }
+      else {
+        $value->workbench_access = array();
+      }
+    }
+  }
+  // Only render() seems to work. What gives, Views?
+  function render($values) {
+    if (!isset($values->workbench_access)) {
+      $values->workbench_access = array();
+    }
+    if ($this->options['type'] == 'separator') {
+      return implode($this->sanitize_value($this->options['separator']), $values->workbench_access);
+    }
+    $variables['items'] = $values->workbench_access;
+    $variables['type'] = $this->options['type'];
+    return theme('item_list', $variables);
   }
 }

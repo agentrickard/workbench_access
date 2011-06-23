@@ -24,6 +24,7 @@ CONTENTS
 4.1   Access schemes
 4.1.1  Automated section assignment
 4.1.2  Workbench Access message label
+4.1.3  Allow multiple section assignments
 4.2   Access sections
 4.2.1  Manual section configuration
 4.2.2  Automated section configuration
@@ -486,6 +487,21 @@ assigned editorial sections and the form label.
 
 This settings lets you change how the item is labelled. The default is
 "Workbench Access". You may prefer "Sections" or "Editorial Team" instead.
+
+----
+4.1.3  Allow multiple section assignments
+
+The checkbox labeled 'Allow multiple section assignments' controls the behavior
+of the section selection form when editing content. This optional setting is
+disabled by default.
+
+    [ ] Allow multiple section assignments
+    Let content be assigned to multiple sections.
+
+If enabled, editors will be shown a multiple select option when editing section
+assignments. This configuration can be useful if you have content that spans
+several parts of your organization.
+
 
 ----
 4.2   Access sections

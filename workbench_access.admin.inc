@@ -65,6 +65,12 @@ function workbench_access_settings_form($form, &$form_state) {
     '#default_value' => variable_get('workbench_access_auto_assign', 1),
     '#description' => t('Enable all sections automatically for the active scheme.'),
   );
+  $form['workbench_access_allow_multiple'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Allow multiple section assignments'),
+    '#default_value' => variable_get('workbench_access_allow_multiple', 0),
+    '#description' => t('Let content be assigned to multiple sections.'),
+  );
   $form = system_settings_form($form);
   $form['#validate'][] = 'workbench_access_settings_validate';
   $form['#submit'][] = 'workbench_access_settings_submit';

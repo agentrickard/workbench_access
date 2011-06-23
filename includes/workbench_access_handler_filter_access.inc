@@ -7,7 +7,7 @@
  * Provides a filter to display nodes by assigned section.
  */
 
-class workbench_access_handler_filter_access extends views_handler_filter {
+class workbench_access_handler_filter_access extends views_handler_filter_many_to_one {
   function option_definition() {
     $options = parent::option_definition();
     $options['access_id'] = array('default' => NULL);
