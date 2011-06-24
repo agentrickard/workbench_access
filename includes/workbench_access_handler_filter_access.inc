@@ -68,6 +68,15 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
 
   function query() {
     global $user;
+
+    // If not configured, do nothing.
+    $active = workbench_access_get_active_tree();
+    $tree = $active['tree'];
+    if (empty($tree)) {
+      return;
+    }
+
+    // Check the user's access.
     $account = $user; // Not a clone, but that's ok, since we need this data on $user.
     if (!isset($account->workbench_access)) {
       workbench_access_user_load_data($account);
@@ -78,8 +87,7 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
       $this->query->add_where($this->options['group'], "$table.nid", -1, '=');
       return;
     }
-    $active = workbench_access_get_active_tree();
-    $tree = $active['tree'];
+
     // No selection? Use the user's tree.
     if (empty($this->value) || $this->value[0] == -5) {
       workbench_access_build_tree($tree, array_keys($account->workbench_access));
@@ -88,12 +96,18 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
     else {
       workbench_access_build_tree($tree, array_keys($this->value[0]));
     }
+
+    // Build the query. Since we allow multi-select, this has to be a subquery.
     $ids = array_keys($tree);
-    $table = $this->query->ensure_table($active['access_scheme']['field_table']);
-    // Using this field alias breaks the COUNT query. Views bug?
-    $field = $this->query->add_field($table, $active['access_scheme']['query_field']);
-    $this->query->add_where($this->options['group'], "$table." . $active['access_scheme']['query_field'], $ids, 'IN');
-    $field = $this->query->add_field($table, 'access_scheme');
-    $this->query->add_where($this->options['group'], "$table." . 'access_scheme', $active['access_scheme']['access_scheme']);
+    $table = $active['access_scheme']['field_table'];
+    $subquery = db_select($table, $table);
+    $subquery->addField($table, 'nid');
+    $subquery->distinct();
+    $subquery->condition($table . '.' . $active['access_scheme']['query_field'], $ids, 'IN');
+    $subquery->condition($table . '.access_scheme', $active['access_scheme']['access_scheme']);
+
+    // Now alter the query, which must have an nid in the base table.
+    $this->query->add_where(0, $this->query->base_table . '.nid', $subquery, 'IN');
+
   }
 }
