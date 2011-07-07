@@ -508,9 +508,9 @@ function workbench_access_tree($info, $keys = FALSE) {
  * Load the active tree.
  */
 function workbench_access_get_active_tree() {
-  $active = &drupal_static(__FUNCTION__);
-  if (isset($active['scheme'])) {
-    return $active;
+  $access_tree = &drupal_static(__FUNCTION__);
+  if (isset($access_tree['access_scheme'])) {
+    return $access_tree;
   }
   $scheme = variable_get('workbench_access', 'taxonomy');
   workbench_access_load_include($scheme);
@@ -520,12 +520,13 @@ function workbench_access_get_active_tree() {
   $active = workbench_access_get_ids_by_scheme($data);
   $tree = workbench_access_tree($data);
   workbench_access_build_tree($tree);
-  $active = array(
+  $access_tree = array(
     'access_scheme' => $data,
     'tree' => $tree,
     'active' => $active,
   );
-  return $active;
+
+  return $access_tree;
 }
 
 /**

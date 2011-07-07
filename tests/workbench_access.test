@@ -79,7 +79,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid WHERE wan.access_id = 'workbench_access' AND wan.access_scheme = 'taxonomy'")->fetchField();
     $this->assertTrue($count == 10, t('Initial nodes assigned to top-level hierarchy.'));
     // Test access settings of user 1.
-    $account = user_load(1);
+    $account = user_load(1, TRUE);
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('User 1 assigned to top-level hierarchy.'));
     // End setup tests.
     
