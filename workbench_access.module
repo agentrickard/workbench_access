@@ -508,7 +508,10 @@ function workbench_access_tree($info, $keys = FALSE) {
  * Load the active tree.
  */
 function workbench_access_get_active_tree() {
-  $access_tree = &drupal_static(__FUNCTION__);
+  $cache = cache_get('workbench_access_tree', 'cache_bootstrap');
+  if (isset($cache->data)) {
+    $access_tree = $cache->data;
+  }
   if (isset($access_tree['access_scheme'])) {
     return $access_tree;
   }
@@ -525,7 +528,7 @@ function workbench_access_get_active_tree() {
     'tree' => $tree,
     'active' => $active,
   );
-
+  cache_set('workbench_access_tree', $access_tree, 'cache_bootstrap');
   return $access_tree;
 }
 
@@ -778,6 +781,9 @@ function workbench_access_rebuild_scheme($access_scheme, $sections = array()) {
  * @see hook_workbench_access_section_save()
  */
 function workbench_access_section_save($section) {
+  // Reset the tree.
+  workbench_access_reset_tree();
+  // Write the record.
   drupal_write_record('workbench_access', $section);
   // Notify other modules.
   module_invoke_all('workbench_access_save', $section);
@@ -794,6 +800,8 @@ function workbench_access_section_save($section) {
  * @see hook_workbench_access_section_delete()
  */
 function workbench_access_section_delete($section) {
+  // Reset the tree.
+  workbench_access_reset_tree();
   // Notify other modules.
   module_invoke_all('workbench_access_delete', $section);
   // Now clean up.
@@ -821,8 +829,8 @@ function workbench_access_section_delete($section) {
  * Necessary when rebuilding the active tree settings.
  */
 function workbench_access_reset_tree() {
+  cache_clear_all('workbench_access_tree', 'cache_bootstrap');
   drupal_static_reset('workbench_access_get_access_tree');
-  drupal_static_reset('workbench_access_get_active_tree');
   drupal_static_reset('workbench_access_get_ids_by_scheme');
   drupal_static_reset('workbench_access_get_user_tree');
   drupal_static_reset('workbench_access_user_load_data');
