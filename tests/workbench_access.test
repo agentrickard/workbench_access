@@ -55,7 +55,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
   function testWorkbenchAccess() {
     // Check for user creation.
     $this->assertTrue(count($this->user_list) == 10, t('Ten new users were created.'));
-    $this->assertTrue(!empty($this->editor_role), t('Created edtior role.'));
+    $this->assertTrue(!empty($this->editor_role), t('Created editor role.'));
     // Check for node creation.
     $count = db_query("SELECT COUNT(n.nid) FROM {node} n")->fetchField();
     $this->assertTrue($count == 10, t('Ten initial nodes created.'));
