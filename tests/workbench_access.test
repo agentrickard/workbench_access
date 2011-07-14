@@ -98,52 +98,41 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
       }
     }
     $this->assertTrue(!empty($assigned), t('All nodes properly assigned.'));
-    $actions = array('create', 'update', 'delete');
-    foreach ($actions as $action) {
-      foreach ($nodes as $node) {
-        $status[$action] = FALSE;
-        if ($action == 'create') {
-          $result = node_access($action, $node->type, $account);
-        }
-        else {
-          $result = node_access($action, $node, $account);
-        }
-        if ($result) {
-          $status[$action] = TRUE;
-          break;
-        }
-      }
-      $this->assertTrue(empty($status[$action]), t('Test user cannot @action content.', array('@action' => $action)));
-    }
+    $this->workbench_access_action_check($nodes, $account, t('No sections'), FALSE);
+
     // Now, we assign the user to a section and check again.
-    drupal_static_reset('node_access');
     workbench_access_user_section_save($account->uid, 'workbench_access', $active['access_scheme']['access_scheme']);
     $account = user_load($account->uid, TRUE);
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('Test user assigned to top-level hierarchy.'));
-    foreach ($actions as $action) {
-      foreach ($nodes as $node) {
-        $status[$action] = TRUE;
-        if ($action == 'create') {
-          $result = node_access($action, $node->type, $account);
-        }
-        else {
-          $result = node_access($action, $node, $account);
-        }
-        if (!$result) {
-          $status[$action] = FALSE;
-          break;
-        }
-      }
-      $this->assertTrue(!empty($status[$action]), t('Test user can now @action content.', array('@action' => $action)));
-    }
+    $this->workbench_access_action_check($nodes, $account, t('Assigned sections'), TRUE);
+
     // Remove the permission to 'access workbench access by role' and check again.
     user_role_revoke_permissions($this->editor_role, array('access workbench access by role'));
     $account = user_load($account->uid, TRUE);
     $this->assertTrue(empty($account->workbench_access['workbench_access']), t('Permission revoked and test user not assigned to a section.'));
+    $this->workbench_access_action_check($nodes, $account, t('Role disallowed'), FALSE);
+
     // Now give them permissions again.
     user_role_grant_permissions($this->editor_role, array('access workbench access by role'));
     $account = user_load($account->uid, TRUE);
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('Permission reinstated and test user assigned to a section.'));
+    $this->workbench_access_action_check($nodes, $account, t('Role allowed.'), TRUE);
+
+    // Now take away the core permissions to page content and test.
+    $perms = array(
+      'create page content',
+      'edit any page content',
+      'delete any page content',
+    );
+    user_role_revoke_permissions($this->editor_role, $perms);
+    $account = user_load($account->uid, TRUE);
+    $this->workbench_access_action_check($nodes, $account, t('Page access disallowed'), FALSE);
+
+    // Now give back the core permissions.
+    user_role_grant_permissions($this->editor_role, $perms);
+    $account = user_load($account->uid, TRUE);
+    $this->workbench_access_action_check($nodes, $account, t('Page access allowed'), TRUE);
+
     // Form testing in Drupal is horribly broken.
     // We can confirm that a form page is loaded, but cannot perform
     // any introspection on the $form array.
@@ -162,6 +151,46 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->assertRaw('TestWA', t('Workbench Access field was renamed.'));
     $this->assertRaw('<select multiple="multiple" name="workbench_access_id[]" id="edit-workbench-access-id" class="form-select required">', t('Form presents a select list with multiple select.'));
     // TODO: Test form options.
+  }
+
+  /**
+   * Simple method for running the same node access checks repeatedly.
+   *
+   * @param $nodes
+   *  The nodes to check. If one fails, the test fails.
+   * @param $account
+   *  The user account being tested.
+   * @param $message
+   *  The string to prefix in front of the test result message.
+   * @param $true
+   *  Boolean indicator that we want to test TRUE or FALSE on this test.
+   */
+  function workbench_access_action_check($nodes, $account, $message, $true = TRUE) {
+    // Since we change conditions, reset node access.
+    drupal_static_reset('node_access');
+    // Check the node operations.
+    $actions = array('create', 'update', 'delete');
+    foreach ($actions as $action) {
+      foreach ($nodes as $node) {
+        $status[$action] = FALSE;
+        if ($action == 'create') {
+          $result = node_access($action, $node->type, $account);
+        }
+        else {
+          $result = node_access($action, $node, $account);
+        }
+        if ($result) {
+          $status[$action] = TRUE;
+          break;
+        }
+      }
+      if ($true) {
+        $this->assertTrue(!empty($status[$action]), t('@message. Test user can @action content.', array('@message' => $message, '@action' => $action)));
+      }
+      else {
+        $this->assertTrue(empty($status[$action]), t('@message. Test user cannot @action content.', array('@message' => $message, '@action' => $action)));
+      }
+    }
   }
 
 }

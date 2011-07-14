@@ -367,8 +367,11 @@ function workbench_access_node_access($node, $op, $account) {
   if (!empty($node->workbench_access) && !empty($account->workbench_access)) {
     $result = workbench_access_check($op, $type, array_filter($node->workbench_access), $account->workbench_access);
   }
+  // The user must be allowed to perform this action by core node module.
+  // All we do is issue an ignore response, indicating that some other module
+  // may grants access. If we ever support complex data rules, this may change.
   if ($result !== FALSE) {
-    return NODE_ACCESS_ALLOW;
+    return NODE_ACCESS_IGNORE;
   }
   return NODE_ACCESS_DENY;
 }
