@@ -708,8 +708,7 @@ This table may be sorted and searched to help editors find content quickly.
 
 The 'Section' column of the table shows the current section the content is
 assigned to. If the editor is assigned to that section, the section name is
-shown. If the editor is assigned to a parent section, the parent which grants
-the access is shown with an > preceding the actual section assignment.
+shown.
 
 For example, if the editor is assigned to the Library section, the table may
 look like so:
@@ -717,10 +716,10 @@ look like so:
     Title           Section
     -----           -------
     Library hours   Library
-    Return policy   Library > Library Visitors
-    Vacation rules  Library > Library Staff
+    Return policy   Library Visitors
+    Vacation rules  Library Staff
 
-This format is designed to show editors why they have access to the content.
+This column is designed to show editors why they have access to the content.
 
 
 ----

@@ -20,7 +20,7 @@ function workbench_access_views_data() {
     ),
   );
   $data['workbench_access']['section'] = array(
-    'title' => t('Section'),
+    'title' => variable_get('workbench_access_label', 'Section'),
     'help' => t('The section to which this node belongs.'),
     'field' => array(
       'handler' => 'workbench_access_handler_field_section',
