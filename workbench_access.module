@@ -1167,12 +1167,13 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
   $string = trim($string);
   $matches = array();
   if (!empty($string)) {
+    $roles = workbench_access_get_roles('access workbench access by role');
     $result = db_query_range("SELECT DISTINCT(u.uid), u.name FROM {users} u
-      INNER JOIN {users_roles} ur USING (uid) INNER JOIN {role_permission} USING (rid)
-      WHERE permission = :permission
+      INNER JOIN {users_roles} ur USING (uid)
+      WHERE ur.rid IN (:rids)
       AND u.name LIKE :string AND
       (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))", 0, 10,
-      array(':permission' => 'access workbench access by role', ':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id))->FetchAll();
+      array(':rids' => array_keys($roles), ':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id))->FetchAll();
     foreach ($result as $data) {
       $matches[$data->name] = $data->name;
     }
@@ -1656,4 +1657,32 @@ function workbench_access_form_node_admin_content_alter(&$form, &$form_state) {
       $options[$item][$key] = $value;
     }
   }
+}
+
+/**
+ * Fetch all user roles with the a specific permission.
+ *
+ * This is a wrapper for user_roles() since it may exclude user roles that have
+ * a permission assigned to the 'authenticated user' role.
+ *
+ * @param $permission
+ *  The perimission to return active roles.
+ *
+ * @return
+ *  An array of allowed roles, in the format rid => name.
+ */
+function workbench_access_get_roles($permission) {
+  $roles = &drupal_static(__FUNCTION__, array());
+
+  if (!isset($roles[$permission])) {
+    // Build the list of user roles that can be assigned workbench access.
+    $roles[$permission] = user_roles(FALSE, $permission);
+    if (isset($roles[$permission][DRUPAL_AUTHENTICATED_RID])) {
+      // Because the permission may only be granted for the 'authenticated user'
+      // role, manually add in all non-anonymous roles in that case.
+      $roles[$permission] += user_roles(TRUE);
+    }
+  }
+
+  return $roles[$permission];
 }

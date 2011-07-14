@@ -417,22 +417,21 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
       $row = array(
         str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/' . "{$type}s/" . $active['access_scheme']['access_type'] . '/' . $access_id),
       );
+      $roles = workbench_access_get_roles('access workbench access by role');
       if ($type == 'editor') {
         $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
           INNER JOIN {users_roles} ur ON wau.uid = ur.uid
-          INNER JOIN {role_permission} rp ON ur.rid = rp.rid
           WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id
-          AND rp.permission = :permission",
-          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':permission' => 'access workbench access by role')
+          AND ur.rid IN (:rids)",
+          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':rids' => array_keys($roles))
         )->fetchField();
         $row[] = l(format_plural($count, '1 editor', '@count editors'), 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id);
       }
       else {
         $count2 = db_query("SELECT COUNT(war.rid) FROM {workbench_access_role} war
-          INNER JOIN {role_permission} rp ON war.rid = rp.rid
           WHERE war.access_scheme = :access_scheme AND war.access_id = :access_id
-          AND rp.permission = :permission",
-          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':permission' => 'access workbench access by role')
+          AND war.rid IN (:rids)",
+          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':rids' => array_keys($roles))
         )->fetchField();
         $row[] = l(format_plural($count2, '1 role', '@count roles'),  'admin/config/workbench/access/roles/' . $active['access_scheme']['access_type'] . '/' . $access_id);
       }
@@ -465,6 +464,10 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
     drupal_access_denied();
     drupal_exit();
   }
+
+  // Get the list of user roles that can be assigned workbench access.
+  $roles = workbench_access_get_roles('access workbench access by role');
+
   $query = db_select('users', 'u')
     ->fields('u', array('uid', 'name'));
   $query->join('workbench_access_user', 'wau', 'u.uid = wau.uid');
@@ -472,7 +475,7 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
   $query->join('role_permission', 'rp', 'rp.rid = ur.rid');
   $query->condition('wau.access_scheme', $access_type)
     ->condition('wau.access_id', $access_type_id)
-    ->condition('rp.permission', 'access workbench access by role')
+    ->condition('ur.rid', array_keys($roles), 'IN')
     ->extend('PagerDefault')->limit(25);
   $result = $query->execute();
   $rows = array();
@@ -548,7 +551,7 @@ function workbench_access_editor_form_submit($form, &$form_state) {
       workbench_access_role_section_save($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
     }
     elseif (empty($status) && in_array($rid, $values['default_roles'])) {
-      workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);    
+      workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
     }
   }*/
 }
@@ -617,16 +620,23 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
     drupal_access_denied();
     drupal_exit();
   }
+
+  // Build the list of user roles that can be assigned workbench access.
+  $roles = workbench_access_get_roles('access workbench access by role');
+
   // Form markup elements.
   $access_info = workbench_access_load($access_type, $access_type_id);
   $output = '<h2>' . t('%name editors by role', array('%name' => $access_info['name'])) . '</h2>';
   $output .= '<p>' . t('Active editors for the %section section, as determined by role. <a href="!url">View editors by user</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_type_id)));
   $header = array(t('Editors'), t('Roles'));
   $rows = array();
-  $roles = array_keys(db_query("SELECT war.rid FROM {workbench_access_role} war INNER JOIN {role_permission} rp ON rp.rid = war.rid WHERE rp.permission = :permission AND war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':permission' => 'access workbench access by role', ':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
-  $users = array();
+  $access_rids = array();
   if (!empty($roles)) {
-    $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:roles)", array(':roles' => $roles));
+    $access_rids = db_query("SELECT war.rid FROM {workbench_access_role} war WHERE war.rid IN (:rids) AND war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':rids' => array_keys($roles), ':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchCol();
+  }
+  $users = array();
+  if (!empty($access_rids)) {
+    $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:rids)", array(':rids' => $access_rids));
   }
   $users_by_role = array();
   foreach ($users as $data) {
@@ -649,7 +659,6 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
     '#markup' => $table,
   );
   // User role form.
-  $roles = user_roles(FALSE, 'access workbench access by role');
   $default = array_keys(db_query("SELECT rid FROM {workbench_access_role} WHERE access_scheme = :access_scheme AND access_id = :access_type_id", array(':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid'));
   $form['roles'] = array(
     '#type' => 'checkboxes',
