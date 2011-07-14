@@ -1171,8 +1171,8 @@ function workbench_access_autocomplete($access_type, $access_id, $string) {
     $result = db_query_range("SELECT DISTINCT(u.uid), u.name FROM {users} u
       INNER JOIN {users_roles} ur USING (uid)
       WHERE ur.rid IN (:rids)
-      AND u.name LIKE :string AND
-      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))", 0, 10,
+      AND u.name LIKE :string AND u.status > 0 AND
+      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))", 0, 20,
       array(':rids' => array_keys($roles), ':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id))->FetchAll();
     foreach ($result as $data) {
       $matches[$data->name] = $data->name;

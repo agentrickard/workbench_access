@@ -636,7 +636,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
   }
   $users = array();
   if (!empty($access_rids)) {
-    $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:rids)", array(':rids' => $access_rids));
+    $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:rids) AND u.status > 0", array(':rids' => $access_rids));
   }
   $users_by_role = array();
   foreach ($users as $data) {
