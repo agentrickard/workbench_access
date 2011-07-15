@@ -150,7 +150,25 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->drupalGet("node/$node->nid/edit");
     $this->assertRaw('TestWA', t('Workbench Access field was renamed.'));
     $this->assertRaw('<select multiple="multiple" name="workbench_access_id[]" id="edit-workbench-access-id" class="form-select required">', t('Form presents a select list with multiple select.'));
-    // TODO: Test form options.
+
+    // Check that access control by node type settings work.
+    $this->assertTrue(variable_get('workbench_access_node_type_' . $node->type, 1), t('Workbench Access enforced for %type content.', array('%type' => $node->type)));
+    // Force a fail by removing this user's access rules. Else it will just
+    // return NODE_ACCESS_IGNORE, which cannot be tested.
+    $account->workbench_access = array('foo');
+    $response = workbench_access_node_access($node, 'update', $account);
+    $this->assertTrue($response == NODE_ACCESS_DENY, t('Workbench Access rules enforced on test node.'));
+
+    // Since the user is not in a section, this should DENY, unless the node
+    // type is ignored.
+    variable_set('workbench_access_node_type_' . $node->type, 0);
+    $this->assertFalse(variable_get('workbench_access_node_type_' . $node->type, 1), t('Workbench Access not enforced for %type content.', array('%type' => $node->type)));
+    $response = workbench_access_node_access($node, 'update', $account);
+    $this->assertTrue($response == NODE_ACCESS_IGNORE, t('Workbench Access rules ignored on test node.'));
+
+    // Restore the account, in case we do more tests later.
+    $account = user_load($account->uid, TRUE);
+
   }
 
   /**

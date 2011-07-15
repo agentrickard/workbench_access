@@ -68,6 +68,7 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
 
   function query() {
     global $user;
+    static $allowed;
 
     // If not configured, do nothing.
     $active = workbench_access_get_active_tree();
@@ -106,8 +107,26 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
     $subquery->condition($table . '.' . $active['access_scheme']['query_field'], $ids, 'IN');
     $subquery->condition($table . '.access_scheme', $active['access_scheme']['access_scheme']);
 
+    // Filter out node types not governed by this module.
+    // See http://drupal.org/node/1082220.
+    if (!isset($allowed)) {
+      $allowed = array();
+      $types = node_type_get_types();
+      foreach ($types as $type => $data) {
+        if (variable_get('workbench_access_node_type_' . $type, 1)) {
+          $allowed[] = $type;
+        }
+      }
+    }
+    // If not all node types are allowed, filter out those not used.
+    // This has to go in the subquery, not the Views query.
+    if (count($allowed) < count($types)) {
+      $alias = $subquery->join('node', 'n', "$table.nid = n.nid");
+      $subquery->condition("$alias.type", $allowed, 'IN');
+    }
+
     // Now alter the query, which must have an nid in the base table.
-    $this->query->add_where(0, $this->query->base_table . '.nid', $subquery, 'IN');
+    $this->query->add_where($this->options['group'], $this->query->base_table . '.nid', $subquery, 'IN');
 
   }
 }

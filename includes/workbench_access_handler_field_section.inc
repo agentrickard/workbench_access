@@ -52,23 +52,20 @@ class workbench_access_handler_field_section extends views_handler_field_prerend
 
   function pre_render(&$values) {
     // We have to find the sections assigned to each node.
-    $this->field_alias = $this->aliases['nid'];
+    // Load node data.
     $nids = array();
-    // Create shell nodes.
     foreach ($values as $result) {
       if (!empty($result->{$this->aliases['nid']})) {
-        $nids[$result->{$this->aliases['nid']}] = new stdClass();
-        $nids[$result->{$this->aliases['nid']}]->nid = $result->{$this->aliases['nid']};
+        $nids[] = $result->{$this->aliases['nid']};
       }
     }
-    // Load workbench data to these nodes.
-    workbench_access_node_load($nids, array());
-    
+    $nodes = node_load_multiple($nids, array());
+
     // Now match the data to the active tree.
     $active = workbench_access_get_active_tree();
     foreach ($values as $value) {
-      if (isset($value->{$this->aliases['nid']}) && isset($nids[$value->{$this->aliases['nid']}]->workbench_access)) {
-        foreach ($nids[$value->{$this->aliases['nid']}]->workbench_access as $access_id) {
+      if (isset($value->{$this->aliases['nid']}) && isset($nodes[$value->{$this->aliases['nid']}]->workbench_access)) {
+        foreach ($nodes[$value->{$this->aliases['nid']}]->workbench_access as $access_id) {
           $value->workbench_access[] = check_plain($active['tree'][$access_id]['name']);
           $this->items[$value->{$this->aliases['nid']}][$access_id]['value'] = check_plain($active['tree'][$access_id]['name']);
         }

@@ -22,9 +22,10 @@ CONTENTS
 3.  Permissions
 4.  Configuration
 4.1   Access schemes
-4.1.1  Automated section assignment
-4.1.2  Workbench Access message label
-4.1.3  Allow multiple section assignments
+4.1.1 Content types enabled
+4.1.2  Automated section assignment
+4.1.3  Workbench Access message label
+4.1.4  Allow multiple section assignments
 4.2   Access sections
 4.2.1  Manual section configuration
 4.2.2  Automated section configuration
@@ -460,9 +461,25 @@ section is the Museum vocabulary created during installation.
 
 Select your options and Save configuration.
 
+----
+4.1.1 Content types enabled
+
+This fieldset determines is access control rules will be enforced on each
+content type. You may select to disable complex access rules for any content
+type.
+
+  > Content types enabled
+  [*] Article
+  [*] Basic page
+  Only selected content types will have Workbench Access rules enforced.
+
+By default, access control is enforced for all content types.
+
+Note that these settings are also available under the "Workflow" tab of the
+content type settings page.
 
 ----
-4.1.1  Automated section assignment
+4.1.2  Automated section assignment
 
 On the settings page is another checkbox, labeled 'Automated section
 assignment'. This optional setting is enabled by default.
@@ -480,7 +497,7 @@ automatically configured for you.
 
 
 ----
-4.1.2  Workbench Access message label
+4.1.3  Workbench Access message label
 
 In the user interface, Workbench Access sets certain messages, such as the
 assigned editorial sections and the form label.
@@ -489,7 +506,7 @@ This settings lets you change how the item is labelled. The default is
 "Workbench Access". You may prefer "Sections" or "Editorial Team" instead.
 
 ----
-4.1.3  Allow multiple section assignments
+4.1.4  Allow multiple section assignments
 
 The checkbox labeled 'Allow multiple section assignments' controls the behavior
 of the section selection form when editing content. This optional setting is

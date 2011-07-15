@@ -53,6 +53,25 @@ function workbench_access_settings_form($form, &$form_state) {
       }
     }
   }
+  $types = node_type_get_types();
+  if (!empty($types)) {
+    $form['node_types'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Content types enabled'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+    foreach ($types as $type => $data) {
+      $form['node_types']['workbench_access_node_type_' . $type] = array(
+        '#title' => check_plain($data->name),
+        '#type' => 'checkbox',
+        '#default_value' => variable_get('workbench_access_node_type_' . $type, 1),
+      );
+    }
+    $form['node_types']['message'] = array(
+      '#markup' => '<em>' . t('Only selected content types will have Workbench Access rules enforced.') . '</em>',
+    );
+  }
   $form['workbench_access_label'] = array(
     '#type' => 'textfield',
     '#title' => t('Workbench Access message label'),

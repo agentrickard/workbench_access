@@ -295,8 +295,10 @@ function workbench_access_field_extra_fields() {
   // @TODO: be more selective here.
   $extra = array();
   foreach (node_type_get_names() as $name => $value) {
-    $extra['node'][$name]['form'] = $base;
-    $extra['node'][$name]['display'] = $base;
+    if (variable_get('workbench_access_node_type_' . $name, 1)) {
+      $extra['node'][$name]['form'] = $base;
+      $extra['node'][$name]['display'] = $base;
+    }
   }
   return $extra;
 }
@@ -341,25 +343,34 @@ function workbench_access_node_access($node, $op, $account) {
   if (empty($tree['active'])) {
     return NODE_ACCESS_IGNORE;
   }
-  // Now check the user account.
-  if (!isset($account->workbench_access)) {
-    $account = user_load($account->uid);
+
+  // View step. We ignore for published nodes.
+  if ($op == 'view' && $node->status) {
+    return NODE_ACCESS_IGNORE;
   }
+
+  // If disabled for this content type, do nothing.
   if (!is_object($node)) {
     $type = $node;
   }
   else {
     $type = $node->type;
   }
+  if (!variable_get('workbench_access_node_type_' . $type, 1)) {
+    return NODE_ACCESS_IGNORE;
+  }
+
+  // Now check the user account.
+  if (!isset($account->workbench_access)) {
+    $account = user_load($account->uid);
+  }
+
   // Create step. User must be assigned to a section to create content.
   // Note that we do not currently enforce complex rules here.
   if ($op == 'create' && !empty($account->workbench_access)) {
     return NODE_ACCESS_IGNORE;
   }
-  // View step. We ignore for published nodes.
-  if ($op == 'view' && $node->status) {
-    return NODE_ACCESS_IGNORE;
-  }
+
   // Load the current scheme.
   workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
   // Get the access rules for this node.
@@ -553,8 +564,9 @@ function workbench_access_node_load($nodes, $types) {
     $data[$obj->nid][$obj->access_id] = $obj->access_id;
   }
   foreach ($nodes as $node) {
-    // Cannot load if the node has not been created yet.
-    if (empty($node->nid)) {
+    // Cannot load if the node has not been created yet or if it is
+    // not under access control.
+    if (empty($node->nid) || (isset($node->type) && !variable_get('workbench_access_node_type_' . $node->type, 1))) {
       continue;
     }
     $nodes[$node->nid]->workbench_access = array();
@@ -1257,6 +1269,10 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
   if (empty($form['#node_edit_form'])) {
     workbench_access_alter_form($form_id, $form, $form_state);
   }
+  // Ensure that we can enforce our rules.
+  elseif (!isset($form['#node']->type) || !variable_get('workbench_access_node_type_' . $form['#node']->type, 1)) {
+    return;
+  }
   // Fire the node form alter.
   else {
     // Make sure we prepared the user.
@@ -1568,6 +1584,20 @@ function workbench_access_menu_link_submit($form, &$form_state) {
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Add access rules to node types.
+ */
+function workbench_access_form_node_type_form_alter(&$form, $form_state) {
+  $form['workflow']['workbench_access_node_type'] = array(
+    '#title' => t('Enforce Workbench Access control'),
+    '#type' => 'checkbox',
+    '#default_value' => variable_get('workbench_access_node_type_' . $form['#node_type']->type, 1),
+    '#description' => t('Use Workbench Access to enforce editorial control to all content of this type.'),
+  );
+}
+
+/**
  * Implements hook_block_view_workbench_block_alter().
  *
  * Show the editorial status of this node.
@@ -1576,7 +1606,10 @@ function workbench_access_workbench_block() {
   // Add editing information to this page (if it's a node).
   if ($node = menu_get_object()) {
     if (user_access('view workbench access information')) {
-      if (empty($node->workbench_access)) {
+      if (!variable_get('workbench_access_node_type_' . $node->type, 1)) {
+        return array(t('@message_label: <em>@type pages are not under access control</em>', array('@message_label' => variable_get('workbench_access_label', 'Section'), '@type' => node_type_get_name($node->type))));
+      }
+      elseif (empty($node->workbench_access)) {
         return array(t('@message_label: <em>Unassigned</em>', array('@message_label' => variable_get('workbench_access_label', 'Section'))));
       }
       else {
