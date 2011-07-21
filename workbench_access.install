@@ -175,16 +175,21 @@ function workbench_access_requirements($phase) {
       $description[] = t('At least one role must be have the <a href="!url">Allow all members of this role to be assigned to Workbench Access sections</a> permission', array('!url' => url('admin/people/permissions', array('fragment' => 'module-workbench_access'))));
     }
     if (empty($description)) {
-      $severity = REQUIREMENT_OK;
-      $value = t('Configured');
-      $description = t('Workbench Access is configured properly, using %scheme as the access scheme.', array('%scheme' => variable_get('workbench_access', 'taxonomy')));
+      $requirements['workbench_access'] = array(
+        'title' => t('Workbench Access'),
+        'value' => t('Configured'),
+        'severity' => REQUIREMENT_OK,
+        'description' => t('Workbench Access is configured properly, using %scheme as the access scheme.', array('%scheme' => variable_get('workbench_access', 'taxonomy'))),
+      );
     }
-    $requirements['workbench_access'] = array(
-      'title' => t('Workbench Access'),
-      'value' => t('Not configured'),
-      'severity' => REQUIREMENT_ERROR,
-      'description' => theme('item_list', array('items' => $description)),
-    );
+    else {
+      $requirements['workbench_access'] = array(
+        'title' => t('Workbench Access'),
+        'value' => t('Not configured'),
+        'severity' => REQUIREMENT_ERROR,
+        'description' => theme('item_list', array('items' => $description)),
+      );
+    }
   }
 
   return $requirements;
