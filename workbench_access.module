@@ -1374,7 +1374,7 @@ function workbench_access_alter_form($hook, &$form, &$form_state) {
  * Return the text directing admins to Workbench Access configuration.
  */
 function workbench_access_configuration_needed_message() {
-  return t('You must <a href="@settings">configure Workbench Access settings</a> before editorial access control will not be enforced.',
+  return t('You must <a href="@settings">configure Workbench Access settings</a> before editorial access control will be enforced.',
     array('@settings' => url('admin/config/workbench/access/settings'))
   );
 }
