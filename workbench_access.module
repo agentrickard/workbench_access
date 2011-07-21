@@ -522,6 +522,11 @@ function workbench_access_tree($info, $keys = FALSE) {
  * Load the active tree.
  */
 function workbench_access_get_active_tree() {
+  // Even though we cache, we still need the include.
+  $scheme = variable_get('workbench_access', 'taxonomy');
+  workbench_access_load_include($scheme);
+
+  // Now check the cache.
   $cache = cache_get('workbench_access_tree', 'cache_bootstrap');
   if (isset($cache->data)) {
     $access_tree = $cache->data;
@@ -529,8 +534,7 @@ function workbench_access_get_active_tree() {
   if (isset($access_tree['access_scheme'])) {
     return $access_tree;
   }
-  $scheme = variable_get('workbench_access', 'taxonomy');
-  workbench_access_load_include($scheme);
+  // Retrieve and cache data.
   $func = $scheme . '_workbench_access_info';
   $info = $func();
   $data = $info[$scheme];
