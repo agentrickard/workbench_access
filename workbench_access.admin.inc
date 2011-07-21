@@ -437,6 +437,14 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
         str_repeat('-', $section['depth'] ) . ' ' . l($section['name'], 'admin/config/workbench/access/' . "{$type}s/" . $active['access_scheme']['access_type'] . '/' . $access_id),
       );
       $roles = workbench_access_get_roles('access workbench access by role');
+      if (empty($roles)) {
+        if (user_access('administer permissions')) {
+          return t('To continue, at least one role must be have the <a href="!url">Allow all members of this role to be assigned to Workbench Access sections</a> permission', array('!url' => url('admin/people/permissions', array('fragment' => 'module-workbench_access'))));
+        }
+        else {
+          return t('There are no roles who have permission to edit sections. Please contact a site administrator.');
+        }
+      }
       if ($type == 'editor') {
         $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
           INNER JOIN {users_roles} ur ON wau.uid = ur.uid

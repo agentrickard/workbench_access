@@ -100,6 +100,11 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->assertTrue(!empty($assigned), t('All nodes properly assigned.'));
     $this->workbench_access_action_check($nodes, $account, t('No sections'), FALSE);
 
+    // Test that the role lookup function works correctly.
+    $roles = workbench_access_get_roles('access workbench access by role');
+    // The 'administrator' role always has permission.
+    $this->assertTrue(count($roles) == 2, t('One user role assigneed.'));
+
     // Now, we assign the user to a section and check again.
     workbench_access_user_section_save($account->uid, 'workbench_access', $active['access_scheme']['access_scheme']);
     $account = user_load($account->uid, TRUE);
@@ -111,6 +116,12 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $account = user_load($account->uid, TRUE);
     $this->assertTrue(empty($account->workbench_access['workbench_access']), t('Permission revoked and test user not assigned to a section.'));
     $this->workbench_access_action_check($nodes, $account, t('Role disallowed'), FALSE);
+
+    // Test that the role lookup function works correctly.
+    drupal_static_reset('workbench_access_get_roles');
+    $roles = workbench_access_get_roles('access workbench access by role');
+    // The 'administrator' role always has permission. Ignore that.
+    $this->assertTrue(count($roles) == 1, t('No user roles assigneed.'));
 
     // Now give them permissions again.
     user_role_grant_permissions($this->editor_role, array('access workbench access by role'));

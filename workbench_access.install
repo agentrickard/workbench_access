@@ -161,28 +161,29 @@ function workbench_access_requirements($phase) {
 
   if ($phase == 'runtime') {
     $tree = workbench_access_get_active_tree();
+    $roles = workbench_access_get_roles('access workbench access by role');
+    $description = array();
     // If this variable has not been set, workbench access is not fully configured.
     if (!variable_get('workbench_access', FALSE)) {
-      $severity = REQUIREMENT_ERROR;
-      $value = t('Not configured');
-      $description = workbench_access_configuration_needed_message();
+      $description[] = workbench_access_configuration_needed_message();
     }
     // If no sections, then nothing works.
-    elseif (empty($tree['active'])) {
-      $severity = REQUIREMENT_ERROR;
-      $value = t('No sections');
-      $description = workbench_access_sections_needed_message();
+    if (empty($tree['active'])) {
+      $description[] = workbench_access_sections_needed_message();
     }
-    else {
+    if (empty($roles)) {
+      $description[] = t('At least one role must be have the <a href="!url">Allow all members of this role to be assigned to Workbench Access sections</a> permission', array('!url' => url('admin/people/permissions', array('fragment' => 'module-workbench_access'))));
+    }
+    if (empty($description)) {
       $severity = REQUIREMENT_OK;
       $value = t('Configured');
       $description = t('Workbench Access is configured properly, using %scheme as the access scheme.', array('%scheme' => variable_get('workbench_access', 'taxonomy')));
     }
     $requirements['workbench_access'] = array(
       'title' => t('Workbench Access'),
-      'value' => $value,
-      'severity' => $severity,
-      'description' => $description,
+      'value' => t('Not configured'),
+      'severity' => REQUIREMENT_ERROR,
+      'description' => theme('item_list', array('items' => $description)),
     );
   }
 
