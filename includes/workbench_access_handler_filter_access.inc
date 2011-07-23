@@ -15,7 +15,7 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
     return $options;
   }
 
-  function operator_options() {
+  function operator_options($which = 'title') {
     return array(
       'or' => t('Is one of'),
     );
