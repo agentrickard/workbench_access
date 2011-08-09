@@ -694,6 +694,10 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
     '#default_value' => $default,
     '#description' => empty($roles) ? t('There are no roles with the proper permissions.') : t('Select the role(s) that should have all users assigned to this section.'),
   );
+  // TODO: replace with fancy jQuery.
+  if (isset($roles[DRUPAL_AUTHENTICATED_RID])) {
+    $form['roles']['#description'] .= '<p>' . t('Selecting the %auth role will select all registered users.', array('%auth' => $roles[DRUPAL_AUTHENTICATED_RID])) . '</p>';
+  }
   $form['default_roles'] = array('#type' => 'value', '#value' => !empty($roles) ? $default : array());
   $form['workbench_access'] = array(
     '#type' => 'value',
@@ -711,6 +715,14 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
  */
 function workbench_access_role_form_submit($form, &$form_state) {
   $values = $form_state['values'];
+  // Handle the authenticated user role, which is all roles but anonymous.
+  if (!empty($values['roles'][DRUPAL_AUTHENTICATED_RID])) {
+    foreach ($values['roles'] as $key => $value) {
+      if ($key > 0) {
+        $values['roles'][$key] = $key;
+      }
+    }
+  }
   // Role handling.
   foreach ($values['roles'] as $rid => $status) {
     if (!empty($status) && !in_array($rid, $values['default_roles'])) {
