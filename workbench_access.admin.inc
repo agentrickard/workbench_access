@@ -446,7 +446,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
         }
       }
       if ($type == 'editor') {
-        $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
+        $count = db_query("SELECT COUNT(DISTINCT(wau.uid)) FROM {workbench_access_user} wau
           INNER JOIN {users_roles} ur ON wau.uid = ur.uid
           WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id
           AND ur.rid IN (:rids)",
