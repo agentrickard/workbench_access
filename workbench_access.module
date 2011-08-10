@@ -1726,3 +1726,12 @@ function workbench_access_get_roles($permission) {
 
   return $roles[$permission];
 }
+
+/**
+ * Load callback to load information about an access scheme.
+ */
+function workbench_access_access_scheme_load($scheme) {
+  workbench_access_load_include();
+  $info = module_invoke_all('workbench_access_info');
+  return isset($info[$scheme]) ? $info[$scheme] : FALSE;
+}
