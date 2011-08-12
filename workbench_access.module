@@ -14,7 +14,7 @@ function workbench_access_menu() {
     'title' => 'Workbench access autocomplete',
     'page callback' => 'workbench_access_autocomplete',
     'page arguments' => array(2, 3, 4),
-    'access arguments' => array('access workbench access'),
+    'access arguments' => array('assign workbench access'),
     'type' => MENU_CALLBACK,
   );
   $items['admin/config/workbench/access'] = array(
