@@ -779,7 +779,7 @@ function workbench_access_example_taxonomy() {
     $term->name = $name;
     $term->vocabulary_machine_name = 'workbench_access';
     $term->vid = $vocabulary->vid;
-    $term->description = st('Test term for Workbench Access.');
+    $term->description = t('Test term for Workbench Access.');
     $term->format = $format;
     $term->weight = $i;
     taxonomy_term_save($term);
