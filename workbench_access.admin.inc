@@ -757,15 +757,17 @@ function workbench_access_example_taxonomy() {
   }
   // Save.
   taxonomy_vocabulary_save($vocabulary);
+  // Use the proper translation function, in case this is run from the install.
+  $t = get_t();
   // Create some terms.
   $terms = array(
-    t('Exhibits'),
-    t('Library'),
-    t('Gift Shop'),
+    $t('Exhibits'),
+    $t('Library'),
+    $t('Gift Shop'),
   );
   $children = array(
-    t('Staff'),
-    t('Visitors'),
+    $t('Staff'),
+    $t('Visitors'),
   );
   // Get the proper filter format for taxonomy descriptions.
   $account = new stdClass();
@@ -779,7 +781,7 @@ function workbench_access_example_taxonomy() {
     $term->name = $name;
     $term->vocabulary_machine_name = 'workbench_access';
     $term->vid = $vocabulary->vid;
-    $term->description = t('Test term for Workbench Access.');
+    $term->description = $t('Test term for Workbench Access.');
     $term->format = $format;
     $term->weight = $i;
     taxonomy_term_save($term);
@@ -793,7 +795,7 @@ function workbench_access_example_taxonomy() {
       $item->vocabulary_machine_name = 'workbench_access';
       $item->vid = $vocabulary->vid;
       $item->format = $format;
-      $item->description = t('Test child term for Workbench Access.');
+      $item->description = $t('Test child term for Workbench Access.');
       taxonomy_term_save($item);
       $ids[] = $item->tid;
     }
@@ -864,11 +866,12 @@ function workbench_access_vocabulary_exists($vocabulary) {
  *   A vocabulary object.
  */
 function workbench_access_sample_vocabulary() {
+  $t = get_t();
   $vocabulary = new stdClass();
-  $vocabulary->name = t('Museum');
+  $vocabulary->name = $t('Museum');
   $vocabulary->module = 'workbench_access';
   $vocabulary->machine_name = 'workbench_access';
-  $vocabulary->description = t('Access control for editorial content.');
+  $vocabulary->description = $t('Access control for editorial content.');
   $vocabulary->hierarchy = 1;
   $vocabulary->weight = -10;
   return $vocabulary;
