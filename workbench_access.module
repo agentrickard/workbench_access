@@ -583,6 +583,10 @@ function workbench_access_node_load($nodes, $types) {
       }
     }
   }
+
+  // Add the access scheme to the node so that changes can be made with
+  // node_save() directly.
+  $nodes[$node->nid]->workbench_access_scheme = $tree['access_scheme'];
 }
 
 /**
@@ -594,6 +598,12 @@ function workbench_access_node_insert($node) {
     return;
   }
   workbench_access_node_delete($node);
+
+  // Temporary fix for node property mis-match between node_load() and node_save().
+  if (!isset($node->workbench_access_id) && !empty($node->workbench_access)) {
+    $node->workbench_access_id = $node->workbench_access;
+  }
+
   if (empty($node->workbench_access_id)) {
     return;
   }
@@ -608,6 +618,9 @@ function workbench_access_node_insert($node) {
     );
     drupal_write_record('workbench_access_node', $record);
   }
+
+  // Clear static caches.
+  drupal_static_reset('_workbench_access_get_node_section_names');
 }
 
 /**
@@ -924,11 +937,17 @@ function workbench_access_rebuild_user($uid, $access_scheme, $sections = array()
  * @see hook_workbench_access_save_user()
  */
 function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
+  // Add the access section.
   $record['uid'] = $uid;
   $record['access_id'] = $access_id;
   $record['access_scheme'] = $access_scheme;
   drupal_write_record('workbench_access_user', $record);
+
+  // Clear static caches.
   drupal_static_reset('workbench_access_user_load_data');
+  drupal_static_reset('_workbench_access_get_user_section_names');
+
+  // Notify other modules the sections have changed for the user.
   $account = user_load($uid, TRUE);
   module_invoke_all('workbench_access_save_user', $account, $access_id, $access_scheme);
 }
@@ -946,16 +965,20 @@ function workbench_access_user_section_save($uid, $access_id, $access_scheme) {
  * @see hook_workbench_access_section_delete()
  */
 function workbench_access_user_section_delete($uid, $access_id, $access_scheme) {
-  // Notify other modules.
-  $account = user_load($uid, TRUE);
-  module_invoke_all('workbench_access_delete_user', $account, $access_id, $access_scheme);
-  // Clean up.
+  // Remove the access section.
   db_delete('workbench_access_user')
     ->condition('access_id', $access_id)
     ->condition('access_scheme', $access_scheme)
     ->condition('uid', $uid)
     ->execute();
+
+  // Clear static caches.
   drupal_static_reset('workbench_access_user_load_data');
+  drupal_static_reset('_workbench_access_get_user_section_names');
+
+  // Notify other modules the sections have changed for the user.
+  $account = user_load($uid, TRUE);
+  module_invoke_all('workbench_access_delete_user', $account, $access_id, $access_scheme);
 }
 
 /**
