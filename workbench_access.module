@@ -1450,7 +1450,7 @@ function workbench_access_vocabulary_submit($form, &$form_state) {
  * Add a sections form to native term editing.
  */
 function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id) {
-  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'taxonomy' || isset($form_state['confirm_delete'])) {
     return;
   }
   // On delete, the term may be an object. Be consistent, core!
