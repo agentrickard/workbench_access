@@ -603,6 +603,7 @@ function theme_workbench_access_editor_form($variables) {
   $variables = array(
     'header' => $header,
     'rows' => $rows,
+    'empty' => t('No active editors.'),
   );
   $output .= theme('table', $variables);
   $output .= drupal_render_children($form);
@@ -676,7 +677,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
       theme('item_list', array('items' => $item['roles'], 'type' => 'ul')),
     );
   }
-  $table = theme('table', array('header' => $header, 'rows' => $rows));
+  $table = theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('No active roles.')));
   $form['content'] = array(
     '#weight' => -5,
     '#markup' => $output,
