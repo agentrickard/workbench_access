@@ -9,7 +9,6 @@
  * Implements hook_menu().
  */
 function workbench_access_menu() {
-  $items = array();
   $items['workbench_access/autocomplete'] = array(
     'title' => 'Workbench access autocomplete',
     'page callback' => 'workbench_access_autocomplete',
@@ -19,75 +18,75 @@ function workbench_access_menu() {
   );
   $items['admin/config/workbench/access'] = array(
     'title' => 'Workbench Access',
-    'access arguments' => array('assign workbench access'),
-    'page callback' => 'workbench_access_editors',
-    'file' => 'workbench_access.admin.inc',
     'description' => 'Workbench access control settings',
+    'page callback' => 'workbench_access_editors',
+    'access arguments' => array('assign workbench access'),
+    'file' => 'workbench_access.admin.inc',
   );
   $items['admin/config/workbench/access/editors'] = array(
     'title' => 'Editors',
-    'access arguments' => array('assign workbench access'),
-    'page callback' => 'workbench_access_editors',
-    'file' => 'workbench_access.admin.inc',
     'description' => 'Editor settings.',
-    'weight' => -10,
+    'page callback' => 'workbench_access_editors',
+    'access arguments' => array('assign workbench access'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => -10,
+    'file' => 'workbench_access.admin.inc',
   );
   $items['admin/config/workbench/access/roles'] = array(
     'title' => 'Roles',
-    'access arguments' => array('assign workbench access'),
-    'page callback' => 'workbench_access_roles',
-    'file' => 'workbench_access.admin.inc',
     'description' => 'Role settings.',
-    'weight' => -8,
+    'page callback' => 'workbench_access_roles',
+    'access arguments' => array('assign workbench access'),
     'type' => MENU_LOCAL_TASK,
+    'weight' => -8,
+    'file' => 'workbench_access.admin.inc',
   );
   $items['admin/config/workbench/access/sections'] = array(
     'title' => 'Sections',
-    'access arguments' => array('administer workbench access'),
+    'description' => 'Define content sections for the Workbench Access module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('workbench_access_section_form'),
-    'file' => 'workbench_access.admin.inc',
-    'description' => 'Define content sections for the Workbench Access module.',
+    'access arguments' => array('administer workbench access'),
     'type' => MENU_LOCAL_TASK,
     'weight' => -5,
+    'file' => 'workbench_access.admin.inc',
   );
   $items['admin/config/workbench/access/settings'] = array(
     'title' => 'Settings',
-    'access arguments' => array('administer workbench access'),
+    'description' => 'Settings for the Workbench Access module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('workbench_access_settings_form'),
-    'file' => 'workbench_access.admin.inc',
-    'description' => 'Settings for the Workbench Access module.',
+    'access arguments' => array('administer workbench access'),
     'type' => MENU_LOCAL_TASK,
+    'file' => 'workbench_access.admin.inc',
   );
   $items['admin/config/workbench/access/install'] = array(
     'title' => 'Install',
-    'access arguments' => array('administer workbench access'),
+    'description' => 'Installs a test vocabulary for the Workbench Access module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('workbench_access_install_form', 'admin/config/workbench/access/settings'),
-    'file' => 'workbench_access.admin.inc',
-    'description' => 'Installs a test vocabulary for the Workbench Access module.',
+    'access arguments' => array('administer workbench access'),
     'type' => MENU_CALLBACK,
+    'file' => 'workbench_access.admin.inc',
   );
   $items['admin/workbench/sections'] = array(
     'title' => 'My sections',
     'page callback' => 'workbench_access_sections',
     'access arguments' => array('access workbench'),
-    'weight' => 5,
     'type' => MENU_LOCAL_TASK,
+    'weight' => 5,
     'file' => 'workbench_access.admin.inc',
   );
   $items['user/%user/sections'] = array(
     'title' => 'Sections',
-    'access callback' => 'workbench_access_assign_user',
-    'access arguments' => array(1),
+    'description' => 'Assign users to sections for the Workbench Access module.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('workbench_access_user_form', 1),
-    'file' => 'workbench_access.admin.inc',
-    'description' => 'Assign users to sections for the Workbench Access module.',
+    'access callback' => 'workbench_access_assign_user',
+    'access arguments' => array(1),
     'type' => MENU_LOCAL_TASK,
     'weight' => 1,
+    'file' => 'workbench_access.admin.inc',
   );
   return $items;
 }
