@@ -9,12 +9,12 @@
  * Implements hook_menu().
  */
 function workbench_access_menu() {
-  $items['workbench_access/autocomplete'] = array(
-    'title' => 'Workbench access autocomplete',
+  $items['workbench_access/autocomplete/%/%'] = array(
     'page callback' => 'workbench_access_autocomplete',
-    'page arguments' => array(2, 3, 4),
+    'page arguments' => array(2, 3),
     'access arguments' => array('assign workbench access'),
     'type' => MENU_CALLBACK,
+    'file' => 'workbench_access.pages.inc',
   );
   $items['admin/config/workbench/access'] = array(
     'title' => 'Workbench Access',
@@ -860,6 +860,7 @@ function workbench_access_reset_tree() {
   drupal_static_reset('workbench_access_get_user_tree');
   drupal_static_reset('workbench_access_user_load_data');
   drupal_static_reset('workbench_access_node_load');
+  drupal_static_reset('workbench_access_get_roles');
 }
 
 /**
@@ -1190,30 +1191,6 @@ function workbench_access_form_views_exposed_form_alter(&$form, &$form_state) {
   if ($form['#id'] == 'views-exposed-form-workbench-access-content-default') {
     $form['#action'] = url($_GET['q']);
   }
-}
-
-/**
- * Autocomplete callback for adding users to a section.
- *
- * We don't use user_autocomplete so we can filter out users already
- * assigned to the section.
- */
-function workbench_access_autocomplete($access_type, $access_id, $string) {
-  $string = trim($string);
-  $matches = array();
-  if (!empty($string)) {
-    $roles = workbench_access_get_roles('access workbench access by role');
-    $result = db_query_range("SELECT DISTINCT(u.uid), u.name FROM {users} u
-      INNER JOIN {users_roles} ur USING (uid)
-      WHERE ur.rid IN (:rids)
-      AND u.name LIKE :string AND u.status > 0 AND
-      (u.uid NOT IN (SELECT uid FROM {workbench_access_user} WHERE access_scheme = :access_scheme AND access_id = :access_id))", 0, 20,
-      array(':rids' => array_keys($roles), ':string' => db_like($string) . '%', ':access_scheme' => $access_type, ':access_id' => $access_id))->FetchAll();
-    foreach ($result as $data) {
-      $matches[$data->name] = $data->name;
-    }
-  }
-  drupal_json_output($matches);
 }
 
 /**

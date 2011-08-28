@@ -62,7 +62,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $nid = db_query_range("SELECT n.nid FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid", 0, 1)->fetchField();
     $this->assertTrue(empty($nid), t('Initial nodes have no access data.'));
     // Create the taxonomy test scheme.
-    module_load_include('inc', 'workbench_access', 'admin');
+    module_load_include('inc', 'workbench_access', 'workbench_access.admin');
     workbench_access_example_taxonomy();
     $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid")->fetchField();
     $this->assertTrue($count == 10, t('Initial nodes assigned access data.'));
@@ -128,6 +128,23 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $account = user_load($account->uid, TRUE);
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('Permission reinstated and test user assigned to a section.'));
     $this->workbench_access_action_check($nodes, $account, t('Role allowed.'), TRUE);
+
+    // Test the autocomplete query for adding new editors.
+    drupal_static_reset('workbench_access_get_roles');
+    module_load_include('inc', 'workbench_access', 'workbench_access.pages');
+    // Search for the existing user via autocomplete. Should return empty.
+    $test = workbench_access_autocomplete('taxonomy', 'workbench_access', substr($account->name, 0), TRUE);
+    $this->assertTrue(empty($test), t('Autocomplete did not match assigned user.'));
+    // Test another user who is currently not assigned.
+    if ($id < count($this->user_list)) {
+      $id++;
+    }
+    else {
+      $id--;
+    }
+    $test_account = $this->user_list[$id];
+    $test = workbench_access_autocomplete('taxonomy', 'workbench_access', substr($test_account->name, 0, 1), TRUE);
+    $this->assertTrue(!empty($test), t('Autocomplete matched unassigned user.'));
 
     // Now take away the core permissions to page content and test.
     $perms = array(
