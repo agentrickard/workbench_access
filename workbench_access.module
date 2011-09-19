@@ -1029,7 +1029,7 @@ function workbench_access_role_section_delete($rid, $access_id, $access_scheme) 
  */
 function workbench_access_user_delete($account) {
   db_delete('workbench_access_user')
-    ->condition('uid', $uid)
+    ->condition('uid', $account->uid)
     ->execute();
 }
 

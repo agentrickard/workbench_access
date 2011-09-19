@@ -197,6 +197,10 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     // Restore the account, in case we do more tests later.
     $account = user_load($account->uid, TRUE);
 
+    // Delete the user account.
+    user_delete($account->uid);
+    $records = db_query("SELECT 1 FROM {workbench_access_user} WHERE uid = :uid", array(':uid' => $account->uid))->fetchField();
+    $this->assertFalse($records, 'User section assignments removed.');
   }
 
   /**
