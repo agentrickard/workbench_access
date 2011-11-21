@@ -19,7 +19,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
   }
 
   function setUp() {
-    parent::setUp('workbench_access');
+    parent::setUp(array('workbench_access', 'workbench_access_test'));
     // Add an editor role.
     $this->permissions = array(
       'access content',
@@ -201,6 +201,12 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     user_delete($account->uid);
     $records = db_query("SELECT 1 FROM {workbench_access_user} WHERE uid = :uid", array(':uid' => $account->uid))->fetchField();
     $this->assertFalse($records, 'User section assignments removed.');
+
+    // Test module hooks.
+    // Ensure that our node type uses the form element.
+    $GLOBALS['conf']['workbench_access_node_type_' . $node->type] = TRUE;
+    $form = drupal_get_form($node->type . '_node_form', $node);
+    $this->assertTrue(!empty($form['workbench_access']['workbench_access_id']['#workbench_access_test']), t('hook_workbench_access_node_element_alter() fired correctly.'));
   }
 
   /**

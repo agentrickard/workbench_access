@@ -1362,10 +1362,11 @@ function workbench_access_alter_form($hook, &$form, &$form_state) {
   // Determine the proper field to edit.
   $function = $active['access_scheme']['access_type'] . '_' . 'workbench_access_' . $hook . '_alter';
   // We don't do a module_invoke or drupal_alter() here so we can target just the active scheme.
-  if (!function_exists($function)) {
-    return;
+  if (function_exists($function)) {
+    $function($form, $form_state, $active);
   }
-  $function($form, $form_state, $active);
+  // Now let other modules act.
+  drupal_alter('workbench_access_' . $hook, $form, $form_state, $active);
 }
 
 /**

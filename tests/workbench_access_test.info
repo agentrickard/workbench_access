@@ -1,0 +1,5 @@
+name = Workbench Access Test 
+description = Support module for Workbench Access testing.
+package = Testing
+core = 7.x
+hidden = TRUE
