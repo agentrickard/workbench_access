@@ -176,9 +176,20 @@ function _workbench_access_get_node_section_names($node) {
   if (!isset($sections[$node->nid])) {
     $sections[$node->nid] = array();
 
+    // The workbench access section data may be in two different places
+    // depending if the node is coming directly from node_load() or a form
+    // submission. Handle both cases for now.
+    // @todo Clean up when http://drupal.org/node/1252460 is fixed.
     if (!empty($node->workbench_access)) {
       $access_type = variable_get('workbench_access', 'taxonomy');
       foreach ($node->workbench_access as $access_id) {
+        $info = workbench_access_load($access_type, $access_id);
+        $sections[$node->nid][$access_id] = $info['name'];
+      }
+    }
+    elseif (!empty($node->workbench_access_id)) {
+      $access_type = variable_get('workbench_access', 'taxonomy');
+      foreach ($node->workbench_access_id as $access_id) {
         $info = workbench_access_load($access_type, $access_id);
         $sections[$node->nid][$access_id] = $info['name'];
       }
