@@ -1295,7 +1295,7 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
       $message = workbench_access_configuration_needed_message();
       // Using 'error' instead of warning because the user should not have gotten this far
       // without configuring Workbench Access.
-      drupal_set_message($message, 'error', $repeat = FALSE);
+      drupal_set_message($message, 'error', FALSE);
     }
 
     // The base form element.
