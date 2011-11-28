@@ -162,6 +162,7 @@ function workbench_access_requirements($phase) {
   if ($phase == 'runtime') {
     $tree = workbench_access_get_active_tree();
     $roles = workbench_access_get_roles('access workbench access by role');
+    $types = workbench_access_check_access_fields();
     $description = array();
     // If this variable has not been set, workbench access is not fully configured.
     if (!variable_get('workbench_access', FALSE)) {
@@ -173,6 +174,13 @@ function workbench_access_requirements($phase) {
     }
     if (empty($roles)) {
       $description[] = t('At least one role must be have the <a href="!url">Allow all members of this role to be assigned to Workbench Access sections</a> permission', array('!url' => url('admin/people/permissions', array('fragment' => 'module-workbench_access'))));
+    }
+    if (!empty($types)) {
+      $items = array();
+      foreach ($types as $type) {
+        $items[] = check_plain(node_type_get_name($type));
+      }
+      $description[] = t('The following content types are not properly configured for access control: !types', array('!types' => theme('item_list', array('items' => $items))));
     }
     if (empty($description)) {
       $requirements['workbench_access'] = array(

@@ -93,6 +93,27 @@ function taxonomy_workbench_access_field_form_alter(&$form, &$form_state, $activ
 /**
  * Implements hook_workbench_access_FORM_ID_alter().
  */
+function taxonomy_workbench_access_field_ui_field_edit_form_alter(&$form, &$form_state, $active) {
+  _workbench_access_taxonomy_remove_option($form);
+  $form['instance']['workbench_access_field'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Workbench Access control field'),
+    '#description' => t('Use this field to determine access control for content editing.'),
+    '#default_value' => !empty($form['#instance']['workbench_access_field']),
+    '#weight' => -15,
+  );
+  $allowed = workbench_access_get_assigned_fields($form['#instance']['bundle']);
+  $instance = $form['#instance']['field_name'];
+  if (!isset($allowed[$instance])) {
+    $form['instance']['workbench_access_field']['#disabled'] = TRUE;
+    $form['instance']['workbench_access_field']['#default_value'] = 0;
+    $form['instance']['workbench_access_field']['#description'] = t('This field cannot be used for access control.');
+  }
+}
+
+/**
+ * Implements hook_workbench_access_FORM_ID_alter().
+ */
 function taxonomy_workbench_access_field_ui_field_settings_form_alter(&$form, &$form_state, $active) {
   _workbench_access_taxonomy_remove_option($form);
 }
@@ -101,6 +122,9 @@ function taxonomy_workbench_access_field_ui_field_settings_form_alter(&$form, &$
  * Helper function to remove the option from Field UI forms.
  */
 function _workbench_access_taxonomy_remove_option(&$form) {
+  if (!variable_get('workbench_access_custom_form', 1)) {
+    return;
+  }
   // The element we want is nested very deeply in the form.
   if (!isset($form['field']['settings']['allowed_values'])) {
     return;
@@ -240,5 +264,97 @@ function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
   $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $vocabulary->machine_name))->fetchAssoc();
   if (!empty($access_scheme)) {
     workbench_access_section_delete($access_scheme);
+  }
+}
+
+/**
+ * Executes a form alter on a specific FieldAPI form element.
+ */
+function taxonomy_workbench_access_default_form_alter(&$form, &$form_state, $options) {
+  foreach ($form['workbench_access_fields']['#value'] as $item) {
+    // If the element isn't set, we can't do anything.
+    if (!isset($form[$item][$form[$item]['#language']])) {
+      continue;
+    }
+
+    // Set the element to be altered.
+    $element = &$form[$item][$form[$item]['#language']];
+    // Set the options for the form.
+    if (isset($form[$item][$form[$item]['#language']]['#options'])) {
+      foreach ($element['#options'] as $key => $value) {
+        if ($key != '_none' && !isset($options[$key])) {
+          unset($element['#options'][$key]);
+        }
+      }
+    }
+    // To act on autocompletes, we need to add the node type to the callback.
+    elseif (isset($element['#autocomplete_path'])) {
+      $element['#autocomplete_path'] .= '/' . $form['#node']->type;
+      // We need our own validation, too.
+      $element['#element_validate'][] = 'workbench_access_taxonomy_autocomplete_validate';
+    }
+  }
+  // Inform Workbench Access which data element we store on the node.
+  // (e.g.) $node->{$field}[LANGUAGE][][COLUMN].
+  $form['workbench_access_column'] = array(
+    '#type' => 'value',
+    '#value' => 'tid',
+  );
+  $form['workbench_access_language'] = array(
+    '#type' => 'value',
+    '#value' => TRUE,
+  );
+}
+
+/**
+ * Helper function for autocompletion of taxonomy terms.
+ *
+ * To determine if this is an access control field, we need to know the node
+ * type.
+ *
+ * @see workbench_access_menu_alter()
+ * @see workbench_access_query_term_access_alter()
+ *
+ * @param $field_name
+ *  The name of the field being queried.
+ * @param $node_type
+ *  The content type for this field instance.
+ * @param $tags_typed
+ *  The data input by the user.
+ *
+ * @return
+ *  No return value, the taxonomy_autocomplete() fires a JSON object.
+ */
+function workbench_access_taxonomy_autocomplete($field_name, $node_type, $tags_typed = '') {
+  module_load_include('inc', 'taxonomy', 'taxonomy.pages');
+  taxonomy_autocomplete($field_name, $tags_typed);
+}
+
+/**
+ * Form element validate handler for taxonomy term autocomplete element.
+ *
+ * @TODO: How to handle the creation (or not) of new items here?
+ */
+function workbench_access_taxonomy_autocomplete_validate($element, &$form_state) {
+  global $user;
+  $item = $form_state['values'][$element['#field_name']][$form_state['values']['language']];
+  if (empty($item)) {
+    return;
+  }
+  if (!isset($user->workbench_access)) {
+    workbench_access_user_load_data($user);
+  }
+  $tree = workbench_access_get_user_tree($user);
+  // TODO: What if the user tree is empty?
+  $terms = array();
+  if (!empty($tree)) {
+    foreach ($item as $key => $value) {
+      if (!isset($tree[$value['tid']])) {
+        $terms[] = check_plain($value['name']);
+      }
+    }
+  }
+  if (!empty($terms)) {
+    form_set_error($element['#field_name'], t('You may not assign this content to: !terms', array('!terms' => implode(', ', $terms))));
   }
 }

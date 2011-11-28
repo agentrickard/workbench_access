@@ -71,6 +71,59 @@ function workbench_access_settings_form($form, &$form_state) {
     $form['node_types']['message'] = array(
       '#markup' => '<em>' . t('Only selected content types will have Workbench Access rules enforced.') . '</em>',
     );
+    // Set the field settings for Taxonomy, if required.
+    if (!variable_get('workbench_access_custom_form', 1)) {
+      $form['field_elements'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Access control fields'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#tree' => TRUE,
+        '#description' => t('Set the field elements that control access to each content type.'),
+      );
+      if (!module_exists('field_property')) {
+        $form['field_elements']['#collapsed'] = FALSE;
+        $form['field_elements']['#description'] = '<strong>' . t('Installing and enabling the <a href="!url">Field Property module</a> is recommended.', array('!url' => 'http://drupal.org/project/field_property')) . '</strong><br />' . $form['field_elements']['#description'];
+      }
+      foreach ($types as $type => $data) {
+        $fields = workbench_access_get_assigned_fields($type);
+        $name = node_type_get_name($type);
+        $controlled = variable_get('workbench_access_node_type_' . $type, 1);
+        if (empty($controlled)) {
+          $form['field_elements'][$type] = array(
+            '#type' => 'item',
+            '#title' => t('%type access control fields', array('%type' => $name)),
+            '#markup' => t('This content type is not under access control.'),
+          );
+        }
+        elseif (empty($fields)) {
+          $message = t('The %type content type does not have an access field configured.', array('%type' => $name));
+          drupal_set_message($message, 'warning', FALSE);
+          $form['field_elements'][$type] = array(
+            '#type' => 'item',
+            '#title' => t('%type access control fields', array('%type' => $name)),
+            '#markup' => $message,
+          );
+        }
+        else {
+          $field_options = array();
+          $default_options = array();
+          foreach ($fields as $field => $info) {
+            $field_options[$field] = t('!label (!field)', array('!label' => $info['instance_info']['label'], '!field' => $field));
+            if (!empty($info['instance_info']['workbench_access_field'])) {
+              $default_options[$field] = $field;
+            }
+          }
+          $form['field_elements'][$type] = array(
+            '#type' => 'select',
+            '#title' => t('%type access control fields', array('%type' => $name)),
+            '#options' => $field_options,
+            '#default_value' => $default_options,
+            '#multiple' => variable_get('workbench_access_allow_multiple', 0),
+          );
+        }
+      }
+    }
   }
   $form['workbench_access_label'] = array(
     '#type' => 'textfield',
@@ -89,6 +142,12 @@ function workbench_access_settings_form($form, &$form_state) {
     '#title' => t('Allow multiple section assignments'),
     '#default_value' => variable_get('workbench_access_allow_multiple', 0),
     '#description' => t('Let content be assigned to multiple sections.'),
+  );
+  $form['workbench_access_custom_form'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Require a Workbench Access form element'),
+    '#default_value' => variable_get('workbench_access_custom_form', 1),
+    '#description' => t('If not selected, Workbench Access settings will inherit from the standard node form.'),
   );
   $form = system_settings_form($form);
   $form['#validate'][] = 'workbench_access_settings_validate';
@@ -152,6 +211,27 @@ function workbench_access_settings_submit($form, &$form_state) {
   foreach ($sections as $section) {
     if (empty($form_state['values']['workbench_access_' . $active['access_scheme']['access_scheme']][$section->access_type_id])) {
       workbench_access_section_delete((array) $section);
+    }
+  }
+  // If field settings are present, save them.
+  if (isset($form_state['values']['field_elements'])) {
+    workbench_access_save_field_elements($form_state['values']['field_elements']);
+  }
+}
+
+/**
+ * Save field element settings for native forms.
+ *
+ * @param $types
+ *  An array of field options for each active node type.
+ */
+function workbench_access_save_field_elements($types) {
+  foreach ($types as $type => $settings) {
+    $fields = workbench_access_get_assigned_fields($type);
+    foreach ($fields as $field => $info) {
+      $instance = $info['instance_info'];
+      $instance['workbench_access_field'] = (int) !empty($settings[$field]);
+      field_update_instance($instance);
     }
   }
 }
