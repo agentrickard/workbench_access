@@ -103,7 +103,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     // Test that the role lookup function works correctly.
     $roles = workbench_access_get_roles('access workbench access by role');
     // The 'administrator' role always has permission.
-    $this->assertTrue(count($roles) == 2, t('One user role assigneed.'));
+    $this->assertTrue(count($roles) == 2, t('One user role assigned.'));
 
     // Now, we assign the user to a section and check again.
     workbench_access_user_section_save($account->uid, 'workbench_access', $active['access_scheme']['access_scheme']);
@@ -121,13 +121,13 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     drupal_static_reset('workbench_access_get_roles');
     $roles = workbench_access_get_roles('access workbench access by role');
     // The 'administrator' role always has permission. Ignore that.
-    $this->assertTrue(count($roles) == 1, t('No user roles assigneed.'));
+    $this->assertTrue(count($roles) == 1, t('No user roles assigned.'));
 
     // Now give them permissions again.
     user_role_grant_permissions($this->editor_role, array('access workbench access by role'));
     $account = user_load($account->uid, TRUE);
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('Permission reinstated and test user assigned to a section.'));
-    $this->workbench_access_action_check($nodes, $account, t('Role allowed.'), TRUE);
+    $this->workbench_access_action_check($nodes, $account, t('Role allowed'), TRUE);
 
     // Test the autocomplete query for adding new editors.
     drupal_static_reset('workbench_access_get_roles');
@@ -189,10 +189,27 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
 
     // Since the user is not in a section, this should DENY, unless the node
     // type is ignored.
+
+    // Test for ignore.
     variable_set('workbench_access_node_type_' . $node->type, 0);
     $this->assertFalse(variable_get('workbench_access_node_type_' . $node->type, 1), t('Workbench Access not enforced for %type content.', array('%type' => $node->type)));
     $response = workbench_access_node_access($node, 'update', $account);
     $this->assertTrue($response == NODE_ACCESS_IGNORE, t('Workbench Access rules ignored on test node.'));
+    // Test for deny.
+    variable_set('workbench_access_node_type_' . $node->type, 1);
+    $this->assertTrue(variable_get('workbench_access_node_type_' . $node->type, 1), t('Workbench Access enforced for %type content.', array('%type' => $node->type)));
+    $response = workbench_access_node_access($node, 'update', $account);
+    $this->assertTrue($response == NODE_ACCESS_DENY, t('Workbench Access rules enforced on test node.'));
+
+    // If the node is not assigned, we should ignore.
+    $temp = $node->workbench_access;
+    $node->workbench_access = array();
+    $response = workbench_access_node_access($node, 'update', $account);
+    $this->assertTrue($response == NODE_ACCESS_IGNORE, t('Workbench Access rules ignored for unassigned node.'));
+    // Make sure the above was not a false positive.
+    $node->workbench_access = $temp;
+    $response = workbench_access_node_access($node, 'update', $account);
+    $this->assertTrue($response == NODE_ACCESS_DENY, t('Workbench Access rules enforced on test node.'));
 
     // Restore the account, in case we do more tests later.
     $account = user_load($account->uid, TRUE);

@@ -344,8 +344,6 @@ function workbench_access_load_include($module = NULL) {
  * Implements hook_node_access().
  *
  * Enforces our access rules when users try to edit/delete a node.
- *
- * @TODO: what about unpublished nodes?
  */
 function workbench_access_node_access($node, $op, $account) {
   // If not configured, do nothing.
@@ -370,6 +368,13 @@ function workbench_access_node_access($node, $op, $account) {
     return NODE_ACCESS_IGNORE;
   }
 
+  // Ignore nodes where workbench section is not set.
+  // This is for sites that installed Workbench Access on top of existing
+  // content. See http://drupal.org/node/1359552.
+  if ($op != 'create' && empty($node->workbench_access)) {
+    return NODE_ACCESS_IGNORE;
+  }
+
   // Now check the user account.
   if (!isset($account->workbench_access)) {
     $account = user_load($account->uid);
@@ -388,6 +393,7 @@ function workbench_access_node_access($node, $op, $account) {
   if (!empty($node->workbench_access) && !empty($account->workbench_access)) {
     $result = workbench_access_check($op, $type, array_filter($node->workbench_access), $account->workbench_access);
   }
+
   // The user must be allowed to perform this action by core node module.
   // All we do is issue an ignore response, indicating that some other module
   // may grants access. If we ever support complex data rules, this may change.
