@@ -1511,6 +1511,20 @@ function workbench_access_find_form_elements(&$form) {
 }
 
 /**
+ * Custom form validation handler.
+ *
+ * This function ensures that our handler is loaded properly.
+ */
+function workbench_access_autocomplete_validate($element, &$form_state) {
+  $active = workbench_access_get_active_tree();
+  $scheme = $active['access_scheme'];
+  $function = 'workbench_access_'. $scheme . '_autocomplete_validate';
+  if (function_exists($function)) {
+    $function($element, $form_state);
+  }
+}
+
+/**
  * Return the text directing admins to Workbench Access configuration.
  */
 function workbench_access_configuration_needed_message() {

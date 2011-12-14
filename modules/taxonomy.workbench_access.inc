@@ -291,7 +291,7 @@ function taxonomy_workbench_access_default_form_alter(&$form, &$form_state, $opt
     elseif (isset($element['#autocomplete_path'])) {
       $element['#autocomplete_path'] .= '/' . $form['#node']->type;
       // We need our own validation, too.
-      $element['#element_validate'][] = 'workbench_access_taxonomy_autocomplete_validate';
+      $element['#element_validate'][] = 'workbench_access_autocomplete_validate';
     }
   }
   // Inform Workbench Access which data element we store on the node.
