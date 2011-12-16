@@ -1771,9 +1771,9 @@ function workbench_access_workbench_block() {
         $access_type = variable_get('workbench_access', 'taxonomy');
         foreach ($node->workbench_access as $access_id) {
           $section = workbench_access_load($access_type, $access_id);
-          $names[] = check_plain($section['name']);
+          $names[] = $section['name'];
         }
-        return array(t('Workbench Access: <em>%section</em>', array('%section' => implode(', ', $names))));
+        return array(t('Workbench Access: %section', array('%section' => implode(', ', $names))));
        }
     }
   }
