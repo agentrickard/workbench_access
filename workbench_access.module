@@ -1394,13 +1394,21 @@ function workbench_access_node_form_element(&$form, $form_state) {
     drupal_set_message(workbench_access_sections_needed_message(), 'warning');
     return;
   }
-  $tree = workbench_access_get_user_tree();
-  // Generate options so we can check for access.
-  $options = workbench_access_options($tree, $active['active']);
+  // Set default form options.
   $default = array();
   if (!empty($form['#node']->workbench_access)) {
     $default = array_keys($form['#node']->workbench_access);
   }
+  $options = array();
+  $multiple = variable_get('workbench_access_allow_multiple', 0);
+  // Force user selection if not set. See http://drupal.org/node/1348626.
+  if (empty($multiple) && empty($default)) {
+    $options[NULL] = t('- Select a value -');
+  }
+  // Get the user options.
+  $tree = workbench_access_get_user_tree();
+  $options += workbench_access_options($tree, $active['active']);
+
   // If there are no options and the 'workbench_access' variable has not been set
   // then it seems that Workbench Access has not been configured.
   if (empty($options) && !variable_get('workbench_access', FALSE)) {
@@ -1411,7 +1419,6 @@ function workbench_access_node_form_element(&$form, $form_state) {
   }
 
   // The base form element.
-  $multiple = variable_get('workbench_access_allow_multiple', 0);
   $element = array(
     '#type' => 'select',
     '#title' => t('@message_label', array('@message_label' => variable_get('workbench_access_label', 'Section'))),
