@@ -1429,9 +1429,9 @@ function workbench_access_node_form_element(&$form, $form_state) {
     $disallowed = array();
     foreach ($default as $item) {
       if (isset($active['tree'][$item]['name'])) {
-        $all[$active['tree'][$item]['access_id']] = check_plain($active['tree'][$item]['name']);
+        $all[$active['tree'][$item]['access_id']] = $active['tree'][$item]['name'];
         if (!isset($options[$item])) {
-          $disallowed[$active['tree'][$item]['access_id']] = check_plain($active['tree'][$item]['name']);
+          $disallowed[$active['tree'][$item]['access_id']] = $active['tree'][$item]['name'];
         }
       }
       }
