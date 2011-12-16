@@ -341,10 +341,6 @@ function workbench_access_user_form($form, &$form_state, $account) {
     '#type' => 'value',
     '#value' => $account->uid,
   );
-  $form['access_scheme'] = array(
-    '#type' => 'value',
-    '#value' => $active['access_scheme'],
-  );
   $form['helptext'] = array(
     '#type' => 'markup',
     '#markup' => '<p>' . t('The list below shows your editorial groups. You may edit any content in these sections and their children.') . '</p>',
@@ -353,10 +349,6 @@ function workbench_access_user_form($form, &$form_state, $account) {
     $form['helptext']['#markup'] .= '<p>' . t('You may edit these settings by checking the proper options.') . '</p>';
   }
   $sections = $account->workbench_access;
-  $form['user_sections'] = array(
-    '#type' => 'value',
-    '#value' => array_keys($sections),
-  );
   $form['sections']['#tree'] = TRUE;
   $active_items = array_keys($active['active']);
   $section_items = array_keys($sections);
@@ -447,8 +439,6 @@ function workbench_access_user_form($form, &$form_state, $account) {
  * Save user assignments.
  */
 function workbench_access_user_form_submit($form, &$form_state) {
-  $access_scheme = $form_state['values']['access_scheme'];
-  $user_sections = $form_state['values']['user_sections'];
   $results = $form_state['values']['sections'];
   $sections = array();
   foreach ($results as $result) {
@@ -458,7 +448,7 @@ function workbench_access_user_form_submit($form, &$form_state) {
     drupal_set_message(t('There are now no editorial sections for this user.'), 'warning');
   }
   $uid = $form_state['values']['uid'];
-  workbench_access_rebuild_user($uid, $access_scheme['access_scheme'], $sections, $user_sections);
+  workbench_access_rebuild_user($uid, $sections);
   if (!empty($sections)) {
     drupal_set_message(t('User permissions updated.'));
   }

@@ -954,12 +954,16 @@ function workbench_access_get_ids_by_scheme($access_scheme, $keys = FALSE) {
 /**
  * Rebuild the user access tables.
  *
- * @param $access_scheme
- *   The access scheme to use.
+ * @param $uid
+ *   The user id being updated.
  * @param $sections
- *   The sections to add to the table.
+ *   An array of section ids to set for the user.
  */
-function workbench_access_rebuild_user($uid, $access_scheme, $sections = array(), $user_sections = array()) {
+function workbench_access_rebuild_user($uid, $sections = array()) {
+  // Get the user and scheme data.
+  $account = user_load($uid);
+  $user_sections = array_keys($account->workbench_access);
+  $access_scheme = variable_get('workbench_access', 'taxonomy');
   // Check to see if any sections have been removed.
   $removed = array_diff($user_sections, $sections);
   foreach ($removed as $access_id) {
