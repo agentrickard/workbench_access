@@ -6,6 +6,16 @@
  */
 
 /**
+ * Implements hook_init().
+ */
+function workbench_access_init() {
+  // Even though we cache, we still need the include, or else our hooks don't
+  // run properly. See http://drupal.org/node/1356272
+  $scheme = variable_get('workbench_access', 'taxonomy');
+  workbench_access_load_include($scheme);
+}
+
+/**
  * Implements hook_menu().
  */
 function workbench_access_menu() {
@@ -538,7 +548,6 @@ function workbench_access_tree($info, $keys = FALSE) {
  * Load the active tree.
  */
 function workbench_access_get_active_tree() {
-  // Even though we cache, we still need the include.
   $scheme = variable_get('workbench_access', 'taxonomy');
   workbench_access_load_include($scheme);
 
@@ -554,9 +563,16 @@ function workbench_access_get_active_tree() {
   $func = $scheme . '_workbench_access_info';
   $info = $func();
   $data = $info[$scheme];
-  $active = workbench_access_get_ids_by_scheme($data);
+  $stored = workbench_access_get_ids_by_scheme($data);
   $tree = workbench_access_tree($data);
   workbench_access_build_tree($tree);
+  // Ensure that we have no orphaned ids.
+  $active = array();
+  foreach ($stored as $access_id => $access_scheme) {
+    if (isset($tree[$access_id])) {
+      $active[$access_id] = $access_scheme;
+    }
+  }
   $access_tree = array(
     'access_scheme' => $data,
     'tree' => $tree,
@@ -1397,7 +1413,12 @@ function workbench_access_node_form_element(&$form, $form_state) {
   // Set default form options.
   $default = array();
   if (!empty($form['#node']->workbench_access)) {
-    $default = array_keys($form['#node']->workbench_access);
+    $current = array_keys($form['#node']->workbench_access);
+    foreach ($current as $access_id) {
+      if (isset($active['active'][$access_id])) {
+        $default[] = $access_id;
+      }
+    }
   }
   $options = array();
   $multiple = variable_get('workbench_access_allow_multiple', 0);
@@ -1997,30 +2018,4 @@ function workbench_access_is_active_autocomplete() {
   }
 
   return $result;
-}
-
-/**
- * Implements hook_query_TAG_alter().
- *
- * If this is a restricted taxonomy autocomplete query, add the conditions
- * required by Workbench Access.
- *
- * @see taxonomy_autocomplete()
- */
-function workbench_access_query_term_access_alter(QueryAlterableInterface $query) {
-  global $user;
-  if (workbench_access_is_active_autocomplete()) {
-    // Alter the query.
-    if (!isset($user->workbench_access)) {
-      workbench_access_user_load_data($user);
-    }
-    $tree = workbench_access_get_user_tree($user);
-    if (!empty($tree)) {
-      $query->condition('t.tid', array_keys($tree), 'IN');
-    }
-    // Force a NULL return if the user has no section assignments.
-    else {
-      $query->condition('t.tid', -10);
-    }
-  }
 }

@@ -204,6 +204,7 @@ function taxonomy_workbench_access_tree($info, $keys) {
  * Load data for a taxonomy term.
  */
 function taxonomy_workbench_access_load($scheme) {
+  $data = array();
   if ($vocabulary = taxonomy_vocabulary_machine_name_load($scheme['access_id'])) {
     $data = array(
       'name' => $vocabulary->name,
@@ -211,8 +212,7 @@ function taxonomy_workbench_access_load($scheme) {
       'access_id' => $vocabulary->machine_name,
     );
   }
-  else {
-    $term = taxonomy_term_load($scheme['access_id']);
+  elseif ($term = taxonomy_term_load($scheme['access_id'])) {
     $data = array(
       'name' => $term->name,
       'description' => $term->description,
@@ -220,51 +220,6 @@ function taxonomy_workbench_access_load($scheme) {
     );
   }
   return $data;
-}
-
-/**
- * Implements hook_taxonomy_term_insert().
- *
- * If an new term is added, check to see if we need to create a section.
- */
-function workbench_access_taxonomy_term_insert($term) {
-  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy' || !variable_get('workbench_access_auto_assign', 1)) {
-    return;
-  }
-  $active = array_filter(variable_get('workbench_access_taxonomy', array()));
-  if (in_array($term->vocabulary_machine_name, $active)) {
-    $section = array(
-      'access_id' => $term->tid,
-      'access_type' => 'taxonomy',
-      'access_scheme' => 'taxonomy',
-      'access_type_id' => $term->vocabulary_machine_name,
-    );
-    workbench_access_section_save($section);
-  }
-}
-
-/**
- * Implements hook_taxonomy_term_delete().
- *
- * If an active term is deleted, cascade the change through our system.
- */
-function workbench_access_taxonomy_term_delete($term) {
-  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $term->tid))->fetchAssoc();
-  if (!empty($access_scheme)) {
-    workbench_access_section_delete($access_scheme);
-  }
-}
-
-/**
- * Implements hook_taxonomy_vocabulary_delete().
- *
- * If an active vocabulary is deleted, cascade the change through our system.
- */
-function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
-  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $vocabulary->machine_name))->fetchAssoc();
-  if (!empty($access_scheme)) {
-    workbench_access_section_delete($access_scheme);
-  }
 }
 
 /**
@@ -356,5 +311,76 @@ function workbench_access_taxonomy_autocomplete_validate($element, &$form_state)
   }
   if (!empty($terms)) {
     form_set_error($element['#field_name'], t('You may not assign this content to: !terms', array('!terms' => implode(', ', $terms))));
+  }
+}
+
+/**
+ * Implements hook_query_TAG_alter().
+ *
+ * If this is a restricted taxonomy autocomplete query, add the conditions
+ * required by Workbench Access.
+ *
+ * @see taxonomy_autocomplete()
+ */
+function workbench_access_query_term_access_alter(QueryAlterableInterface $query) {
+  global $user;
+  if (workbench_access_is_active_autocomplete()) {
+    // Alter the query.
+    if (!isset($user->workbench_access)) {
+      workbench_access_user_load_data($user);
+    }
+    $tree = workbench_access_get_user_tree($user);
+    if (!empty($tree)) {
+      $query->condition('t.tid', array_keys($tree), 'IN');
+    }
+    // Force a NULL return if the user has no section assignments.
+    else {
+      $query->condition('t.tid', -10);
+    }
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_insert().
+ *
+ * If a new term is added, check to see if we need to create a section.
+ */
+function workbench_access_taxonomy_term_insert($term) {
+  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy' || !variable_get('workbench_access_auto_assign', 1)) {
+    return;
+  }
+  $active = array_filter(variable_get('workbench_access_taxonomy', array()));
+  if (in_array($term->vocabulary_machine_name, $active)) {
+    $section = array(
+      'access_id' => $term->tid,
+      'access_type' => 'taxonomy',
+      'access_scheme' => 'taxonomy',
+      'access_type_id' => $term->vocabulary_machine_name,
+    );
+    workbench_access_section_save($section);
+  }
+}
+
+/**
+ * Implements hook_taxonomy_term_delete().
+ *
+ * If an active term is deleted, cascade the change through our system.
+ */
+function workbench_access_taxonomy_term_delete($term) {
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $term->tid))->fetchAssoc();
+  if (!empty($access_scheme)) {
+    workbench_access_section_delete($access_scheme);
+  }
+}
+
+/**
+ * Implements hook_taxonomy_vocabulary_delete().
+ *
+ * If an active vocabulary is deleted, cascade the change through our system.
+ */
+function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
+  $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'taxonomy', ':access_id' => $vocabulary->machine_name))->fetchAssoc();
+  if (!empty($access_scheme)) {
+    workbench_access_section_delete($access_scheme);
   }
 }
