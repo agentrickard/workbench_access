@@ -171,13 +171,16 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->drupalGet("node/$node->nid/edit");
     $this->assertResponse(200);
     $this->assertRaw('Section', t('Workbench Access field was found.'));
-    $this->assertRaw('<select id="edit-workbench-access-id" name="workbench_access_id" class="form-select required">', t('Form presents a select list with no multiple select.'));
+    // Note that the field is nested as
+    // $form['workbench_access']['workbench_access'], which forces FormAPI to
+    // add the --2 suffix to the id.
+    $this->assertRaw('<select id="edit-workbench-access--2" name="workbench_access" class="form-select required">', t('Form presents a select list with no multiple select.'));
     // Change some values and try again.
     variable_set('workbench_access_allow_multiple', 1);
     variable_set('workbench_access_label', 'TestWA');
     $this->drupalGet("node/$node->nid/edit");
     $this->assertRaw('TestWA', t('Workbench Access field was renamed.'));
-    $this->assertRaw('<select multiple="multiple" name="workbench_access_id[]" id="edit-workbench-access-id" class="form-select required">', t('Form presents a select list with multiple select.'));
+    $this->assertRaw('<select multiple="multiple" name="workbench_access[]" id="edit-workbench-access--2" class="form-select required">', t('Form presents a select list with multiple select.'));
 
     // Check that access control by node type settings work.
     $this->assertTrue(variable_get('workbench_access_node_type_' . $node->type, 1), t('Workbench Access enforced for %type content.', array('%type' => $node->type)));
@@ -223,7 +226,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     // Ensure that our node type uses the form element.
     $GLOBALS['conf']['workbench_access_node_type_' . $node->type] = TRUE;
     $form = drupal_get_form($node->type . '_node_form', $node);
-    $this->assertTrue(!empty($form['workbench_access']['workbench_access_id']['#workbench_access_test']), t('hook_workbench_access_node_element_alter() fired correctly.'));
+    $this->assertTrue(!empty($form['workbench_access']['workbench_access']['#workbench_access_test']), t('hook_workbench_access_node_element_alter() fired correctly.'));
   }
 
   /**
@@ -308,7 +311,7 @@ class WorkbenchAccessTokenTestCase extends DrupalWebTestCase {
     );
     $this->assertTokens('node', array('node' => $assigned_node), $tokens);
 
-    $assigned_node->workbench_access_id = array_keys($terms);
+    $assigned_node->workbench_access = array_keys($terms);
     node_save($assigned_node);
 
     // Test tokens now that the node has multiple section assignments.

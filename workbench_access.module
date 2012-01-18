@@ -615,43 +615,38 @@ function workbench_access_node_load($nodes, $types) {
       }
     }
   }
-
-  // Add the access scheme to the node so that changes can be made with
-  // node_save() directly.
-  $nodes[$node->nid]->workbench_access_scheme = $tree['access_scheme'];
 }
 
 /**
  * Implements hook_node_insert().
  */
 function workbench_access_node_insert($node) {
-  // Workbench Moderation submits the node twice???
-  if (!isset($node->workbench_access_scheme['access_scheme'])) {
-    return;
-  }
+  // Clear the old records for this node.
   workbench_access_node_delete($node);
-
-  // Temporary fix for node property mis-match between node_load() and node_save().
-  if (!isset($node->workbench_access_id) && !empty($node->workbench_access)) {
-    $node->workbench_access_id = $node->workbench_access;
-  }
-
-  if (empty($node->workbench_access_id)) {
+  // If nothing to set, we are done.
+  if (empty($node->workbench_access)) {
     return;
   }
-  if (!is_array($node->workbench_access_id)) {
-    $node->workbench_access_id = array($node->workbench_access_id);
+  // Ensure we have an array, as the form can allow multiple selects or single.
+  if (!is_array($node->workbench_access)) {
+    $node->workbench_access = array($node->workbench_access);
   }
-  foreach ($node->workbench_access_id as $id) {
-    $record = array(
-      'nid' => $node->nid,
-      'access_id' => $id,
-      'access_scheme' => $node->workbench_access_scheme['access_scheme'],
-    );
-    drupal_write_record('workbench_access_node', $record);
+  // Load the active tree to get the access scheme data and validate that
+  // the selections are actually present.
+  $active = workbench_access_get_active_tree();
+  foreach ($node->workbench_access as $id) {
+    // Prevent false records from being saved accidentally.
+    if (isset($active['active'][$id])) {
+      $record = array(
+        'nid' => $node->nid,
+        'access_id' => $id,
+        'access_scheme' => $active['access_scheme']['access_scheme'],
+      );
+      drupal_write_record('workbench_access_node', $record);
+    }
   }
 
-  // Clear static caches.
+  // Clear static caches for tokens.
   drupal_static_reset('_workbench_access_get_node_section_names');
 }
 
@@ -661,10 +656,10 @@ function workbench_access_node_insert($node) {
 function workbench_access_node_presave($node) {
   // Did we use the default field form?
   if (isset($node->workbench_access_fields)) {
-    $node->workbench_access_id = array();
+    $node->workbench_access = array();
     foreach ($node->workbench_access_fields as $field) {
       if (!is_array($node->{$field})) {
-        $node->workbench_access_id[] = $node->{$field};
+        $node->workbench_access[] = $node->{$field};
       }
       else {
         if (!empty($node->workbench_access_language)) {
@@ -677,7 +672,7 @@ function workbench_access_node_presave($node) {
           if (isset($value[$node->workbench_access_column])) {
             // Handle disabled menu links.
             if (!isset($value['enabled']) || !empty($value['enabled'])) {
-              $node->workbench_access_id[] = $value[$node->workbench_access_column];
+              $node->workbench_access[] = $value[$node->workbench_access_column];
             }
           }
         }
@@ -686,18 +681,18 @@ function workbench_access_node_presave($node) {
   }
   // Ensure that the data format is consistent and that items that cannot
   // be changed by this editor are preserved.
-  if (isset($node->workbench_access_id) && isset($node->workbench_access_fixed)) {
-    if (!is_array($node->workbench_access_id)) {
-      $node->workbench_access_id = array($node->workbench_access_id);
+  if (isset($node->workbench_access) && isset($node->workbench_access_fixed)) {
+    if (!is_array($node->workbench_access)) {
+      $node->workbench_access = array($node->workbench_access);
     }
     if (!is_array($node->workbench_access_fixed)) {
       $node->workbench_access_fixed = array($node->workbench_access_fixed);
     }
-    $node->workbench_access_id += $node->workbench_access_fixed;
+    $node->workbench_access += $node->workbench_access_fixed;
   }
   // Due to form handling, it is possible that we have duplicate entries.
-  if (isset($node->workbench_access_id) && is_array($node->workbench_access_id)) {
-    $node->workbench_access_id = array_unique($node->workbench_access_id);
+  if (isset($node->workbench_access) && is_array($node->workbench_access)) {
+    $node->workbench_access = array_unique($node->workbench_access);
   }
 }
 
@@ -1361,12 +1356,6 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
   else {
     workbench_access_default_form_element($form, $form_state);
   }
-  // Register the access scheme with the form.
-  $active = workbench_access_get_active_tree();
-  $form['workbench_access']['workbench_access_scheme'] = array(
-    '#type' => 'value',
-    '#value' => $active['access_scheme'],
-  );
 }
 
 /**
@@ -1462,7 +1451,7 @@ function workbench_access_node_form_element(&$form, $form_state) {
           $disallowed[$active['tree'][$item]['access_id']] = $active['tree'][$item]['name'];
         }
       }
-      }
+    }
     if (!empty($disallowed)) {
       $diff = array_diff($all, $disallowed);
       // TODO: If we toggle from single to multiple, then this can get messy.
@@ -1485,7 +1474,7 @@ function workbench_access_node_form_element(&$form, $form_state) {
     }
   }
   workbench_access_alter_form('node_element', $element, $form_state);
-  $form['workbench_access']['workbench_access_id'] = $element;
+  $form['workbench_access']['workbench_access'] = $element;
 }
 
 /**
