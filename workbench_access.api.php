@@ -50,6 +50,18 @@
  *  - 'configuration'
  *    The configuration callback function. (Will default to
  *    hook_workbench_access_configuration() if not supplied.) Optional.
+ *  - 'form_field'
+ *    The name of the default form element, if any, used by this scheme's
+ *    implementation of hook_node_form_alter(). For FieldAPI-enabled modules,
+ *    such as Taxonomy, this will be NULL. Optional.
+ *  - 'storage_column'
+ *    The name of the database column used to store the primary key of the
+ *    element. This value is used with FormAPI and FIeldAPI to ensure that
+ *    the proper data is saved when using native form elements. Required.
+ *  - 'translatable'
+ *    Boolean value that indicated the value is translatable via FieldAPI.
+ *    Tells the module how to save language-sensitive data. Required.
+ *    
  *
  * The remainder of the elements are used with Views to provide proper query
  * execution. They provide run-time alterations to Views handlers provided by
@@ -77,6 +89,9 @@ function hook_workbench_access_info() {
       'access_type_id' => array_filter(variable_get('workbench_access_menu', array('main-menu'))),
       'description' => t('Uses a menu for assigning hierarchical access control'),
       'configuration' => 'menu_workbench_access_configuration',
+      'form_field' => 'menu',
+      'storage_column' => 'mlid',
+      'translatable' => FALSE,
       'node_table' => 'workbench_access_node',
       'query_field' => 'access_id',
       'field_table' => 'workbench_access_node',

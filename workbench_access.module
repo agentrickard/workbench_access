@@ -655,6 +655,7 @@ function workbench_access_node_insert($node) {
  */
 function workbench_access_node_presave($node) {
   // Did we use the default field form?
+  workbench_access_prepare_field_save($node);
   if (isset($node->workbench_access_fields)) {
     $node->workbench_access = array();
     foreach ($node->workbench_access_fields as $field) {
@@ -693,6 +694,31 @@ function workbench_access_node_presave($node) {
   // Due to form handling, it is possible that we have duplicate entries.
   if (isset($node->workbench_access) && is_array($node->workbench_access)) {
     $node->workbench_access = array_unique($node->workbench_access);
+  }
+}
+
+/**
+ * Prepares a node for saving in the event we did not come from a form.
+ */
+function workbench_access_prepare_field_save($node) {
+  // If using a default form element, or the form data is already present, then
+  // we do not need this step.
+  if (variable_get('workbench_access_custom_form', 1) || isset($node->workbench_access_fields)) {
+    return;
+  }
+  $tree = workbench_access_get_active_tree();
+  $scheme = $tree['access_scheme'];
+  $node->workbench_access_language = $scheme['translatable'];
+  $node->workbench_access_column = $scheme['storage_column'];
+  // Find the fields to watch for data.
+  if (!empty($scheme['form_field'])) {
+    $node->workbench_access_fields[] = $scheme['form_field'];
+  }
+  else {
+    $fields = workbench_access_get_assigned_fields($node->type);
+    foreach ($fields as $field => $info) {
+      $node->workbench_access_fields[] = $field;
+    }
   }
 }
 
