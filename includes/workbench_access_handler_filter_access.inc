@@ -8,6 +8,11 @@
  */
 
 class workbench_access_handler_filter_access extends views_handler_filter_many_to_one {
+  function init(&$view, &$options) {
+    parent::init($view, $options);
+    $this->value = array($options['access_id']);
+  }
+
   function option_definition() {
     $options = parent::option_definition();
     $options['access_id'] = array('default' => NULL);
@@ -21,11 +26,15 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
     );
   }
 
-  function value_form(&$form, &$form_state) {
+  function get_value_options() {
     $active = workbench_access_get_active_tree();
     $tree = $active['tree'];
     workbench_access_build_tree($tree, array_keys($active['active']));
-    $options = workbench_access_options($tree, $active['active']);
+    return workbench_access_options($tree, $active['active']);
+  }
+
+  function value_form(&$form, &$form_state) {
+    $options = $this->get_value_options();
     $form['access_id'] = array(
       '#type' => 'select',
       '#title' => t('Sections'),
@@ -40,6 +49,10 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
       '#options' => drupal_map_assoc(array(1, 5, 10, 20, 50)),
       '#default_value' => $this->options['size'],
     );
+  }
+
+  function value_submit($form, $form_state) {
+    $this->value = $form_state['values']['access_id'];
   }
 
   function exposed_form(&$form, &$form_state) {
