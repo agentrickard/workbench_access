@@ -51,7 +51,7 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
     );
   }
 
-  function value_submit($form, $form_state) {
+  function value_submit($form, &$form_state) {
     $this->value = $form_state['values']['access_id'];
   }
 
