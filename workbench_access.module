@@ -664,7 +664,8 @@ function workbench_access_node_presave($node) {
       }
       else {
         if (!empty($node->workbench_access_language)) {
-          $data = $node->{$field}[$node->language];
+          $lang = field_language('node', $node, $field);
+          $data = $node->{$field}[$lang];
         }
         else {
           $data = array($node->{$field});
