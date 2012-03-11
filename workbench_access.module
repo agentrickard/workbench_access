@@ -345,7 +345,7 @@ function workbench_access_load_include($module = NULL) {
     return;
   }
   // Load all includes.
-  foreach (file_scan_directory(drupal_get_path('module', 'workbench_access') . '/modules', '/.inc/') as $file) {
+  foreach (file_scan_directory(drupal_get_path('module', 'workbench_access') . '/modules', '/.inc$/') as $file) {
     include_once($file->uri);
   }
 }
@@ -1528,7 +1528,7 @@ function workbench_access_default_form_element(&$form, &$form_state) {
     }
   }
 }
-  
+
 /**
  * Find form elements that control access.
  *
