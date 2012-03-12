@@ -1865,8 +1865,7 @@ function workbench_access_mass_update($nodes, $access_id, $access_scheme) {
   foreach ($nodes as $nid) {
     $data = array(
       'nid' => $nid,
-      'workbench_access_id' => $access_id,
-      'workbench_access_scheme' => $access_scheme,
+      'workbench_access' => $access_id,
     );
     $node = (object) $data;
     workbench_access_node_update($node);
