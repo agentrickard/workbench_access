@@ -486,6 +486,12 @@ function workbench_access_sections() {
  */
 function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $type = 'editor') {
   if (is_null($access_type) || is_null($access_type_id)) {
+    // Set proper breadcrumb trails.
+    if ($type == 'editor') {
+      $breadcrumb[] = l(t('Workbench Access'), 'admin/config/workbench/access');
+      workbench_access_breadcrumb($breadcrumb);
+    }
+
     $active = workbench_access_get_active_tree();
     $active['access_scheme']['access_id'] = $access_type_id;
     $active_keys = array_keys($active['active']);
@@ -554,6 +560,11 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
  *   A form.
  */
 function workbench_access_editor_form($form, &$form_state, $access_type, $access_type_id) {
+  // Set proper breadcrumb trails.
+  $breadcrumb[] = l(t('Workbench Access'), 'admin/config/workbench/access');
+  $breadcrumb[] = l(t('Editors'), 'admin/config/workbench/access/editors');
+  workbench_access_breadcrumb($breadcrumb);
+
   $form = array();
   $active = workbench_access_get_active_tree();
   $active['access_scheme']['access_id'] = $access_type_id;
@@ -712,6 +723,10 @@ function workbench_access_roles($access_type = NULL, $access_type_id = NULL) {
  *   A form.
  */
 function workbench_access_role_form($form, &$form_state, $access_type, $access_type_id) {
+  // Set proper breadcrumb trails.
+  $breadcrumb[] = l(t('Roles'), 'admin/config/workbench/access/roles');
+  workbench_access_breadcrumb($breadcrumb);
+
   $active = workbench_access_get_active_tree();
   $active['access_scheme']['access_id'] = $access_type_id;
   if ($active['access_scheme']['access_type'] != $access_type || !isset($active['active'][$access_type_id])) {
@@ -976,4 +991,16 @@ function workbench_access_install_form($form, &$form_state, $path = 'admin/confi
 function workbench_access_install_form_submit(&$form, &$form_state) {
   $form_state['redirect'] = $form_state['values']['path'];
   workbench_access_example_taxonomy();
+}
+
+/**
+ * Adds breadcrumb trails for admin pages.
+ *
+ * @param $breadcrumb
+ *   An array of links to add to the breadcrumb trail.
+ */
+function workbench_access_breadcrumb($breadcrumb = array()) {
+  $current = drupal_get_breadcrumb();
+  $current = array_merge($current, $breadcrumb);
+  drupal_set_breadcrumb($current);
 }
