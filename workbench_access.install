@@ -164,6 +164,10 @@ function workbench_access_requirements($phase) {
     $roles = workbench_access_get_roles('access workbench access by role');
     $types = workbench_access_check_access_fields();
     $description = array();
+    $modules = module_implements('workbench_access_info');
+    if (empty($modules) && !module_exists('taxonomy') && !module_exists('menu')) {
+      $description[] = t('No modules are enabled that support access heirarchies. Menu and Taxonomy are two options.');
+    }
     // If this variable has not been set, workbench access is not fully configured.
     if (!variable_get('workbench_access', FALSE)) {
       $description[] = workbench_access_configuration_needed_message();
