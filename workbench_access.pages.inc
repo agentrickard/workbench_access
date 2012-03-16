@@ -28,7 +28,7 @@ function workbench_access_autocomplete($access_type, $access_id, $string, $test_
 
   // Build static caches for the roles that can be assigned access.
   if (!isset($cache['rids'])) {
-    $cache['rids'] = array_keys(workbench_access_get_roles('access workbench access by role'));
+    $cache['rids'] = workbench_access_get_roles('access workbench access by role');
   }
 
   $string = trim($string);
@@ -43,12 +43,16 @@ function workbench_access_autocomplete($access_type, $access_id, $string, $test_
 
     $query = db_select('users', 'u');
     $query->addField('u', 'uid');
-    $query->join('users_roles', 'ur', 'u.uid = ur.uid');
     $query->condition('u.name', db_like($string) . '%', 'LIKE');
-    $query->condition('ur.rid', $cache['rids'], 'IN');
     $query->condition('u.uid', $sub_query, 'NOT IN');
     $query->range(0, 20);
     $query->addTag('user_autocomplete');
+
+    // If all authorized users are not allowed, JOIN to user_roles.
+    if (!isset($cache['rids'][DRUPAL_AUTHENTICATED_RID])) {
+      $query->join('users_roles', 'ur', 'u.uid = ur.uid');
+      $query->condition('ur.rid', array_keys($cache['rids']), 'IN');
+    }
 
     $uids = $query->execute()->fetchCol();
     $accounts = user_load_multiple($uids);
@@ -63,5 +67,4 @@ function workbench_access_autocomplete($access_type, $access_id, $string, $test_
   }
 
   drupal_json_output($matches);
-
 }

@@ -522,12 +522,20 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
         }
       }
       if ($type == 'editor') {
-        $count = db_query("SELECT COUNT(DISTINCT(wau.uid)) FROM {workbench_access_user} wau
-          INNER JOIN {users_roles} ur ON wau.uid = ur.uid
-          WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id
-          AND ur.rid IN (:rids)",
-          array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':rids' => array_keys($roles))
-        )->fetchField();
+        if (!isset($roles[DRUPAL_AUTHENTICATED_RID])) {
+          $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
+            INNER JOIN {users_roles} ur ON wau.uid = ur.uid
+            WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id
+            AND ur.rid IN (:rids)",
+            array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':rids' => array_keys($roles))
+          )->fetchField();
+        }
+        else {
+          $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
+            WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id",
+            array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
+          )->fetchField();
+        }
         $row[] = l(format_plural($count, '1 editor', '@count editors'), 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id);
       }
       else {
@@ -579,12 +587,14 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
   $query = db_select('users', 'u')
     ->fields('u', array('uid', 'name'));
   $query->join('workbench_access_user', 'wau', 'u.uid = wau.uid');
-  $query->join('users_roles', 'ur', 'u.uid = ur.uid');
-  $query->join('role_permission', 'rp', 'rp.rid = ur.rid');
   $query->condition('wau.access_scheme', $access_type)
     ->condition('wau.access_id', $access_type_id)
-    ->condition('ur.rid', array_keys($roles), 'IN')
     ->extend('PagerDefault')->limit(25);
+  // If all authorized users are not allowed, JOIN to user_roles.
+  if (!isset($roles[DRUPAL_AUTHENTICATED_RID])) {
+    $query->join('users_roles', 'ur', 'u.uid = ur.uid');
+    $query->condition('ur.rid', array_keys($roles), 'IN');
+  }
   $result = $query->execute();
   $rows = array();
   $form['users']['#tree'] = TRUE;
@@ -653,15 +663,6 @@ function workbench_access_editor_form_submit($form, &$form_state) {
       }
     }
   }
-  /* Role handling.
-  foreach ($values['roles'] as $rid => $status) {
-    if (!empty($status) && !in_array($rid, $values['default_roles'])) {
-      workbench_access_role_section_save($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
-    }
-    elseif (empty($status) && in_array($rid, $values['default_roles'])) {
-      workbench_access_role_section_delete($rid, $values['workbench_access']['access_id'], $values['workbench_access']['access_scheme']);
-    }
-  }*/
 }
 
 /**
@@ -745,16 +746,37 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
   $rows = array();
   $access_rids = array();
   if (!empty($roles)) {
-    $access_rids = db_query("SELECT war.rid FROM {workbench_access_role} war WHERE war.rid IN (:rids) AND war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':rids' => array_keys($roles), ':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchCol();
+    $access_rids = db_query("SELECT war.rid FROM {workbench_access_role} war WHERE war.rid IN (:rids) AND war.access_scheme = :access_scheme AND war.access_id = :access_type_id", array(':rids' => array_keys($roles), ':access_scheme' => $access_type, ':access_type_id' => $access_type_id))->fetchAllAssoc('rid');
   }
   $users = array();
   if (!empty($access_rids)) {
-    $users = db_query("SELECT u.name, u.uid, r.name AS role FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:rids) AND u.status > 0", array(':rids' => $access_rids));
+    if (!isset($access_rids[DRUPAL_AUTHENTICATED_RID])) {
+      $users = db_query("SELECT u.name, u.uid, r.name AS roles FROM {users} u INNER JOIN {users_roles} ur ON ur.uid = u.uid LEFT JOIN {role} r ON r.rid = ur.rid WHERE ur.rid IN (:rids) AND u.status > 0", array(':rids' => array_keys($access_rids)));
+    }
+    else {
+      $uids = db_query("SELECT u.uid FROM {users} u WHERE u.status > 0 AND u.uid > 0")->fetchCol();
+      $users = user_load_multiple($uids);
+    }
   }
   $users_by_role = array();
   foreach ($users as $data) {
     $users_by_role[$data->uid]['name'] = $data->name;
-    $users_by_role[$data->uid]['roles'][] = check_plain($data->role);
+    if (is_array($data->roles)) {
+      array_walk($data->roles, 'check_plain');
+      $users_by_role[$data->uid]['roles'] = array_values($data->roles);
+    }
+    else {
+      $users_by_role[$data->uid]['roles'][] = check_plain($data->roles);
+    }
+  }
+  // Add anonymous users, if selected.
+  if (isset($access_rids[DRUPAL_ANONYMOUS_RID])) {
+    $users_by_role[0] = array(
+      'name' => variable_get('anonymous', t('Anonymous')),
+      'roles' => array(
+        'anonymous user',
+      ),
+    );
   }
   foreach ($users_by_role as $uid => $item) {
     $rows[] = array(
@@ -804,7 +826,7 @@ function workbench_access_role_form_submit($form, &$form_state) {
   // Handle the authenticated user role, which is all roles but anonymous.
   if (!empty($values['roles'][DRUPAL_AUTHENTICATED_RID])) {
     foreach ($values['roles'] as $key => $value) {
-      if ($key > 0) {
+      if ($key > DRUPAL_ANONYMOUS_RID) {
         $values['roles'][$key] = $key;
       }
     }
