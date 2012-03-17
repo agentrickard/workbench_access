@@ -136,7 +136,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $test = workbench_access_autocomplete('taxonomy', 'workbench_access', substr($account->name, 0), TRUE);
     $this->assertTrue(empty($test), t('Autocomplete did not match assigned user.'));
     // Test another user who is currently not assigned.
-    if ($id < count($this->user_list)) {
+    if ($id < (count($this->user_list) - 1)) {
       $id++;
     }
     else {
