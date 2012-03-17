@@ -14,7 +14,7 @@ function workbench_access_settings_form($form, &$form_state) {
   $info = module_invoke_all('workbench_access_info');
   $options = array();
   foreach ($info as $key => $value) {
-    $options[$key] = $value['name'] . '<br /><em>' . $value['description'] . '</em>';
+    $options[$key] = $value['name'] . '<div class="description">' . $value['description'] . '</div>';
   }
   $active = variable_get('workbench_access', 'taxonomy');
   $form = array();
@@ -44,7 +44,7 @@ function workbench_access_settings_form($form, &$form_state) {
       $func = $info[$key]['configuration'];
       $func($form, $form_state);
       if (isset($form[$key . '_workbench_access_info'])) {
-        $form[$key . '_workbench_access_info']['#description'] = t('<em>Changing this value in production may disrupt your workflow.</em>');
+        $form[$key . '_workbench_access_info']['#description'] = t('Changing this value in production may <em>disrupt</em> your workflow.');
       }
       foreach (array('validate', 'submit') as $action) {
         if (function_exists($func . '_' . $action)) {
@@ -69,7 +69,7 @@ function workbench_access_settings_form($form, &$form_state) {
       );
     }
     $form['node_types']['message'] = array(
-      '#markup' => '<em>' . t('Only selected content types will have Workbench Access rules enforced.') . '</em>',
+      '#markup' => t('Only selected content types will have Workbench Access rules <em>enforced</em>.'),
     );
     // Set the field settings for Taxonomy, if required.
     if (!variable_get('workbench_access_custom_form', 1)) {
