@@ -1932,7 +1932,8 @@ function workbench_access_get_roles($permission) {
  */
 function workbench_access_check_access_fields() {
   $broken = array();
-  if (variable_get('workbench_access_custom_form', 1)) {
+  $active = workbench_access_get_active_tree();
+  if (variable_get('workbench_access_custom_form', 1) || !empty($active['access_scheme']['form_field'])) {
     return $broken;
   }
   $types = node_type_get_types();

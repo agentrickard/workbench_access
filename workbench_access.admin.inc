@@ -71,8 +71,8 @@ function workbench_access_settings_form($form, &$form_state) {
     $form['node_types']['message'] = array(
       '#markup' => t('Only selected content types will have Workbench Access rules <em>enforced</em>.'),
     );
-    // Set the field settings for Taxonomy, if required.
-    if (!variable_get('workbench_access_custom_form', 1)) {
+    // Set the field settings for field-based modules, if required.
+    if (!variable_get('workbench_access_custom_form', 1) && empty($info[$active]['form_field'])) {
       $form['field_elements'] = array(
         '#type' => 'fieldset',
         '#title' => t('Access control fields'),
