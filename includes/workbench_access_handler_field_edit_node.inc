@@ -22,7 +22,7 @@ class workbench_access_handler_field_edit_node extends views_handler_field {
     if (!node_access('update', $node)) {
       return '';
     }
-    $text = !empty($this->options['text']) ? $this->options['text'] : t('edit');
+    $text = !empty($this->options['text']) ? $this->options['text'] : t('Edit');
     return l($text, "node/$values->nid/edit", array('query' => drupal_get_destination()));
   }
 }

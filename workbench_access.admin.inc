@@ -57,7 +57,7 @@ function workbench_access_settings_form($form, &$form_state) {
   if (!empty($types)) {
     $form['node_types'] = array(
       '#type' => 'fieldset',
-      '#title' => t('Content types enabled'),
+      '#title' => t('Enabled content types'),
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
@@ -92,7 +92,7 @@ function workbench_access_settings_form($form, &$form_state) {
         if (empty($controlled)) {
           $form['field_elements'][$type] = array(
             '#type' => 'item',
-            '#title' => t('%type access control fields', array('%type' => $name)),
+            '#title' => t('%type content type access control fields', array('%type' => $name)),
             '#markup' => t('This content type is not under access control.'),
           );
         }
@@ -101,7 +101,7 @@ function workbench_access_settings_form($form, &$form_state) {
           drupal_set_message($message, 'warning', FALSE);
           $form['field_elements'][$type] = array(
             '#type' => 'item',
-            '#title' => t('%type access control fields', array('%type' => $name)),
+            '#title' => t('%type content type access control fields', array('%type' => $name)),
             '#markup' => $message,
           );
         }
@@ -116,7 +116,7 @@ function workbench_access_settings_form($form, &$form_state) {
           }
           $form['field_elements'][$type] = array(
             '#type' => 'select',
-            '#title' => t('%type access control fields', array('%type' => $name)),
+            '#title' => t('%type content type access control fields', array('%type' => $name)),
             '#options' => $field_options,
             '#default_value' => $default_options,
             '#multiple' => variable_get('workbench_access_allow_multiple', 0),
@@ -321,7 +321,7 @@ function workbench_access_section_form_submit(&$form, &$form_state) {
     drupal_set_message(workbench_access_sections_needed_message(), 'warning');
   }
   else {
-    drupal_set_message(t('Editorial sections saved.'));
+    drupal_set_message(t('Editorial sections have been saved.'));
   }
 }
 
@@ -450,7 +450,7 @@ function workbench_access_user_form_submit($form, &$form_state) {
   $uid = $form_state['values']['uid'];
   workbench_access_rebuild_user($uid, $sections);
   if (!empty($sections)) {
-    drupal_set_message(t('User permissions updated.'));
+    drupal_set_message(t('User permissions have been updated.'));
   }
 }
 
@@ -495,7 +495,12 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
     $active = workbench_access_get_active_tree();
     $active['access_scheme']['access_id'] = $access_type_id;
     $active_keys = array_keys($active['active']);
-    $output = '<h2>' . t('Editorial assignments by @type', array('@type' => $type)) . '</h2>';
+    if ($type == 'role') {
+      $output = '<h2>' . t('Editorial assignments by role') . '</h2>';
+    }
+    elseif ($type == 'editor') {
+      $output = '<h2>' . t('Editorial assignments by editor') . '</h2>';
+    }
     $output .= '<p>' . t('The following sections are currently active.');
     if (user_access('administer workbench access')) {
       $output .= ' ' . t('You may <a href="!url">enable or disable sections</a>.', array('!url' => url('admin/config/workbench/access/sections'))) . '</p>';
@@ -673,7 +678,7 @@ function theme_workbench_access_editor_form($variables) {
   $scheme = $form['workbench_access']['#value'];
   $access_info = workbench_access_load_access_info($scheme);
   $output = '<h2>' . t('%name editors by account', array('%name' => $access_info['name'])) . '</h2>';
-  $output .= '<p>' . t('Active editors for the %section section, as assigned by user. <a href="!url">View editors by role</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/roles/' . $scheme['access_type'] . '/' . $scheme['access_id'])));
+  $output .= '<p>' . t('Active editors for the %section section, as assigned by account. <a href="!url">View editors by role</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/roles/' . $scheme['access_type'] . '/' . $scheme['access_id'])));
   $header = array(t('Editor'), t('Actions'));
   $rows = array();
   foreach (element_children($form['users']) as $key) {
@@ -685,7 +690,7 @@ function theme_workbench_access_editor_form($variables) {
   $variables = array(
     'header' => $header,
     'rows' => $rows,
-    'empty' => t('No active editors.'),
+    'empty' => t('No active editors have been found.'),
   );
   $output .= theme('table', $variables);
   $output .= drupal_render_children($form);
@@ -741,7 +746,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
   // Form markup elements.
   $access_info = workbench_access_load($access_type, $access_type_id);
   $output = '<h2>' . t('%name editors by role', array('%name' => $access_info['name'])) . '</h2>';
-  $output .= '<p>' . t('Active editors for the %section section, as determined by role. <a href="!url">View editors by user</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_type_id)));
+  $output .= '<p>' . t('Active editors for the %section section, as determined by role. <a href="!url">View editors by account</a>.', array('%section' => $access_info['name'], '!url' => url('admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_type_id)));
   $header = array(t('Editors'), t('Roles'));
   $rows = array();
   $access_rids = array();
@@ -784,7 +789,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
       theme('item_list', array('items' => $item['roles'], 'type' => 'ul')),
     );
   }
-  $table = theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('No active roles.')));
+  $table = theme('table', array('header' => $header, 'rows' => $rows, 'empty' => t('No active roles have been found.')));
   $form['content'] = array(
     '#weight' => -5,
     '#markup' => $output,
@@ -800,7 +805,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
     '#title' => t('Roles'),
     '#options' => $roles,
     '#default_value' => $default,
-    '#description' => empty($roles) ? t('There are no roles with the proper permissions.') : t('Select the role(s) that should have all users assigned to this section.'),
+    '#description' => empty($roles) ? t('There are no roles with the proper permissions.') : format_plural(count($roles), t('Select the role that should have all users assigned to this section.'), t('Select the roles that should have all users assigned to this section.')),
   );
   // TODO: replace with fancy jQuery.
   if (isset($roles[DRUPAL_AUTHENTICATED_RID])) {
@@ -860,7 +865,7 @@ function workbench_access_example_taxonomy() {
   $exists = workbench_access_vocabulary_exists($vocabulary);
   // If the vocabulary exists, do not create any terms for it.
   if ($exists) {
-    drupal_set_message(t('Workbench Access vocabulary already installed.'));
+    drupal_set_message(t('Workbench Access vocabulary has already been installed.'));
     return;
   }
   // Save.
@@ -1003,7 +1008,7 @@ function workbench_access_install_form($form, &$form_state, $path = 'admin/confi
     '#type' => 'value',
     '#value' => $path,
   );
-  $question = t('Install test configuration');
+  $question = t('Are you sure you want to install the test configuration?');
   return confirm_form($form, $question, $path);
 }
 

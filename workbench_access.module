@@ -35,7 +35,7 @@ function workbench_access_menu() {
   );
   $items['admin/config/workbench/access/editors'] = array(
     'title' => 'Editors',
-    'description' => 'Editor settings.',
+    'description' => 'The editor assignment settings.',
     'page callback' => 'workbench_access_editors',
     'access arguments' => array('assign workbench access'),
     'type' => MENU_DEFAULT_LOCAL_TASK,
@@ -1870,7 +1870,7 @@ function workbench_access_mass_update($nodes, $access_id, $access_scheme) {
     $node = (object) $data;
     workbench_access_node_update($node);
   }
-  drupal_set_message(t('Editorial sections updated'));
+  drupal_set_message(t('Editorial sections have been updated.'));
 }
 
 /**

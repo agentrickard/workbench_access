@@ -166,7 +166,7 @@ function workbench_access_requirements($phase) {
     $description = array();
     $modules = module_implements('workbench_access_info');
     if (empty($modules) && !module_exists('taxonomy') && !module_exists('menu')) {
-      $description[] = t('No modules are enabled that support access heirarchies. Menu and Taxonomy are two options.');
+      $description[] = t('No modules are enabled that support access hierarchies. Menu and Taxonomy are two options.');
     }
     // If this variable has not been set, workbench access is not fully configured.
     if (!variable_get('workbench_access', FALSE)) {
@@ -236,7 +236,7 @@ function workbench_access_update_7000() {
       variable_set('workbench_access_taxonomy', array($taxonomy));
     }
   }
-  return t('Set access rules correctly.');
+  return t('Access rules have been corrected.');
 }
 
 /**
@@ -246,7 +246,7 @@ function workbench_access_update_7000() {
  */
 function workbench_access_update_7001() {
   if (db_table_exists('workbench_access_role')) {
-    return t('Update not required.');
+    return t('Update is not required.');
   }
   $schema = array(
     'description' => 'Maps role access to sections',

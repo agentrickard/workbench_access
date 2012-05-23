@@ -61,7 +61,7 @@
  *  - 'translatable'
  *    Boolean value that indicated the value is translatable via FieldAPI.
  *    Tells the module how to save language-sensitive data. Required.
- *    
+ *
  *
  * The remainder of the elements are used with Views to provide proper query
  * execution. They provide run-time alterations to Views handlers provided by
@@ -330,7 +330,7 @@ function hook_workbench_access_configuration(&$form, &$form_state) {
   $form['taxonomy_workbench_access_info']['workbench_access_taxonomy'] = array(
     '#type' => 'checkboxes',
     '#title' => t('Editorial vocabulary'),
-    '#description' => t('Select the vocabulary to be used for access control. <strong>Warning: changing this value in production may disrupt your workflow.</strong>'),
+    '#description' => t('Select the vocabulary to be used for access control. <strong>Warning: Changing this value in production may disrupt your workflow.</strong>'),
     '#options' => $options,
     '#default_value' => variable_get('workbench_access_taxonomy', array()),
     '#states' => array(

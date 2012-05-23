@@ -287,7 +287,7 @@ function workbench_access_views_data_alter(&$data) {
   );
   $data['menu_links']['plid'] = array(
     'title' => t('Parent menu link id'),
-    'help' => t('The unique menu link identifier for this item\'s parent.'),
+    'help' => t("The unique menu link identifier for this item's parent."),
     'field' => array(
       'click sortable' => FALSE,
     ),
