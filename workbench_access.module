@@ -1234,11 +1234,17 @@ function workbench_access_build_tree(&$tree, $sections = NULL, $depth = -1) {
     if ($item['depth'] > $max_depth) {
       $max_depth = $item['depth'];
     }
+    // Set the parentage of this item.
     if ($depth == 0 && !empty($item['parent']) && isset($tree[$item['parent']])) {
-      $tree[$item['parent']]['children'][] = $id;
+      $tree[$item['parent']]['children'][$id] = $id;
     }
+    // Append the children of the current item to its parent.
     elseif ($item['depth'] > 0 && !empty($item['children']) && isset($tree[$item['parent']]['children'])) {
-      $tree[$item['parent']]['children'] = array_unique(array_merge($tree[$item['parent']]['children'], $item['children']));
+      foreach ($item['children'] as $child_id) {
+        if (!isset($child_id, $tree[$item['parent']]['children'][$child_id])) {
+          $tree[$item['parent']]['children'][$child_id] = $child_id;
+        }
+      }
     }
   }
   workbench_access_build_tree($tree, $sections, $depth);
