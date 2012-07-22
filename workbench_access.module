@@ -98,6 +98,21 @@ function workbench_access_menu() {
     'weight' => 1,
     'file' => 'workbench_access.admin.inc',
   );
+
+  // Provide a content tab if not using workbench.
+  if (!module_exists('workbench') && module_exists('views')) {
+    $items['user/%user/workbench_access'] = array(
+      'title' => 'Content',
+      'access arguments' => array(1),
+      'access callback' => 'workbench_access_views_access',
+      'page callback' => 'views_embed_view',
+      'page arguments' => array('workbench_access_content', 'default'),
+      'description' => 'View content assigned to my sections.',
+      'type' => MENU_LOCAL_TASK,
+      'weight' => 2,
+    );
+  }
+
   return $items;
 }
 
@@ -124,29 +139,12 @@ function workbench_access_menu_alter(&$items) {
     );
   }
 
-  // Only needed if Workbench module is disabled.
-  if (module_exists('workbench')) {
-    return;
-  }
-
-  // Provide a content tab if not using workbench.
-  if (module_exists('views')) {
-    $items['user/%user/workbench_access'] = array(
-      'title' => 'Content',
-      'access arguments' => array(1),
-      'access callback' => 'workbench_access_views_access',
-      'page callback' => 'views_embed_view',
-      'page arguments' => array('workbench_access_content', 'default'),
-      'description' => 'View content assigned to my sections.',
-      'type' => MENU_LOCAL_TASK,
-      'weight' => 2,
-    );
-  }
   // It is possible that another module added this item.
   if (isset($items['admin/config/workbench'])) {
     return;
   }
-  // Add a top-level menu item.
+
+  // Add a top-level menu item if one does not exist.
   $items['admin/config/workbench'] = array(
     'title' => 'Workbench',
     'description' => 'Workbench configuration',
