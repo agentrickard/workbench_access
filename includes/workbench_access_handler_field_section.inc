@@ -12,8 +12,8 @@
 class workbench_access_handler_field_section extends views_handler_field_prerender_list {
   function init(&$view, &$options) {
     parent::init($view, $options);
-    if ($view->base_table == 'node_revisions') {
-      $this->additional_fields['nid'] = array('table' => 'node_revisions', 'field' => 'nid');
+    if ($view->base_table == 'node_revision') {
+      $this->additional_fields['nid'] = array('table' => 'node_revision', 'field' => 'nid');
     }
     else {
       $this->additional_fields['nid'] = array('table' => 'node', 'field' => 'nid');
