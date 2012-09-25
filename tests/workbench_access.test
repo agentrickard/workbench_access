@@ -83,6 +83,29 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('User 1 assigned to top-level hierarchy.'));
     // End setup tests.
 
+    // Change the machine_name of the vocabulary and check that we track
+    // the change. See https://drupal.org/node/1779502
+    $vocabulary = taxonomy_vocabulary_machine_name_load('workbench_access');
+    $vocabulary->machine_name = 'workbench_access_foo';
+    taxonomy_vocabulary_save($vocabulary);
+    // Check that the vocabulary is setup correctly.
+    workbench_access_reset_tree();
+    $active = workbench_access_get_active_tree();
+
+    // Check that we reset properly.
+    $this->assertTrue(isset($active['tree']['workbench_access_foo']) && $active['active'][1]['access_type_id'] == 'workbench_access_foo', t('Updated vocabulary machine_name successfully.'));
+    // Check that nodes have been assigned to the top-level item.
+    $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid WHERE wan.access_id = 'workbench_access_foo' AND wan.access_scheme = 'taxonomy'")->fetchField();
+    $this->assertTrue($count == 10, t('Initial nodes re-assigned to top-level hierarchy.'));
+    // Test access settings of user 1.
+    $account = user_load(1, TRUE);
+    $this->assertTrue(!empty($account->workbench_access['workbench_access_foo']), t('User 1 re-assigned to top-level hierarchy.'));
+
+    // Set things back.
+    $vocabulary->machine_name = 'workbench_access';
+    taxonomy_vocabulary_save($vocabulary);
+    workbench_access_reset_tree();
+
     // Assign a user to a section and check permissions.
     // This is a multi-step check.
     // First, the user should not be able to do anything (Create, Update or Delete).

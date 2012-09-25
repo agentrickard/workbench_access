@@ -387,3 +387,21 @@ function workbench_access_taxonomy_vocabulary_delete($vocabulary) {
     workbench_access_section_delete($access_scheme);
   }
 }
+
+/**
+ * Implements hook_taxonomy_vocabulary_update().
+ *
+ * If a machine_name is changed, then we must update our keys.
+ */
+function workbench_access_taxonomy_vocabulary_update($vocabulary) {
+  // Update the section variable, if necessary.
+  $active = variable_get('workbench_access_taxonomy', array());
+  $original = $vocabulary->old_machine_name;
+
+  // Check to see if the vocabulary is known and has changed.
+  if (isset($active[$original]) && $vocabulary->machine_name != $original) {
+    $find = $original;
+    $replace = $vocabulary->machine_name;
+    workbench_access_update_records($find, $replace, 'taxonomy');
+  }
+}

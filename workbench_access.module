@@ -2039,3 +2039,50 @@ function workbench_access_is_active_autocomplete() {
 
   return $result;
 }
+
+/**
+ * Given a change in source tree keys, update affected records.
+ *
+ * @param string $find
+ *   The id to find.
+ * @param string $replace
+ *   The id to replace.
+ * @param string $scheme
+ *   The access scheme to check. Optional.
+ */
+function workbench_access_update_records($find, $replace, $scheme = NULL) {
+  if (empty($scheme)) {
+    $scheme = variable_get('workbench_access', 'taxonomy');
+  }
+  // Update the base table.
+  db_update('workbench_access')
+    ->fields(array('access_id' => $replace))
+    ->condition('access_scheme', $scheme)
+    ->condition('access_id', $find)
+    ->execute();
+  db_update('workbench_access')
+    ->fields(array('access_type_id' => $replace))
+    ->condition('access_scheme', $scheme)
+    ->condition('access_type_id', $find)
+    ->execute();
+  // Update each sub-table.
+  foreach (array('node', 'role', 'user') as $table) {
+    db_update('workbench_access_' . $table)
+      ->fields(array('access_id' => $replace))
+      ->condition('access_id', $find)
+      ->condition('access_scheme', $scheme)
+      ->execute();
+  }
+  // Update the section variable.
+  $active = variable_get('workbench_access_' . $scheme, array());
+  foreach ($active as $key => $value) {
+    if ($key == $find) {
+      $new[$replace] = empty($value) ? 0 : $replace;
+    }
+    else {
+      $new[$key] = $value;
+    }
+  }
+  variable_set('workbench_access_' . $scheme, $new);
+  drupal_set_message(t('Editorial sections have been updated.'));
+}
