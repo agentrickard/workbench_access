@@ -365,6 +365,15 @@ function workbench_access_taxonomy_term_insert($term) {
 }
 
 /**
+ * Implements hook_taxonomy_term_update().
+ *
+ * If a term is updated, reset the tree.
+ */
+function workbench_access_taxonomy_term_update($term) {
+  workbench_access_reset_tree();
+}
+
+/**
  * Implements hook_taxonomy_term_delete().
  *
  * If an active term is deleted, cascade the change through our system.

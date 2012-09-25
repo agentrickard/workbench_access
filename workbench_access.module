@@ -1648,6 +1648,25 @@ function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $f
 }
 
 /**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * The term overview page does not fire hook_taxonomy_term_update().
+ */
+function workbench_access_form_taxonomy_overview_terms_alter(&$form, &$form_state, $form_id) {
+  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+    return;
+  }
+  $form['#submit'][] = 'workbench_access_form_taxonomy_overview_terms_submit';
+}
+
+/**
+ * Updates taxonomy access tree on overview save.
+ */
+function workbench_access_form_taxonomy_overview_terms_submit($form, &$form_state) {
+  workbench_access_reset_tree();
+}
+
+/**
  * Generic form for adding a section checkbox to another form.
  *
  * @param &$form

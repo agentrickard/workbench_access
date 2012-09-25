@@ -228,6 +228,15 @@ function workbench_access_menu_link_insert($link) {
 }
 
 /**
+ * Implements hook_menu_link_update().
+ *
+ * If a menu link is updated, refresh the tree.
+ */
+function workbench_access_menu_link_update($link) {
+  workbench_access_reset_tree();
+}
+
+/**
  * Implements hook_menu_link_delete().
  *
  * If an active menu link is deleted, cascade the change through our system.
