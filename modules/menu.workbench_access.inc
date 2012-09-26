@@ -113,25 +113,22 @@ function menu_workbench_access_tree($info, $keys) {
   }
   foreach ($items as $name => $mlid) {
     $data = menu_load($name);
-    $tree[$name] = array(
-      'access_id' => $data['menu_name'],
-      'access_type_id' => $data['menu_name'],
-      'name' => $data['title'],
-      'description' => $data['description'],
-      'weight' => 0,
-      'depth' => 0,
-      'parent' => 0,
-    );
     $menu = menu_tree_all_data($name);
     foreach ($menu as $link) {
       // Ensure that we start at the top of the current request.
-      if ($mlid > 0 && $link['link']['mlid'] == $mlid) {
-        $tree = array();
-        _workbench_access_menu_build_tree($tree, $link);
+      // If mlid is 0, we are at the root.
+      if ($mlid == 0) {
+        $tree[$name] = array(
+          'access_id' => $data['menu_name'],
+          'access_type_id' => $data['menu_name'],
+          'name' => $data['title'],
+          'description' => $data['description'],
+          'weight' => 0,
+          'depth' => 0,
+          'parent' => 0,
+        );
       }
-      elseif ($mlid == 0) {
-        _workbench_access_menu_build_tree($tree, $link);
-      }
+      _workbench_access_menu_build_tree($tree, $link, $mlid);
     }
   }
   if ($keys) {
@@ -147,21 +144,26 @@ function menu_workbench_access_tree($info, $keys) {
  *   The workbench access tree being built.
  * @param $link
  *   The menu link being inspected.
+ * @param $mlid
+ *   The menu link id being acted upon. May be 0 if this is the top-level menu
+ *   item.
  */
-function _workbench_access_menu_build_tree(&$tree, $link) {
+function _workbench_access_menu_build_tree(&$tree, $link, $mlid = 0) {
   $item = (object) $link['link'];
-  $tree[$item->mlid] = array(
-    'access_id' => $item->mlid,
-    'access_type_id' => $item->menu_name,
-    'name' => $item->link_title,
-    'description' => isset($item->options['attributes']['title']) ? $item->options['attributes']['title'] : '',
-    'weight' => $item->weight,
-    'depth' => $item->depth,
-    'parent' => ($item->plid == 0) ? $item->menu_name : $item->plid,
-  );
+  if ($item->mlid == $mlid) {
+    $tree[$item->mlid] = array(
+      'access_id' => $item->mlid,
+      'access_type_id' => $item->menu_name,
+      'name' => $item->link_title,
+      'description' => isset($item->options['attributes']['title']) ? $item->options['attributes']['title'] : '',
+      'weight' => $item->weight,
+      'depth' => $item->depth,
+      'parent' => ($item->plid == 0) ? $item->menu_name : $item->plid,
+    );
+  }
   if (!empty($link['below'])) {
     foreach ($link['below'] as $below) {
-      _workbench_access_menu_build_tree($tree, $below);
+      _workbench_access_menu_build_tree($tree, $below, $below['link']['mlid']);
     }
   }
 }
