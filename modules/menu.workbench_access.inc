@@ -150,7 +150,7 @@ function menu_workbench_access_tree($info, $keys) {
  */
 function _workbench_access_menu_build_tree(&$tree, $link, $mlid = 0) {
   $item = (object) $link['link'];
-  if ($item->mlid == $mlid) {
+  if ($item->mlid == $mlid || $mlid === 0) {
     $tree[$item->mlid] = array(
       'access_id' => $item->mlid,
       'access_type_id' => $item->menu_name,
