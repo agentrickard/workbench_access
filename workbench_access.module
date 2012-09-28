@@ -1379,6 +1379,11 @@ function workbench_access_form_alter(&$form, $form_state, $form_id) {
     return;
   }
 
+  // Do not fire if this content type is not under our control.
+  if (!variable_get('workbench_access_node_type_' . $form['#node']->type, 1)) {
+    return;
+  }
+
   // Determine which form element to target.
   if (variable_get('workbench_access_custom_form', 1)) {
     // Provide a form element.
