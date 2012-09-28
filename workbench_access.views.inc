@@ -223,11 +223,9 @@ function _workbench_access_views_section_field_definition() {
 function workbench_access_views_data_alter(&$data) {
   if (isset($data['menu_links'])) {
     // Add our join to {workbench_access_node}.
-    $data['menu_links']['table']['join'] = array(
-      'workbench_access_node' => array(
-        'left_field' => 'access_id',
-        'field' => 'mlid',
-      ),
+    $data['menu_links']['table']['join']['workbench_access_node'] = array(
+      'left_field' => 'access_id',
+      'field' => 'mlid',
     );
     return;
   }
