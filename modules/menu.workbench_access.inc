@@ -111,23 +111,24 @@ function menu_workbench_access_tree($info, $keys) {
       $items[$key] = 0;
     }
   }
+  $tree = array();
   foreach ($items as $name => $mlid) {
     $data = menu_load($name);
+    if ($mlid == 0) {
+      $tree[$name] = array(
+        'access_id' => $data['menu_name'],
+        'access_type_id' => $data['menu_name'],
+        'name' => $data['title'],
+        'description' => $data['description'],
+        'weight' => 0,
+        'depth' => 0,
+        'parent' => 0,
+      );
+    }
     $menu = menu_tree_all_data($name);
     foreach ($menu as $link) {
       // Ensure that we start at the top of the current request.
       // If mlid is 0, we are at the root.
-      if ($mlid == 0) {
-        $tree[$name] = array(
-          'access_id' => $data['menu_name'],
-          'access_type_id' => $data['menu_name'],
-          'name' => $data['title'],
-          'description' => $data['description'],
-          'weight' => 0,
-          'depth' => 0,
-          'parent' => 0,
-        );
-      }
       _workbench_access_menu_build_tree($tree, $link, $mlid);
     }
   }
