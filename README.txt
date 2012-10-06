@@ -4,7 +4,7 @@
  */
 
 Workbench Access
-A pluggable, hierarachical editorial access control system
+A pluggable, hierarchical editorial access control system
 
 CONTENTS
 --------
@@ -187,7 +187,7 @@ organizational hierarchy.  Put another way, you will see that:
 1.2.1 Extending a section
 
 Let's say that Paula Thompson hires two writers for the Dental school. Those
-writers can be assigned to the Denistry section as well, so that Paula can edit
+writers can be assigned to the Dentistry section as well, so that Paula can edit
 their content.  We can even use Drupal's tools to extend the Dentistry section
 as follows:
 
@@ -319,7 +319,7 @@ that interests you, see the Developer Notes section of this document.
 
 Install the module and enable it according to Drupal standards.
 
-After enabling the module, you wil be asked to configure its settings.
+After enabling the module, you will be asked to configure its settings.
 On the configuration screen, you may choose to install a test
 vocabulary. This vocabulary will help you learn how Workbench Access
 works.
@@ -830,10 +830,10 @@ Workbench Access creates four tables in your Drupal installation.
   Stores the section assignments for each node.
 
   -- workbench_access_role
-  Stores the section assignements for each role.
+  Stores the section assignments for each role.
 
   -- workbench_access_user
-  Stores the section assignements for each user.
+  Stores the section assignments for each user.
 
 See workbench_access_scheme() in workbench_access.install for table definitions.
 
