@@ -756,18 +756,12 @@ function workbench_access_user_load($users) {
  *   No return. Add the workbench_access attribute by reference.
  */
 function workbench_access_user_load_data($account) {
-  $lookup = drupal_static(__FUNCTION__);
-  if (isset($lookup[$account->uid])) {
-    $account->workbench_access = $lookup[$account->uid];
-    return;
-  }
   $access = array();
   $access_scheme = variable_get('workbench_access', 'taxonomy');
   $active = workbench_access_get_active_tree();
   // There must be active sections, and the user must be allowed to use one.
   if (empty($active['tree']) || !user_access('access workbench access by role', $account)) {
-    $lookup[$account->uid] = $access;
-    $account->workbench_access = $lookup[$account->uid];
+    $account->workbench_access = $access;
     return;
   }
   // Get the user's assigned access sections.
@@ -813,8 +807,7 @@ function workbench_access_user_load_data($account) {
   }
   // Allow modules to alter the default behavior.
   drupal_alter('workbench_access_user', $access, $account);
-  $lookup[$account->uid] = $access;
-  $account->workbench_access = $lookup[$account->uid];
+  $account->workbench_access = $access;
 }
 
 /**
