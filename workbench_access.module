@@ -1559,6 +1559,7 @@ function workbench_access_find_form_elements(&$form) {
   else {
     $type = $form['#node']->type;
     $fields = workbench_access_get_assigned_fields($type);
+    dsm($fields);
     foreach ($fields as $field => $info) {
       if (!empty($info['instance_info']['workbench_access_field'])) {
         $form['workbench_access_fields']['#value'][] = $field;
@@ -1999,11 +2000,16 @@ function workbench_access_access_scheme_load($scheme) {
  *
  * @param $type
  *  The content type machine name.
+ * @param $all
+ *  Boolean flag to return all possible fields for this content type. If set
+ *  to FALSE, then only configured access fields are returned.
+ *
+ * @see workbench_access_get_available_fields().
  *
  * @return
  *  An array of field data that matches the current access scheme.
  */
-function workbench_access_get_assigned_fields($type) {
+function workbench_access_get_assigned_fields($type, $all = FALSE) {
   $matches = array();
   $fields = field_info_instances('node', $type);
   $scheme = variable_get('workbench_access', 'taxonomy');
@@ -2013,7 +2019,8 @@ function workbench_access_get_assigned_fields($type) {
     if ($data['module'] == $scheme) {
       foreach ($data['settings']['allowed_values'] as $key => $value) {
         // Currently, only works for taxonomy.
-        if (!empty($settings[$value['vocabulary']])) {
+        $instance = field_info_instance('node', $field, $type);
+        if (!empty($settings[$value['vocabulary']]) && ($all || !empty($instance['workbench_access_field']))) {
           $data['instance_info'] = $info;
           $matches[$field] = $data;
         }
@@ -2021,6 +2028,20 @@ function workbench_access_get_assigned_fields($type) {
     }
   }
   return $matches;
+}
+
+/**
+ * Finds fields that may be associated with a content type.
+ *
+ * @param $type
+ *  The content type machine name.
+ *
+ * @return
+ *  An array of field data that matches the current access scheme.
+ */
+function workbench_access_get_available_fields($type) {
+  $all = TRUE;
+  return workbench_access_get_assigned_fields($type, $all);
 }
 
 /**

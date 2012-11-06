@@ -87,6 +87,7 @@ function workbench_access_settings_form($form, &$form_state) {
       }
       foreach ($types as $type => $data) {
         $fields = workbench_access_get_assigned_fields($type);
+        $available = workbench_access_get_available_fields($type);
         $name = node_type_get_name($type);
         $controlled = variable_get('workbench_access_node_type_' . $type, 1);
         if (empty($controlled)) {
@@ -96,19 +97,26 @@ function workbench_access_settings_form($form, &$form_state) {
             '#markup' => t('This content type is not under access control.'),
           );
         }
-        elseif (empty($fields)) {
-          $message = t('The %type content type does not have an access field configured.', array('%type' => $name));
+        elseif (empty($available)) {
+          $message = t('The %type content type does not have any fields that can be used for access control.', array('%type' => $name));
           drupal_set_message($message, 'warning', FALSE);
           $form['field_elements'][$type] = array(
             '#type' => 'item',
-            '#title' => t('%type content type access control fields', array('%type' => $name)),
+            '#title' => t('%type content type fields', array('%type' => $name)),
             '#markup' => $message,
           );
         }
         else {
           $field_options = array();
           $default_options = array();
-          foreach ($fields as $field => $info) {
+          $message = '';
+          if (empty($fields)) {
+            $message = t('The %type content type does not have an access field configured.', array('%type' => $name));
+            drupal_set_message($message, 'warning', FALSE);
+            $field_options['wa-no-access-field'] = t('No access control field');
+            $default_options[] = 'wa-no-access-field';
+          }
+          foreach ($available as $field => $info) {
             $field_options[$field] = t('!label (!field)', array('!label' => $info['instance_info']['label'], '!field' => $field));
             if (!empty($info['instance_info']['workbench_access_field'])) {
               $default_options[$field] = $field;
@@ -120,6 +128,7 @@ function workbench_access_settings_form($form, &$form_state) {
             '#options' => $field_options,
             '#default_value' => $default_options,
             '#multiple' => variable_get('workbench_access_allow_multiple', 0),
+            '#description' => $message,
           );
         }
       }
@@ -227,7 +236,10 @@ function workbench_access_settings_submit($form, &$form_state) {
  */
 function workbench_access_save_field_elements($types) {
   foreach ($types as $type => $settings) {
-    $fields = workbench_access_get_assigned_fields($type);
+    if ($settings == 'wa-no-access-field') {
+      return;
+    }
+    $fields = workbench_access_get_available_fields($type);
     foreach ($fields as $field => $info) {
       $instance = $info['instance_info'];
       $instance['workbench_access_field'] = (int) !empty($settings[$field]);

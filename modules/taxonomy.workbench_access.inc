@@ -105,7 +105,7 @@ function taxonomy_workbench_access_field_ui_field_edit_form_alter(&$form, &$form
     '#default_value' => !empty($form['#instance']['workbench_access_field']),
     '#weight' => -15,
   );
-  $allowed = workbench_access_get_assigned_fields($form['#instance']['bundle']);
+  $allowed = workbench_access_get_available_fields($form['#instance']['bundle']);
   $instance = $form['#instance']['field_name'];
   if (!isset($allowed[$instance])) {
     $form['instance']['workbench_access_field']['#disabled'] = TRUE;
