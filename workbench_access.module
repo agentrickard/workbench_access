@@ -1552,7 +1552,6 @@ function workbench_access_find_form_elements(&$form) {
   else {
     $type = $form['#node']->type;
     $fields = workbench_access_get_assigned_fields($type);
-    dsm($fields);
     foreach ($fields as $field => $info) {
       if (!empty($info['instance_info']['workbench_access_field'])) {
         $form['workbench_access_fields']['#value'][] = $field;
