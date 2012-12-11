@@ -759,54 +759,65 @@ function workbench_access_user_load_data($account) {
   $access = array();
   $access_scheme = variable_get('workbench_access', 'taxonomy');
   $active = workbench_access_get_active_tree();
+
   // There must be active sections, and the user must be allowed to use one.
-  if (empty($active['tree']) || !user_access('access workbench access by role', $account)) {
-    $account->workbench_access = $access;
-    return;
-  }
-  // Get the user's assigned access sections.
-  $query = db_select('workbench_access_user', 'wau')
-    ->addTag('workbench_access_user')
-    ->fields('wau', array('access_id'))
-    ->condition('wau.uid', $account->uid)
-    ->condition('wau.access_scheme', $access_scheme);
-  $result = $query->execute()->fetchAll();
-  $items = array();
-  foreach ($result as $data) {
-    $items[$data->access_id] = $data;
-  }
-  // Add roles.
-  $query = db_select('workbench_access_role', 'war')
-    ->addTag('workbench_access_role')
-    ->fields('war', array('access_id'))
-    ->condition('war.rid', array_keys($account->roles), 'IN')
-    ->condition('war.access_scheme', $access_scheme);
-  $result = $query->execute()->fetchAll();
-  foreach ($result as $data) {
-    if (!isset($items[$data->access_id])) {
+  if (!empty($active['tree']) && user_access('access workbench access by role', $account)) {
+    // Get the user's assigned access sections.
+    $query = db_select('workbench_access_user', 'wau')
+      ->addTag('workbench_access_user')
+      ->fields('wau', array('access_id'))
+      ->condition('wau.uid', $account->uid)
+      ->condition('wau.access_scheme', $access_scheme);
+    $result = $query->execute()->fetchAll();
+    $items = array();
+    foreach ($result as $data) {
       $items[$data->access_id] = $data;
-      // Identify the access-by-role features.
-      $account->workbench_access_by_role[] = $data->access_id;
+    }
+    // Add roles.
+    $query = db_select('workbench_access_role', 'war')
+     ->addTag('workbench_access_role')
+      ->fields('war', array('access_id'))
+      ->condition('war.rid', array_keys($account->roles), 'IN')
+     ->condition('war.access_scheme', $access_scheme);
+    $result = $query->execute()->fetchAll();
+    foreach ($result as $data) {
+      $items[$data->access_id] = $data;
+    }
+    // Add roles.
+    $query = db_select('workbench_access_role', 'war')
+      ->addTag('workbench_access_role')
+      ->fields('war', array('access_id'))
+      ->condition('war.rid', array_keys($account->roles), 'IN')
+      ->condition('war.access_scheme', $access_scheme);
+    $result = $query->execute()->fetchAll();
+    foreach ($result as $data) {
+      if (!isset($items[$data->access_id])) {
+        $items[$data->access_id] = $data;
+        // Identify the access-by-role features.
+        $account->workbench_access_by_role[] = $data->access_id;
+      }
+    }
+    foreach ($items as $item) {
+      if (!in_array($item->access_id, array_keys($active['tree']))) {
+        continue;
+      }
+      // Get the permissions for those sections.
+      // @TODO: complex permission handling.
+      $access[$item->access_id] = array(
+        'view' => array('all'),
+        'create' => array('all'),
+        'update' => array('all'),
+        'delete' => array('all'),
+        'preview' => array('all'),
+        'revise' => array('all'),
+        'publish' => array('all'),
+      );
     }
   }
-  foreach ($items as $item) {
-    if (!in_array($item->access_id, array_keys($active['tree']))) {
-      continue;
-    }
-    // Get the permissions for those sections.
-    // @TODO: complex permission handling.
-    $access[$item->access_id] = array(
-      'view' => array('all'),
-      'create' => array('all'),
-      'update' => array('all'),
-      'delete' => array('all'),
-      'preview' => array('all'),
-      'revise' => array('all'),
-      'publish' => array('all'),
-    );
-  }
+
   // Allow modules to alter the default behavior.
   drupal_alter('workbench_access_user', $access, $account);
+
   $account->workbench_access = $access;
 }
 
