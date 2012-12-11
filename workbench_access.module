@@ -1289,6 +1289,19 @@ function workbench_access_options($tree, $active) {
 }
 
 /**
+ * Build an array of form options for the currently active workbench access tree.
+ *
+ * @return
+ *   An array of options, suitable for use in a form.
+ */
+function workbench_access_active_options() {
+  $active = workbench_access_get_active_tree();
+  $tree = $active['tree'];
+  workbench_access_build_tree($tree);
+  return workbench_access_options($tree, $active['active']);
+}
+
+/**
  * Ensure the proper action for our content form.
  */
 function workbench_access_form_views_exposed_form_alter(&$form, &$form_state) {
@@ -1456,8 +1469,7 @@ function workbench_access_node_form_element(&$form, $form_state) {
     $options[NULL] = t('- Select a value -');
   }
   // Get the user options.
-  $tree = workbench_access_get_user_tree();
-  $options += workbench_access_options($tree, $active['active']);
+  $options += workbench_access_active_options();
 
   // If there are no options and the 'workbench_access' variable has not been set
   // then it seems that Workbench Access has not been configured.
@@ -1529,11 +1541,8 @@ function workbench_access_default_form_element(&$form, &$form_state) {
     drupal_set_message(workbench_access_configuration_needed_message(), 'warning');
   }
   else {
-    // Prepare the form element.
-    $active = workbench_access_get_active_tree();
-    $tree = workbench_access_get_user_tree();
     // Generate options so we can check for access.
-    $options = workbench_access_options($tree, $active['active']);
+    $options = workbench_access_active_options();
     // Call the function.
     $func = $form['workbench_access_fields']['#access_type'] . '_workbench_access_default_form_alter';
     if (function_exists($func)) {
@@ -1866,9 +1875,7 @@ function workbench_access_node_operations($form = array(), $form_state = array()
   if (!user_access('batch update workbench access')) {
     return;
   }
-  $tree = workbench_access_get_user_tree();
-  $active = workbench_access_get_active_tree();
-  $options = workbench_access_options($tree, $active['active']);
+  $options = workbench_access_active_options();
   if (empty($options)) {
     return;
   }

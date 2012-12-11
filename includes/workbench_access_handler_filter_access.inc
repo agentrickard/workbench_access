@@ -27,10 +27,7 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
   }
 
   function get_value_options() {
-    $active = workbench_access_get_active_tree();
-    $tree = $active['tree'];
-    workbench_access_build_tree($tree, array_keys($active['active']));
-    return workbench_access_options($tree, $active['active']);
+    return workbench_access_active_options();
   }
 
   function value_form(&$form, &$form_state) {
@@ -60,9 +57,7 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
     $form['value'] = array('#type' => 'value', '#value' => '');
     parent::exposed_form($form, $form_state);
     // Build our form element.
-    $active = workbench_access_get_active_tree();
-    $tree = workbench_access_get_user_tree();
-    $options = workbench_access_options($tree, $active['active']);
+    $options = workbench_access_active_options();
     $form['access_id'] = array(
       '#type' => 'select',
       '#multiple' => TRUE,
