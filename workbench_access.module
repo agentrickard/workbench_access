@@ -26,6 +26,14 @@ function workbench_access_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'workbench_access.pages.inc',
   );
+  $items['workbench_access/taxonomy_autocomplete'] = array(
+    'title' => 'Autocomplete taxonomy',
+    'page callback' => 'workbench_access_taxonomy_autocomplete',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+    'file' => 'taxonomy.workbench_access.inc',
+    'file path' => drupal_get_path('module', 'workbench_access') . '/modules',
+  );
   $items['admin/config/workbench/access'] = array(
     'title' => 'Workbench Access',
     'description' => 'Workbench access control settings',
@@ -125,19 +133,6 @@ function workbench_access_menu_alter(&$items) {
   // Hide our taxonomy view pages.
   $items['taxonomy/term/%taxonomy_term']['access callback'] = 'workbench_access_taxonomy_page_access';
   $items['taxonomy/term/%taxonomy_term']['access arguments'] = array(2);
-
-  // Taxonomy autocomplete does not pass enough context.
-  // Not using a custom form element or taxonomy? Then we don't need this.
-  if (!variable_get('workbench_access_custom_form', 1) || variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
-    $items['taxonomy/autocomplete'] = array(
-      'title' => 'Autocomplete taxonomy',
-      'page callback' => 'workbench_access_taxonomy_autocomplete',
-      'access arguments' => array('access content'),
-      'type' => MENU_CALLBACK,
-      'file' => 'taxonomy.workbench_access.inc',
-      'file path' => drupal_get_path('module', 'workbench_access') . '/modules',
-    );
-  }
 
   // It is possible that another module added this item.
   if (isset($items['admin/config/workbench'])) {
@@ -2083,7 +2078,7 @@ function workbench_access_is_active_autocomplete() {
   $path = $page_arguments[0] . '/' . $page_arguments[1];
   // If the path is wrong, or the arguments are not provided, then we cannot
   // safely alter the term query.
-  if ($path != 'taxonomy/autocomplete' || empty($page_arguments[2]) || empty($page_arguments[3])) {
+  if ($path != 'workbench_access/taxonomy_autocomplete' || empty($page_arguments[2]) || empty($page_arguments[3])) {
     return $result;
   }
 

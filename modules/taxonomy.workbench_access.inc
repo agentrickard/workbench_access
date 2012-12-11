@@ -245,9 +245,9 @@ function taxonomy_workbench_access_default_form_alter(&$form, &$form_state, $opt
         }
       }
     }
-    // To act on autocompletes, we need to add the node type to the callback.
+    // For content access fields with autocomplete widget, we use our own autocomplete callback with node type.
     elseif (isset($element['#autocomplete_path'])) {
-      $element['#autocomplete_path'] .= '/' . $form['#node']->type;
+      $element['#autocomplete_path'] = 'workbench_access/taxonomy_autocomplete/' . $item . '/' . $form['#node']->type;
       // We need our own validation, too.
       $element['#element_validate'][] = 'workbench_access_autocomplete_validate';
     }
