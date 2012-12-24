@@ -739,6 +739,7 @@ function workbench_access_user_load($users) {
   foreach ($users as $uid => $account) {
     workbench_access_user_load_data($account);
   }
+  drupal_static_reset('workbench_access_get_user_tree');
 }
 
 /**
@@ -1291,8 +1292,7 @@ function workbench_access_options($tree, $active) {
  */
 function workbench_access_active_options() {
   $active = workbench_access_get_active_tree();
-  $tree = $active['tree'];
-  workbench_access_build_tree($tree);
+  $tree = workbench_access_get_user_tree();
   return workbench_access_options($tree, $active['active']);
 }
 

@@ -51,6 +51,28 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     }
   }
 
+  /**
+   * Helper function for form introspection.
+   *
+   * Forms are sensitive to the global user account, so we must reset it when
+   * using this technique.
+   *
+   * @param $uid
+   *   A user id representing the account to test.
+   * @param $type
+   *   The node type of the form.
+   */
+  public function workbenchAccessNodeForm($uid, $type) {
+    $temp = $GLOBALS['user'];
+    $user = user_load($uid, TRUE);
+    $GLOBALS['user'] = $user;
+    $node = (object) array('uid' => $user->uid, 'name' => (isset($user->name) ? $user->name : ''), 'type' => $type, 'language' => LANGUAGE_NONE);
+    module_load_include('inc', 'node', 'node.pages');
+    $form = drupal_get_form($type . '_node_form', $node);
+    $GLOBALS['user'] = $temp;
+    return $form;
+  }
+
   // Base test for installation.
   function testWorkbenchAccess() {
     // Check for user creation.
@@ -205,6 +227,18 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->assertRaw('TestWA', t('Workbench Access field was renamed.'));
     $this->assertRaw('<select multiple="multiple" name="workbench_access[]" id="edit-workbench-access--2" class="form-select required">', t('Form presents a select list with multiple select.'));
 
+    // Try some form introspection.
+    $form = $this->workbenchAccessNodeForm($account->uid, $node->type);
+    $this->assertTrue(isset($form['workbench_access']['workbench_access']['#options']), t('Form element returns properly.'));
+    $this->assertTrue(count($form['workbench_access']['workbench_access']['#options']) == 10, t('Form element returned ten options to user with all sections.'));
+    // Delete global permission.
+    workbench_access_user_section_delete($account->uid, 'workbench_access', 'taxonomy');
+    // Add sub permission.
+    $term = taxonomy_term_load(1);
+    workbench_access_user_section_save($account->uid, $term->tid, 'taxonomy');
+    $form = $this->workbenchAccessNodeForm($account->uid, $node->type);
+    $this->assertTrue(count($form['workbench_access']['workbench_access']['#options']) == 3, t('Form element returned three options to user with limited options.'));
+
     // Check that access control by node type settings work.
     $this->assertTrue(variable_get('workbench_access_node_type_' . $node->type, 1), t('Workbench Access enforced for %type content.', array('%type' => $node->type)));
     // Force a fail by removing this user's access rules. Else it will just
@@ -236,9 +270,6 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $node->workbench_access = $temp;
     $response = workbench_access_node_access($node, 'update', $account);
     $this->assertTrue($response == NODE_ACCESS_DENY, t('Workbench Access rules enforced on test node.'));
-
-    // Restore the account, in case we do more tests later.
-    $account = user_load($account->uid, TRUE);
 
     // Delete the user account.
     user_delete($account->uid);
