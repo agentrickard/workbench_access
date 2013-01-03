@@ -11,7 +11,7 @@
 function workbench_access_init() {
   // Even though we cache, we still need the include, or else our hooks don't
   // run properly. See http://drupal.org/node/1356272
-  $scheme = variable_get('workbench_access', 'taxonomy');
+  $scheme = variable_get('workbench_access');
   workbench_access_load_include($scheme);
 }
 
@@ -26,14 +26,16 @@ function workbench_access_menu() {
     'type' => MENU_CALLBACK,
     'file' => 'workbench_access.pages.inc',
   );
-  $items['workbench_access/taxonomy_autocomplete'] = array(
-    'title' => 'Autocomplete taxonomy',
-    'page callback' => 'workbench_access_taxonomy_autocomplete',
-    'access arguments' => array('access content'),
-    'type' => MENU_CALLBACK,
-    'file' => 'taxonomy.workbench_access.inc',
-    'file path' => drupal_get_path('module', 'workbench_access') . '/modules',
-  );
+  if (!variable_get('workbench_access_custom_form', 1) || variable_get('workbench_access') != 'taxonomy') {
+    $items['workbench_access/taxonomy_autocomplete'] = array(
+      'title' => 'Autocomplete taxonomy',
+      'page callback' => 'workbench_access_taxonomy_autocomplete',
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+      'file' => 'taxonomy.workbench_access.inc',
+      'file path' => drupal_get_path('module', 'workbench_access') . '/modules',
+    );
+  }
   $items['admin/config/workbench/access'] = array(
     'title' => 'Workbench Access',
     'description' => 'Workbench access control settings',
@@ -390,7 +392,7 @@ function workbench_access_node_access($node, $op, $account) {
   }
 
   // Load the current scheme.
-  workbench_access_load_include(variable_get('workbench_access', 'taxonomy'));
+  workbench_access_load_include(variable_get('workbench_access'));
   // Get the access rules for this node.
   $result = FALSE; // Always default to FALSE.
   if (!empty($node->workbench_access) && !empty($account->workbench_access)) {
@@ -508,7 +510,7 @@ function workbench_access_get_access_tree($account_access = array()) {
     ->addTag('workbench_access')
     ->fields('wa', array('access_id', 'access_type', 'access_scheme', 'access_type_id'))
     ->condition('wa.access_id', $account_access, 'IN')
-    ->condition('wa.access_type', variable_get('workbench_access', 'taxonomy'))
+    ->condition('wa.access_type', variable_get('workbench_access'))
     ->execute()->fetchAllAssoc('access_id', PDO::FETCH_ASSOC);
   foreach ($access_scheme as $id => $info) {
     $trees[$key][$id] = workbench_access_tree($info, TRUE);
@@ -541,7 +543,11 @@ function workbench_access_tree($info, $keys = FALSE) {
  * Load the active tree.
  */
 function workbench_access_get_active_tree() {
-  $scheme = variable_get('workbench_access', 'taxonomy');
+  $scheme = variable_get('workbench_access');
+  if (!$scheme) {
+    return FALSE;
+  }
+
   workbench_access_load_include($scheme);
 
   // Now check the cache.
@@ -581,7 +587,7 @@ function workbench_access_get_active_tree() {
 function workbench_access_node_load($nodes, $types) {
   $scheme = &drupal_static(__FUNCTION__);
   if (!isset($scheme)) {
-    $scheme = variable_get('workbench_access', 'taxonomy');
+    $scheme = variable_get('workbench_access');
   }
   $tree = workbench_access_get_active_tree();
   $result = array();
@@ -753,7 +759,7 @@ function workbench_access_user_load($users) {
  */
 function workbench_access_user_load_data($account) {
   $access = array();
-  $access_scheme = variable_get('workbench_access', 'taxonomy');
+  $access_scheme = variable_get('workbench_access');
   $active = workbench_access_get_active_tree();
 
   // There must be active sections, and the user must be allowed to use one.
@@ -999,7 +1005,7 @@ function workbench_access_rebuild_user($uid, $sections = array()) {
   // Get the user and scheme data.
   $account = user_load($uid);
   $user_sections = array_keys($account->workbench_access);
-  $access_scheme = variable_get('workbench_access', 'taxonomy');
+  $access_scheme = variable_get('workbench_access');
   // Check to see if any sections have been removed.
   $removed = array_diff($user_sections, $sections);
   foreach ($removed as $access_id) {
@@ -1611,7 +1617,7 @@ function workbench_access_sections_needed_message() {
  * Add a sections form to native vocabulary editing.
  */
 function workbench_access_form_taxonomy_form_vocabulary_alter(&$form, &$form_state, $form_id) {
-  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access') != 'taxonomy') {
     return;
   }
   $vocabulary = $form['#vocabulary'];
@@ -1647,7 +1653,7 @@ function workbench_access_vocabulary_submit($form, &$form_state) {
  * Add a sections form to native term editing.
  */
 function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $form_id) {
-  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'taxonomy' || isset($form_state['confirm_delete'])) {
+  if (!user_access('administer workbench access') || variable_get('workbench_access') != 'taxonomy' || isset($form_state['confirm_delete'])) {
     return;
   }
   // On delete, the term may be an object. Be consistent, core!
@@ -1666,7 +1672,7 @@ function workbench_access_form_taxonomy_form_term_alter(&$form, &$form_state, $f
  * The term overview page does not fire hook_taxonomy_term_update().
  */
 function workbench_access_form_taxonomy_overview_terms_alter(&$form, &$form_state, $form_id) {
-  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy') {
+  if (variable_get('workbench_access') != 'taxonomy') {
     return;
   }
   $form['#submit'][] = 'workbench_access_form_taxonomy_overview_terms_submit';
@@ -1756,7 +1762,7 @@ function workbench_access_edit_form_submit($values, $section, $name) {
  * Add a sections form.
  */
 function workbench_access_form_menu_edit_menu_alter(&$form, &$form_state, $form_id) {
-  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'menu') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access') != 'menu') {
     return;
   }
   $menu = $form['menu_name']['#default_value'];
@@ -1792,7 +1798,7 @@ function workbench_access_menu_submit($form, &$form_state) {
  * Add a sections form.
  */
 function workbench_access_form_menu_edit_item_alter(&$form, &$form_state, $form_id) {
-  if (!user_access('administer workbench access') || variable_get('workbench_access', 'taxonomy') != 'menu') {
+  if (!user_access('administer workbench access') || variable_get('workbench_access') != 'menu') {
     return;
   }
   $menu = $form['original_item']['#value']['menu_name'];
@@ -1852,7 +1858,7 @@ function workbench_access_workbench_block() {
       }
       else {
         $names = array();
-        $access_type = variable_get('workbench_access', 'taxonomy');
+        $access_type = variable_get('workbench_access');
         foreach ($node->workbench_access as $access_id) {
           $section = workbench_access_load($access_type, $access_id);
           $names[] = $section['name'];
@@ -2020,7 +2026,7 @@ function workbench_access_access_scheme_load($scheme) {
 function workbench_access_get_assigned_fields($type, $all = FALSE) {
   $matches = array();
   $fields = field_info_instances('node', $type);
-  $scheme = variable_get('workbench_access', 'taxonomy');
+  $scheme = variable_get('workbench_access');
   $settings = variable_get('workbench_access_' . $scheme, array());
   foreach ($fields as $field => $info) {
     $data = field_info_field($field);
@@ -2105,7 +2111,7 @@ function workbench_access_is_active_autocomplete() {
  */
 function workbench_access_update_records($find, $replace, $scheme = NULL) {
   if (empty($scheme)) {
-    $scheme = variable_get('workbench_access', 'taxonomy');
+    $scheme = variable_get('workbench_access');
   }
   // Update the base table.
   db_update('workbench_access')

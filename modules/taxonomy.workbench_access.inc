@@ -349,7 +349,7 @@ function workbench_access_query_term_access_alter(QueryAlterableInterface $query
  * If a new term is added, check to see if we need to create a section.
  */
 function workbench_access_taxonomy_term_insert($term) {
-  if (variable_get('workbench_access', 'taxonomy') != 'taxonomy' || !variable_get('workbench_access_auto_assign', 1)) {
+  if (variable_get('workbench_access') != 'taxonomy' || !variable_get('workbench_access_auto_assign', 1)) {
     return;
   }
   $active = array_filter(variable_get('workbench_access_taxonomy', array()));

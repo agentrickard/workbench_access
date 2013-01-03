@@ -5,18 +5,10 @@
  * Test file for Workbench Access.
  */
 
-class WorkbenchAccessTestCase extends DrupalWebTestCase {
+abstract class WorkbenchAccessTestCase extends DrupalWebTestCase {
   protected $user_list;
   protected $editor_role;
   protected $permissions;
-
-  public static function getInfo() {
-    return array(
-      'name' => 'Workbench access controls',
-      'description' => 'Test access control rules for Workbench Access.',
-      'group' => 'Workbench Access'
-    );
-  }
 
   function setUp() {
     parent::setUp(array('workbench_access', 'workbench_access_test'));
@@ -73,8 +65,70 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     return $form;
   }
 
-  // Base test for installation.
-  function testWorkbenchAccess() {
+  /**
+   * Simple method for running the same node access checks repeatedly.
+   *
+   * @param $nodes
+   *  The nodes to check. If one fails, the test fails.
+   * @param $account
+   *  The user account being tested.
+   * @param $message
+   *  The string to prefix in front of the test result message.
+   * @param $true
+   *  Boolean indicator that we want to test TRUE or FALSE on this test.
+   */
+  function workbench_access_action_check($nodes, $account, $message, $true = TRUE) {
+    // Since we change conditions, reset node access.
+    drupal_static_reset('node_access');
+    // Check the node operations.
+    $actions = array('create', 'update', 'delete');
+    foreach ($actions as $action) {
+      foreach ($nodes as $node) {
+        $status[$action] = FALSE;
+        if ($action == 'create') {
+          $result = node_access($action, $node->type, $account);
+        }
+        else {
+          $result = node_access($action, $node, $account);
+        }
+        if ($result) {
+          $status[$action] = TRUE;
+          break;
+        }
+      }
+      if ($true) {
+        $this->assertTrue(!empty($status[$action]), t('@message. Test user can @action content.', array('@message' => $message, '@action' => $action)));
+      }
+      else {
+        $this->assertTrue(empty($status[$action]), t('@message. Test user cannot @action content.', array('@message' => $message, '@action' => $action)));
+      }
+    }
+  }
+  /**
+   * Any tests that can be abstracted should go here in a new method.
+   */
+  function assertWorkbenchScheme($scheme) {
+    workbench_access_reset_tree();
+    $active = workbench_access_get_active_tree();
+    $this->assertTrue(!empty($active['access_scheme']), t('Active access scheme set.'));
+    $this->assertTrue(!empty($active['tree']), t('Active access tree set.'));
+    $this->assertTrue(!empty($active['active']), t('Active access sections set.'));
+    $this->assertTrue($active['access_scheme']['access_scheme'] == $scheme, t('Using %scheme access scheme.', array('%scheme' => $scheme)));
+    $this->assertTrue(isset($active['access_scheme']['access_type_id']['workbench_access']), t('Using Workbench Access test scheme.'));
+    $this->assertTrue(isset($active['tree']['workbench_access']), t('Tree returned correctly.'));
+  }
+}
+
+
+class WorkbenchAccessBaseTestCase extends WorkbenchAccessTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Workbench access installation',
+      'description' => 'Test installation for Workbench Access.',
+      'group' => 'Workbench Access'
+    );
+  }
+  function testWorkbenchAccessInstall() {
     // Check for user creation.
     $this->assertTrue(count($this->user_list) == 10, t('Ten new users were created.'));
     $this->assertTrue(!empty($this->editor_role), t('Created editor role.'));
@@ -83,33 +137,42 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->assertTrue($count == 10, t('Ten initial nodes created.'));
     $nid = db_query_range("SELECT n.nid FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid", 0, 1)->fetchField();
     $this->assertTrue(empty($nid), t('Initial nodes have no access data.'));
+  }
+}
+
+class WorkbenchAccessTaxonomyTestCase extends WorkbenchAccessTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Workbench access taxonomy',
+      'description' => 'Test Taxonomy access control rules for Workbench Access.',
+      'group' => 'Workbench Access'
+    );
+  }
+  // Base test for installation.
+  function testWorkbenchAccess() {
     // Create the taxonomy test scheme.
     module_load_include('inc', 'workbench_access', 'workbench_access.admin');
     workbench_access_example_taxonomy();
     $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid")->fetchField();
     $this->assertTrue($count == 10, t('Initial nodes assigned access data.'));
+
     // Check that the vocabulary is setup correctly.
-    workbench_access_reset_tree();
-    $active = workbench_access_get_active_tree();
-    $this->assertTrue(!empty($active['access_scheme']), t('Active access scheme set.'));
-    $this->assertTrue(!empty($active['tree']), t('Active access tree set.'));
-    $this->assertTrue(!empty($active['active']), t('Active access sections set.'));
-    $this->assertTrue($active['access_scheme']['access_scheme'] == 'taxonomy', t('Using taxonomy access scheme.'));
-    $this->assertTrue(isset($active['access_scheme']['access_type_id']['workbench_access']), t('Using Workbench Access test vocabulary.'));
-    $this->assertTrue(isset($active['tree']['workbench_access']), t('Vocabulary tree returned correctly.'));
+    $this->assertWorkbenchScheme('taxonomy');
+
     // Check that nodes have been assigned to the top-level item.
     $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid WHERE wan.access_id = 'workbench_access' AND wan.access_scheme = 'taxonomy'")->fetchField();
     $this->assertTrue($count == 10, t('Initial nodes assigned to top-level hierarchy.'));
+
     // Test access settings of user 1.
     $account = user_load(1, TRUE);
     $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('User 1 assigned to top-level hierarchy.'));
-    // End setup tests.
 
     // Change the machine_name of the vocabulary and check that we track
     // the change. See https://drupal.org/node/1779502
     $vocabulary = taxonomy_vocabulary_machine_name_load('workbench_access');
     $vocabulary->machine_name = 'workbench_access_foo';
     taxonomy_vocabulary_save($vocabulary);
+
     // Check that the vocabulary is setup correctly.
     workbench_access_reset_tree();
     $active = workbench_access_get_active_tree();
@@ -130,6 +193,7 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
 
     // Assign a user to a section and check permissions.
     // This is a multi-step check.
+
     // First, the user should not be able to do anything (Create, Update or Delete).
     $id = array_rand($this->user_list);
     $account = $this->user_list[$id];
@@ -282,46 +346,6 @@ class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $form = drupal_get_form($node->type . '_node_form', $node);
     $this->assertTrue(!empty($form['workbench_access']['workbench_access']['#workbench_access_test']), t('hook_workbench_access_node_element_alter() fired correctly.'));
   }
-
-  /**
-   * Simple method for running the same node access checks repeatedly.
-   *
-   * @param $nodes
-   *  The nodes to check. If one fails, the test fails.
-   * @param $account
-   *  The user account being tested.
-   * @param $message
-   *  The string to prefix in front of the test result message.
-   * @param $true
-   *  Boolean indicator that we want to test TRUE or FALSE on this test.
-   */
-  function workbench_access_action_check($nodes, $account, $message, $true = TRUE) {
-    // Since we change conditions, reset node access.
-    drupal_static_reset('node_access');
-    // Check the node operations.
-    $actions = array('create', 'update', 'delete');
-    foreach ($actions as $action) {
-      foreach ($nodes as $node) {
-        $status[$action] = FALSE;
-        if ($action == 'create') {
-          $result = node_access($action, $node->type, $account);
-        }
-        else {
-          $result = node_access($action, $node, $account);
-        }
-        if ($result) {
-          $status[$action] = TRUE;
-          break;
-        }
-      }
-      if ($true) {
-        $this->assertTrue(!empty($status[$action]), t('@message. Test user can @action content.', array('@message' => $message, '@action' => $action)));
-      }
-      else {
-        $this->assertTrue(empty($status[$action]), t('@message. Test user cannot @action content.', array('@message' => $message, '@action' => $action)));
-      }
-    }
-  }
 }
 
 class WorkbenchAccessTokenTestCase extends DrupalWebTestCase {
@@ -346,7 +370,7 @@ class WorkbenchAccessTokenTestCase extends DrupalWebTestCase {
     variable_set('workbench_access_node_type_page', 0);
   }
 
-  function testTokens() {
+  function testTaxonomyTokens() {
     $assigned_node = $this->drupalCreateNode(array('type' => 'article'));
     module_load_include('inc', 'workbench_access', 'admin');
     workbench_access_example_taxonomy();

@@ -192,7 +192,7 @@ function workbench_access_requirements($phase) {
         'title' => t('Workbench Access'),
         'value' => t('Configured'),
         'severity' => REQUIREMENT_OK,
-        'description' => t('Workbench Access is configured properly, using %scheme as the access scheme.', array('%scheme' => variable_get('workbench_access', 'taxonomy'))),
+        'description' => t('Workbench Access is configured properly, using %scheme as the access scheme.', array('%scheme' => variable_get('workbench_access'))),
       );
     }
     else {
@@ -212,9 +212,11 @@ function workbench_access_requirements($phase) {
  * Remove our vocabulary and variables.
  */
 function workbench_access_uninstall() {
-  $vocabulary = taxonomy_vocabulary_machine_name_load('workbench_access');
-  if (isset($vocabulary->vid)) {
-    taxonomy_vocabulary_delete($vocabulary->vid);
+  if (module_exists('taxonomy')) {
+    $vocabulary = taxonomy_vocabulary_machine_name_load('workbench_access');
+    if (isset($vocabulary->vid)) {
+      taxonomy_vocabulary_delete($vocabulary->vid);
+    }
   }
   variable_del('workbench_access');
   variable_del('workbench_access_taxonomy');

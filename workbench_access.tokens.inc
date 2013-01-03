@@ -123,7 +123,7 @@ function workbench_access_tokens($type, $tokens, array $data = array(), array $o
     foreach ($tokens as $name => $original) {
       switch ($name) {
         case 'workbench-access-scheme':
-          if ($scheme = workbench_access_access_scheme_load(variable_get('workbench_access', 'taxonomy'))) {
+          if ($scheme = workbench_access_access_scheme_load(variable_get('workbench_access'))) {
             $replacements[$original] = $sanitize ? check_plain($scheme['name']) : $scheme['name'];
           }
           break;
@@ -132,7 +132,7 @@ function workbench_access_tokens($type, $tokens, array $data = array(), array $o
 
     // Chained token relationships.
     if ($scheme_tokens = token_find_with_prefix($tokens, 'workbench-access-scheme')) {
-      if ($scheme = workbench_access_access_scheme_load(variable_get('workbench_access', 'taxonomy'))) {
+      if ($scheme = workbench_access_access_scheme_load(variable_get('workbench_access'))) {
         $replacements += token_generate('workbench-access-scheme', $scheme_tokens, array('workbench-access-scheme' => $scheme), $options);
       }
     }
@@ -177,7 +177,7 @@ function _workbench_access_get_node_section_names($node) {
     $sections[$node->nid] = array();
 
     if (!empty($node->workbench_access)) {
-      $access_type = variable_get('workbench_access', 'taxonomy');
+      $access_type = variable_get('workbench_access');
       foreach ($node->workbench_access as $access_id) {
         $info = workbench_access_load($access_type, $access_id);
         $sections[$node->nid][$access_id] = $info['name'];
@@ -202,7 +202,7 @@ function _workbench_access_get_user_section_names($account) {
     $sections[$account->uid] = array();
 
     if (!empty($account->workbench_access)) {
-      $access_type = variable_get('workbench_access', 'taxonomy');
+      $access_type = variable_get('workbench_access');
       foreach (array_keys($account->workbench_access) as $access_id) {
         $info = workbench_access_load($access_type, $access_id);
         $sections[$account->uid][$access_id] = $info['name'];

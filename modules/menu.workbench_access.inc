@@ -215,7 +215,7 @@ function workbench_access_menu_delete($menu) {
  * If an new link is added, check to see if we need to create a section.
  */
 function workbench_access_menu_link_insert($link) {
-  if (variable_get('workbench_access', 'taxonomy') != 'menu' || !variable_get('workbench_access_auto_assign', 1)) {
+  if (variable_get('workbench_access') != 'menu' || !variable_get('workbench_access_auto_assign', 1)) {
     return;
   }
   $active = array_filter(variable_get('workbench_access_menu', array()));
