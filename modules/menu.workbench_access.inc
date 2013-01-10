@@ -80,6 +80,12 @@ function menu_workbench_access_configuration(&$form, &$form_state) {
       ),
     ),
   );
+  $form['menu_workbench_access_info']['workbench_access_menu_limit'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Limit available menu items based on Workbench Access.'),
+    '#description' => t('If checked, when creating nodes users will not be able to choose a parent menu item to which they do not have editorial access.'),
+    '#default_value' => variable_get('workbench_access_menu_limit', 1),
+  );
 }
 
 /**
@@ -248,5 +254,59 @@ function workbench_access_menu_link_delete($link) {
   $access_scheme = db_query("SELECT * FROM {workbench_access} WHERE access_type = :access_type AND access_id = :access_id", array(':access_type' => 'menu', ':access_id' => $link['mlid']))->fetchAssoc();
   if (!empty($access_scheme)) {
     workbench_access_section_delete($access_scheme);
+  }
+}
+
+/**
+ * Executes a form alter on a specific FieldAPI form element.
+ */
+function menu_workbench_access_default_form_alter(&$form, &$form_state, $options) {
+  if (!isset($form['menu'])) {
+    return;
+  }
+
+  // If no options, then no access.
+  if (empty($options)) {
+    $form['menu']['#access'] = FALSE;
+    return;
+  }
+
+  // Nothing to do if we're not limiting menu items.
+  if (!variable_get('workbench_access_menu_limit', 1)) {
+    return;
+  }
+
+  // Note that we require menu data for access control.
+  $form['menu']['enabled']['#description'] = t('To enforce access control, this content must be placed in the menu.');
+
+  // Adjust the parent form.
+  $parent = &$form['menu']['link']['parent'];
+  $current = $parent['#options'];
+
+  foreach ($parent['#options'] as $key => $value) {
+    $ids = explode(':', $key);
+    $menu = $ids[0];
+    $plid = $ids[1];
+    // Unset if the user does not not have access to this item and the item
+    // is not the current parent.
+    if (!isset($options[$plid]) && !isset($options[$menu]) && (!$form['menu']['enabled']['#default_value'] || $key != $parent['#default_value'])) {
+      unset($parent['#options'][$key]);
+    }
+  }
+
+  // Assume that all new content will be in the menu.
+  if (empty($form['#node']->nid)) {
+    $form['menu']['enabled']['#default_value'] = 1;
+  }
+
+  // Add a warning note if the user does not have rights to the current parent,
+  // as the user will not be able to restore the item to its current value if
+  // changed.
+  if (array_key_exists($parent['#default_value'], $parent['#options'])) {
+    $tree = workbench_access_get_user_tree();
+    $default = explode(':', $parent['#default_value']);
+    if ($default[1] != 0 && !isset($tree[$default[1]])) {
+      $parent['#description'] = t('<strong>Note:</strong> since you do not have editorial access to the parent of this menu item, if you change the parent you may not be able to restore it to its original value.');
+    }
   }
 }

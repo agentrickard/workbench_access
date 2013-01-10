@@ -252,16 +252,6 @@ function taxonomy_workbench_access_default_form_alter(&$form, &$form_state, $opt
       $element['#element_validate'][] = 'workbench_access_autocomplete_validate';
     }
   }
-  // Inform Workbench Access which data element we store on the node.
-  // (e.g.) $node->{$field}[LANGUAGE][][COLUMN].
-  $form['workbench_access_column'] = array(
-    '#type' => 'value',
-    '#value' => 'tid',
-  );
-  $form['workbench_access_language'] = array(
-    '#type' => 'value',
-    '#value' => TRUE,
-  );
 }
 
 /**

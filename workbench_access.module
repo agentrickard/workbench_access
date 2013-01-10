@@ -622,6 +622,8 @@ function workbench_access_node_load($nodes, $types) {
 function workbench_access_node_insert($node) {
   // Clear the old records for this node.
   workbench_access_node_delete($node);
+  // Make sure we have processed new data.
+  workbench_access_node_presave($node);
   // If nothing to set, we are done.
   if (empty($node->workbench_access)) {
     return;
@@ -653,6 +655,10 @@ function workbench_access_node_insert($node) {
  * Implements hook_node_presave().
  */
 function workbench_access_node_presave($node) {
+  // We must have a node id to continue. @see workbench_access_node_insert().
+  if (empty($node->nid)) {
+    return;
+  }
   // Did we use the default field form?
   workbench_access_prepare_field_save($node);
   if (isset($node->workbench_access_fields)) {
@@ -703,7 +709,7 @@ function workbench_access_node_presave($node) {
 function workbench_access_prepare_field_save($node) {
   // If using a default form element, or the form data is already present, then
   // we do not need this step.
-  if (variable_get('workbench_access_custom_form', 1) || isset($node->workbench_access_fields)) {
+  if (variable_get('workbench_access_custom_form', 1)) {
     return;
   }
   $tree = workbench_access_get_active_tree();
@@ -711,7 +717,7 @@ function workbench_access_prepare_field_save($node) {
   $node->workbench_access_language = $scheme['translatable'];
   $node->workbench_access_column = $scheme['storage_column'];
   // Find the fields to watch for data.
-  if (!empty($scheme['form_field'])) {
+  if (empty($node->workbench_access_fields) && !empty($scheme['form_field'])) {
     $node->workbench_access_fields[] = $scheme['form_field'];
   }
   else {

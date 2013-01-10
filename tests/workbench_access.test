@@ -610,6 +610,13 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     $this->assertRaw('TestWA', t('Workbench Access field was renamed.'));
     $this->assertRaw('<select multiple="multiple" name="workbench_access[]" id="edit-workbench-access--2" class="form-select required">', t('Form presents a select list with multiple select.'));
 
+    // Test module hooks.
+    // Ensure that our node type uses the form element.
+    $GLOBALS['conf']['workbench_access_node_type_' . $node->type] = TRUE;
+    module_load_include('inc', 'node', 'node.pages');
+    $form = drupal_get_form($node->type . '_node_form', $node);
+    $this->assertTrue(!empty($form['workbench_access']['workbench_access']['#workbench_access_test']), t('hook_workbench_access_node_element_alter() fired correctly.'));
+
     // Try some form introspection.
     $form = $this->workbenchAccessNodeForm($account->uid, $node->type);
     $this->assertTrue(isset($form['workbench_access']['workbench_access']['#options']), t('Form element returns properly.'));
@@ -622,6 +629,16 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
 
     $form = $this->workbenchAccessNodeForm($account->uid, $node->type);
     $this->assertTrue(count($form['workbench_access']['workbench_access']['#options']) == 15, t('Form element returned fifteen options to user with limited options.'));
+
+    // Test the form again using native support.
+
+    // Do not set a custom form element.
+    variable_set('workbench_access_custom_form', 0);
+    $custom = variable_get('workbench_access_custom_form', 1);
+    $this->assertTrue(empty($custom), t('Switched to using native menu form.'));
+    // Try some form introspection.
+    $form = $this->workbenchAccessNodeForm($account->uid, $node->type);
+    $this->assertTrue(count($form['menu']['link']['parent']['#options']) == 15, t('Native menu form element returned fifteen options to user with limited options.'));
 
     // Check that access control by node type settings work.
     $this->assertTrue(variable_get('workbench_access_node_type_' . $node->type, 1), t('Workbench Access enforced for %type content.', array('%type' => $node->type)));
@@ -659,13 +676,6 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     user_delete($account->uid);
     $records = db_query("SELECT 1 FROM {workbench_access_user} WHERE uid = :uid", array(':uid' => $account->uid))->fetchField();
     $this->assertFalse($records, 'User section assignments removed.');
-
-    // Test module hooks.
-    // Ensure that our node type uses the form element.
-    $GLOBALS['conf']['workbench_access_node_type_' . $node->type] = TRUE;
-    module_load_include('inc', 'node', 'node.pages');
-    $form = drupal_get_form($node->type . '_node_form', $node);
-    $this->assertTrue(!empty($form['workbench_access']['workbench_access']['#workbench_access_test']), t('hook_workbench_access_node_element_alter() fired correctly.'));
   }
 
 }
