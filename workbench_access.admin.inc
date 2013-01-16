@@ -200,12 +200,12 @@ function workbench_access_settings_validate($form, &$form_state) {
  * Set configuration.
  */
 function workbench_access_settings_submit($form, &$form_state) {
+  // Reset the tree.
+  workbench_access_reset_tree();
   // If auto-assign, then do so.
   if (empty($form_state['values']['workbench_access_auto_assign'])) {
     return;
   }
-  // Reset the tree.
-  workbench_access_reset_tree();
   // Get the new tree rules and check for changes.
   $active = workbench_access_get_active_tree();
   foreach ($active['tree'] as $key => $item) {
