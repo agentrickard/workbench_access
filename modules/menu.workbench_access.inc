@@ -130,11 +130,13 @@ function menu_workbench_access_tree($info, $keys) {
         'depth' => 0,
         'parent' => 0,
       );
+      $mlid = TRUE;
     }
+    // This call returns a nested array.
     $menu = menu_tree_all_data($name);
     foreach ($menu as $link) {
       // Ensure that we start at the top of the current request.
-      // If mlid is 0, we are at the root.
+      // If mlid is TRUE, we are at the root.
       _workbench_access_menu_build_tree($tree, $link, $mlid);
     }
   }
@@ -153,11 +155,12 @@ function menu_workbench_access_tree($info, $keys) {
  *   The menu link being inspected.
  * @param $mlid
  *   The menu link id being acted upon. May be 0 if this is the top-level menu
- *   item.
+ *   item. Switches to TRUE so that children of a matching item can be selected.
  */
 function _workbench_access_menu_build_tree(&$tree, $link, $mlid = 0) {
   $item = (object) $link['link'];
-  if ($item->mlid == $mlid || $mlid === 0) {
+  // If the item matches the expected link id, or is the top-level, continue.
+  if ($item->mlid == $mlid || $mlid === TRUE) {
     $tree[$item->mlid] = array(
       'access_id' => $item->mlid,
       'access_type_id' => $item->menu_name,
@@ -167,10 +170,14 @@ function _workbench_access_menu_build_tree(&$tree, $link, $mlid = 0) {
       'depth' => $item->depth,
       'parent' => ($item->plid == 0) ? $item->menu_name : $item->plid,
     );
+    // Access to the parent grants access to the children.
+    $mlid = TRUE;
   }
+  // menu_tree_all_data() returns a nested array, so if we don't start at the
+  // top level of the tree, then we must check below links individually.
   if (!empty($link['below'])) {
     foreach ($link['below'] as $below) {
-      _workbench_access_menu_build_tree($tree, $below, $below['link']['mlid']);
+      _workbench_access_menu_build_tree($tree, $below, $mlid);
     }
   }
 }

@@ -131,6 +131,31 @@ abstract class WorkbenchAccessTestCase extends DrupalWebTestCase {
     $this->assertTrue(in_array($root, $active['access_scheme']['access_type_id']), t('Using Workbench Access test scheme.'));
     $this->assertTrue(isset($active['tree'][$root]), t('Tree returned correctly.'));
   }
+
+  /**
+   * Helper method for grabbing a new user from the list.
+   *
+   * @param $id
+   *   The array key of the current user being tested.
+   *
+   * @return
+   *   A user account from the user list.
+   */
+  function getWorkbenchAccessUser($id = NULL) {
+    if (is_null($id)) {
+      $id = array_rand($this->user_list);
+    }
+    elseif ($id < (count($this->user_list) - 1)) {
+      $id++;
+    }
+    else {
+      $id--;
+    }
+    $account = $this->user_list[$id];
+    // Store the id key for later lookups.
+    $account->testId = $id;
+    return $account;
+  }
 }
 
 class WorkbenchAccessBaseTestCase extends WorkbenchAccessTestCase {
@@ -216,8 +241,8 @@ class WorkbenchAccessTaxonomyTestCase extends WorkbenchAccessTestCase {
     // This is a multi-step check.
 
     // First, the user should not be able to do anything (Create, Update or Delete).
-    $id = array_rand($this->user_list);
-    $account = $this->user_list[$id];
+    $account = $this->getWorkbenchAccessUser();
+    $id = $account->testId;
     $this->assertTrue(empty($account->workbench_access['workbench_access']), t('Test user not assigned to a section.'));
     $nids = db_query("SELECT nid FROM {node}")->fetchAllAssoc('nid');
     $nodes = node_load_multiple(array_keys($nids));
@@ -265,14 +290,7 @@ class WorkbenchAccessTaxonomyTestCase extends WorkbenchAccessTestCase {
     // Search for the existing user via autocomplete. Should return empty.
     $test = workbench_access_autocomplete('taxonomy', 'workbench_access', substr($account->name, 0), TRUE);
     $this->assertTrue(empty($test), t('Autocomplete did not match assigned user.'));
-    // Test another user who is currently not assigned.
-    if ($id < (count($this->user_list) - 1)) {
-      $id++;
-    }
-    else {
-      $id--;
-    }
-    $test_account = $this->user_list[$id];
+    $test_account = $this->getWorkbenchAccessUser($id);
     $test = workbench_access_autocomplete('taxonomy', 'workbench_access', substr($test_account->name, 0, 1), TRUE);
     $this->assertTrue(!empty($test), t('Autocomplete matched unassigned user.'));
 
@@ -370,6 +388,39 @@ class WorkbenchAccessTaxonomyTestCase extends WorkbenchAccessTestCase {
 }
 
 class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
+  protected $node_titles = array(
+    1  => 'A',
+    3  => 'A1',
+    7  => 'A1a',
+    15 => 'A1a1',
+    16 => 'A1a2',
+    8  => 'A1b',
+    17 => 'A1b1',
+    18 => 'A1b2',
+    4  => 'A2',
+    9  => 'A2a',
+    19 => 'A2a1',
+    20 => 'A2a2',
+    10 => 'A2b',
+    21 => 'A2b1',
+    22 => 'A2b2',
+    2  => 'B',
+    5  => 'B1',
+    11 => 'B1a',
+    23 => 'B1a1',
+    24 => 'B1a2',
+    12 => 'B1b',
+    25 => 'B1b1',
+    26 => 'B1b2',
+    6  => 'B2',
+    13 => 'B2a',
+    27 => 'B2a1',
+    28 => 'B2a2',
+    14 => 'B2b',
+    29 => 'B2b1',
+    30 => 'B2b2',
+  );
+
   public static function getInfo() {
     return array(
       'name' => 'Workbench access menu',
@@ -378,7 +429,6 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     );
   }
 
-  // Base test for installation.
   function testWorkbenchAccessMenu() {
     // Load all includes.
     workbench_access_load_include();
@@ -386,6 +436,13 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     // Create some node and users.
     $this->createWorkbenchAccessUsers();
     $this->createWorkbenchAccessNodes(30);
+
+    // Set node titles for easier debugging.
+    for ($i = 1; $i <= 30; $i++) {
+      $node = node_load($i);
+      $node->title = $this->node_titles[$i];
+      node_save($node);
+    }
 
     // Create a menu.
     $menu = array(
@@ -453,17 +510,18 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
      */
     $mlids = array();
     $nodes = db_query("SELECT nid, title FROM {node} ORDER BY nid")->fetchAll();
-    foreach ($nodes as $id => $node) {
+    foreach ($nodes as $nid => $node) {
       // Create a menu item
       $settings = array(
         'link_path' => 'node/' . $node->nid,
         'link_title' => $node->title,
         'menu_name' => $menu_name,
         'weight' => $node->nid,
+        'plid' => 0,
       );
 
-      if ($id > 1) {
-        $settings['plid'] = $mlids[floor(($id - 2) / 2)];
+      if ($nid > 1) {
+        $settings['plid'] = $mlids[floor(($nid - 2) / 2)];
       }
 
       $mlids[] = menu_link_save($settings);
@@ -482,10 +540,13 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
 
     // Save data for nodes.
     foreach ($nodes as $node) {
-      $plid = db_query("SELECT plid FROM {menu_links} WHERE link_path = :link_path", array(':link_path' => 'node/' . $node->nid))->fetchField();
+      $mlid = db_query("SELECT mlid FROM {menu_links} WHERE link_path = :link_path", array(':link_path' => 'node/' . $node->nid))->fetchField();
+      if (!isset($first_mlid)) {
+        $first_mlid = $mlid;
+      }
       $edit = array(
         'nid' => $node->nid,
-        'access_id' => ($plid != 0 ? $plid : $menu_name),
+        'access_id' => $mlid,
         'access_scheme' => 'menu',
       );
       db_insert('workbench_access_node')->fields($edit)->execute();
@@ -500,9 +561,9 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
 
     $active = workbench_access_get_active_tree();
 
-    // Check that nodes have been assigned to the top-level item.
-    $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid WHERE wan.access_id = :menu_name AND wan.access_scheme = 'menu'", array(':menu_name' => $menu_name))->fetchField();
-    $this->assertTrue($count == 2, t('Two nodes assigned to first-level of the hierarchy.'));
+    // Check that a node has been assigned to a first-level menu item.
+    $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid WHERE wan.access_id = :access_id AND wan.access_scheme = 'menu'", array(':access_id' => $first_mlid))->fetchField();
+    $this->assertTrue($count == 1, t('One node assigned to first-level menu item.'));
 
     // Test access settings of user 1.
     $account = user_load(1, TRUE);
@@ -512,8 +573,8 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     // Assign a user to a section and check permissions.
     // This is a multi-step check.
     // First, the user should not be able to do anything (Create, Update or Delete).
-    $id = array_rand($this->user_list);
-    $account = $this->user_list[$id];
+    $account = $this->getWorkbenchAccessUser();
+    $id = $account->testId;
     $this->assertTrue(empty($account->workbench_access[$menu_name]), t('Test user not assigned to a section.'));
 
     $nids = db_query("SELECT nid FROM {node}")->fetchCol('nid');
@@ -564,13 +625,7 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     $test = workbench_access_autocomplete('menu', $menu_name, substr($account->name, 0), TRUE);
     $this->assertTrue(empty($test), t('Autocomplete did not match assigned user.'));
     // Test another user who is currently not assigned.
-    if ($id < (count($this->user_list) - 1)) {
-      $id++;
-    }
-    else {
-      $id--;
-    }
-    $test_account = $this->user_list[$id];
+    $test_account = $this->getWorkbenchAccessUser($id);
     $test = workbench_access_autocomplete('menu', $menu_name, substr($test_account->name, 0, 1), TRUE);
     $this->assertTrue(!empty($test), t('Autocomplete matched unassigned user.'));
 
@@ -676,6 +731,82 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     user_delete($account->uid);
     $records = db_query("SELECT 1 FROM {workbench_access_user} WHERE uid = :uid", array(':uid' => $account->uid))->fetchField();
     $this->assertFalse($records, 'User section assignments removed.');
+
+    // Tests access per menu levels.  We have structured our menu so that we
+    // know what these results should return.
+
+    // Test another user who is currently not assigned.
+    $account = $this->getWorkbenchAccessUser($id);
+
+    // @todo: This is pretty obtuse. Can we improve it?
+    // @params are $account, $nid, $depth, $expected_count.
+    // See the map in the large docblock at the top of this test.
+    $this->assertMenuUpdateNodes($account, 1, 1, 15);
+    $this->assertMenuUpdateNodes($account, 3, 2, 7);
+    $this->assertMenuUpdateNodes($account, 7, 3, 3);
+    $this->assertMenuUpdateNodes($account, 15, 4, 1);
+  }
+
+  /**
+   * Helper function for testing node access over the menu hierarchy.
+   *
+   * @param $account
+   *   A user account object.
+   * @param $nid
+   *   The node id to test for access control.
+   * @param $depth
+   *   The menu depth of the node being tested.
+   * @param $expected_count
+   *   A count of the expected returns based on the known children of this node.
+   *   See the setup in $this->node_titles.
+   */
+  private function assertMenuUpdateNodes($account, $nid, $depth, $expected_count) {
+    // Since we change conditions, reset node access.
+    drupal_static_reset('node_access');
+
+    // Confirm the account isn't assigned any sections.
+    $account = user_load($account->uid, TRUE);
+    $this->assertTrue(empty($account->workbench_access), t('Test user not assigned any sections.'));
+
+    // Assign section
+    $mlid = db_query("SELECT link_title, mlid FROM {menu_links} WHERE link_path = :link_path", array(':link_path' => 'node/' . $nid))->fetchObject();
+    if (empty($account->workbench_access[$mlid->mlid])) {
+      workbench_access_user_section_save($account->uid, $mlid->mlid, 'menu');
+    }
+    $account = user_load($account->uid, TRUE);
+    $this->assertTrue(array_key_exists($mlid->mlid, $account->workbench_access), t('Test user assigned section :section.', array(':section' => $mlid->link_title)));
+
+    // Get an array of editable nodes.
+    // Use db_select because of the variable depth.
+    $query = db_select('menu_links', 'ml');
+    $query->condition('p' . $depth, $mlid->mlid);
+    $query->addExpression("SUBSTRING(ml.link_path, 6, (LENGTH(ml.link_path) - 1))", 'nid');
+    $count = $query->countQuery()->execute()->fetchField();
+    $this->assertTrue($count == $expected_count, t('!mlids menu items found associated with a !depth-level deep node.', array('!mlids' => $expected_count, '!depth' => $depth)));
+    $editable_nids = $query->execute()->fetchCol();
+    sort($editable_nids);
+
+    // Check update permission on editable nodes.
+    foreach ($editable_nids as $nid) {
+      $node = node_load($nid, NULL, TRUE);
+      $result = node_access('update', $node, $account);
+      $this->assertTrue($result, t('Page update allowed on :title.', array(':title' => $node->title)));
+    }
+
+    // Get an array of non-editable nodes.
+    $non_editable_nids = db_query("SELECT nid FROM {node} WHERE nid NOT IN (:nids)", array(':nids' => $editable_nids))->fetchCol();
+
+    // Check update permission on non-editable nodes.
+    foreach ($non_editable_nids as $nid) {
+      $node = node_load($nid, null, TRUE);
+      $result = node_access('update', $node, $account);
+      $this->assertTrue(!$result, t('Page update disallowed on :title.', array(':title' => $node->title)));
+    }
+
+    // Revoke assigned section
+    workbench_access_user_section_delete($account->uid, $mlid->mlid, 'menu');
+    $account = user_load($account->uid, TRUE);
+    $this->assertTrue(empty($account->workbench_access), t('Test user removed from section :section.', array(':section' => $mlid->link_title)));
   }
 
 }
