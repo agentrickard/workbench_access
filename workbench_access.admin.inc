@@ -257,6 +257,11 @@ function workbench_access_save_field_elements($types) {
  */
 function workbench_access_section_form($form, &$form_state) {
   $active = workbench_access_get_active_tree();
+  // Ensure that we have configured access controls.
+  if (!$active = workbench_access_get_active_tree()) {
+    $form['help']['#markup'] = workbench_access_configuration_needed_message();
+    return $form;
+  }
   $form = array();
   $form['access_scheme'] = array(
     '#type' => 'value',
@@ -507,8 +512,10 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
       $breadcrumb[] = l(t('Workbench Access'), 'admin/config/workbench/access');
       workbench_access_breadcrumb($breadcrumb);
     }
-
-    $active = workbench_access_get_active_tree();
+    // Ensure that we have configured access controls.
+    if (!$active = workbench_access_get_active_tree()) {
+      return workbench_access_configuration_needed_message();
+    }
     $active['access_scheme']['access_id'] = $access_type_id;
     $active_keys = array_keys($active['active']);
     if ($type == 'role') {
