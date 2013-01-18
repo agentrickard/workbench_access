@@ -34,6 +34,7 @@ abstract class WorkbenchAccessTestCase extends DrupalWebTestCase {
         'type' => 'page',
         'title' => $this->randomName(32),
         'body' => array(LANGUAGE_NONE => array(array($this->randomName(64)))),
+        'promote' => 1,
       );
       $this->drupalCreateNode($settings);
     }
@@ -745,6 +746,32 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     $this->assertMenuUpdateNodes($account, 3, 2, 7);
     $this->assertMenuUpdateNodes($account, 7, 3, 3);
     $this->assertMenuUpdateNodes($account, 15, 4, 1);
+
+    // Test for issue #1203260. Some menu links cause fatal error.
+
+    // Make all menu items access sections.
+    variable_set('workbench_access_auto_assign', 1);
+
+    // Create a menu item that triggers the failure, which is based on access
+    // checks for menu links while we are fetching our raw tree.
+    $link = array(
+      'link_path' => 'node/add',
+      'link_title' => 'Add content',
+      'menu_name' => $menu_name,
+      'weight' => 0,
+      'plid' => 0,
+    );
+    menu_link_save($link);
+
+    // Bug is triggered by anonymous users building the cache.
+    $this->drupalLogout();
+    workbench_access_reset_tree();
+    // Check that the menu scheme is setup correctly.
+    drupal_flush_all_caches();
+    $this->drupalGet('node');
+    // If we hit an infinite loop, the page does not return listings.
+    $this->assertRaw('<a href="/drupal-7-workbench/node/30">B2b2</a>', t('Node listing page returns properly.'));
+    $this->assertWorkbenchScheme('menu', $menu_name);
   }
 
   /**

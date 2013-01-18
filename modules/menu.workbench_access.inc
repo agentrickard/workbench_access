@@ -120,6 +120,10 @@ function menu_workbench_access_tree($info, $keys) {
   $tree = array();
   foreach ($items as $name => $mlid) {
     $data = menu_load($name);
+    if (empty($data['menu_name'])) {
+      break;
+    }
+
     if ($mlid == 0) {
       $tree[$name] = array(
         'access_id' => $data['menu_name'],
@@ -133,8 +137,10 @@ function menu_workbench_access_tree($info, $keys) {
       $mlid = TRUE;
     }
     // This call returns a nested array.
-    $menu = menu_tree_all_data($name);
-    foreach ($menu as $link) {
+    // @todo, given the use of a private function here, we might need our
+    // own lookup instead.
+    $menu = _menu_build_tree($name);
+    foreach ($menu['tree'] as $link) {
       // Ensure that we start at the top of the current request.
       // If mlid is TRUE, we are at the root.
       _workbench_access_menu_build_tree($tree, $link, $mlid);
