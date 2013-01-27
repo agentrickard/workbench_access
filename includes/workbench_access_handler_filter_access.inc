@@ -104,22 +104,26 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
 
     // Here we start altering the query. All of our alters should be their own
     // where group.
-    $group = $this->query->set_where_group('OR');
 
     // If the user has no workbench_access rights, and all node types use
     // workbench_access, force the query to return nothing.
     if (empty($account->workbench_access) && empty($node_types)) {
       $table = $this->view->base_table;
+      $group = $this->query->set_where_group('OR');
       $this->query->add_where($group, "$table.nid", -1, '=');
       return;
     }
 
     // If there is no selection, use the user's own access tree.
-    if (empty($this->value) || $this->value[0] == -5) {
+    if (empty($this->value[0]) || $this->value[0] == -5) {
       workbench_access_build_tree($tree, array_keys($account->workbench_access));
+      $group = $this->query->set_where_group('OR');
+      $node_type_filter = TRUE;
     }
     else {
       workbench_access_build_tree($tree, array_keys($this->value[0]));
+      $group = $this->query->set_where_group('AND');
+      $node_type_filter = FALSE;
     }
 
     // Build the workbench_access where clause.
@@ -138,7 +142,24 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
 
     // If not all node types use workbench access for permissions, add them here.
     if (!empty($node_types)) {
-      $this->query->add_where($group, "{$this->query->base_table}.type", $node_types, 'IN');
+      $table = $this->query->base_table;
+      // Ensure that we have a proper table when using a relationship from a non-node base table.
+      // @TODO: There may be cleaner ways to do this lookup.
+      if (isset($this->view->relationship['vid'])) {
+        $table = $this->view->relationship['vid']->alias;
+      }
+      elseif (isset($this->view->relationship['nid'])) {
+        $table = $this->view->relationship['nid']->alias;
+      }
+      // If no filter is active, then we allow node types not under access control.
+      if ($node_type_filter) {
+        $this->query->add_where($group, "$table.type", $node_types, 'IN');
+      }
+      // If a filter is active, we disallow node types not under access control.
+      else {
+        $this->query->add_where($group, "$table.type", $node_types, 'NOT IN');
+      }
     }
+
   }
 }

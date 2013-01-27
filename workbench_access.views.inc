@@ -51,11 +51,7 @@ function workbench_access_views_data() {
       'left_field' => 'nid',
       'field' => 'nid',
     ),
-    //...to node_revision
-    'node_revision' => array(
-      'left_field' => 'nid',
-      'field' => 'nid',
-    ),
+
     //...to taxonomy_term_data
     'taxonomy_term_data' => array(
       'left_field' => 'tid',
