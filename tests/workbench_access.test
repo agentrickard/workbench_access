@@ -770,7 +770,8 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     drupal_flush_all_caches();
     $this->drupalGet('node');
     // If we hit an infinite loop, the page does not return listings.
-    $this->assertRaw('<a href="/drupal-7-workbench/node/30">B2b2</a>', t('Node listing page returns properly.'));
+    // Note the HTML fragent here, which assures success on various installs.
+    $this->assertRaw('node/30">B2b2</a>', t('Node listing page returns properly.'));
     $this->assertWorkbenchScheme('menu', $menu_name);
   }
 
