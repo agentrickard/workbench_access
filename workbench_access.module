@@ -396,6 +396,11 @@ function workbench_access_node_access($node, $op, $account) {
   // Get the access rules for this node.
   $result = FALSE; // Always default to FALSE.
   if (!empty($node->workbench_access) && !empty($account->workbench_access)) {
+    // In the case of "preview" the property may be a string. Not sure why.
+    // See https://drupal.org/node/1935190.
+    if (!is_array($node->workbench_access)) {
+      $node->workbench_access = array($node->workbench_access);
+    }
     $result = workbench_access_check($op, $type, array_filter($node->workbench_access), $account->workbench_access);
   }
 
@@ -1462,7 +1467,14 @@ function workbench_access_node_form_element(&$form, $form_state) {
   // Set default form options.
   $default = array();
   if (!empty($form['#node']->workbench_access)) {
-    $current = array_keys($form['#node']->workbench_access);
+    // In preview mode, this value can be a string.
+    // See http://drupal.org/node/1935190.
+    if (is_array($form['#node']->workbench_access)) {
+      $current = array_keys($form['#node']->workbench_access);
+    }
+    else {
+      $current = array($form['#node']->workbench_access);
+    }
     foreach ($current as $access_id) {
       if (isset($active['active'][$access_id])) {
         $default[] = $access_id;
