@@ -558,7 +558,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
       }
       if ($type == 'editor') {
         if (!isset($roles[DRUPAL_AUTHENTICATED_RID])) {
-          $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
+          $count = db_query("SELECT COUNT(DISTINCT wau.uid) FROM {workbench_access_user} wau
             INNER JOIN {users_roles} ur ON wau.uid = ur.uid
             WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id
             AND ur.rid IN (:rids)",
@@ -566,7 +566,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
           )->fetchField();
         }
         else {
-          $count = db_query("SELECT COUNT(wau.uid) FROM {workbench_access_user} wau
+          $count = db_query("SELECT COUNT(DISTINCT wau.uid) FROM {workbench_access_user} wau
             WHERE wau.access_scheme = :access_scheme AND wau.access_id = :access_id",
             array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id)
           )->fetchField();
@@ -574,7 +574,7 @@ function workbench_access_editors($access_type = NULL, $access_type_id = NULL, $
         $row[] = l(format_plural($count, '1 editor', '@count editors'), 'admin/config/workbench/access/editors/' . $active['access_scheme']['access_type'] . '/' . $access_id);
       }
       else {
-        $count2 = db_query("SELECT COUNT(war.rid) FROM {workbench_access_role} war
+        $count2 = db_query("SELECT COUNT(DISTINCT war.rid) FROM {workbench_access_role} war
           WHERE war.access_scheme = :access_scheme AND war.access_id = :access_id
           AND war.rid IN (:rids)",
           array(':access_scheme' => $active['access_scheme']['access_type'], ':access_id' => $access_id, ':rids' => array_keys($roles))
