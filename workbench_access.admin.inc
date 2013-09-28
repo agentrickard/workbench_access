@@ -243,10 +243,17 @@ function workbench_access_save_field_elements($types) {
     if ($settings == 'wa-no-access-field') {
       return;
     }
+    // Multiple options return an array. Single a string.
+    if (!is_array($settings)) {
+      $selection[] = $settings;
+    }
+    else {
+      $selection = $settings;
+    }
     $fields = workbench_access_get_available_fields($type);
     foreach ($fields as $field => $info) {
       $instance = $info['instance_info'];
-      $instance['workbench_access_field'] = (int) !empty($settings[$field]);
+      $instance['workbench_access_field'] = in_array($field, $selection);
       field_update_instance($instance);
     }
   }
