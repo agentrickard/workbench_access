@@ -1881,7 +1881,7 @@ function workbench_access_workbench_block() {
           $section = workbench_access_load($access_type, $access_id);
           $names[] = $section['name'];
         }
-        return array(t('Workbench Access: %section', array('%section' => implode(', ', $names))));
+        return array(t('@message_label: %section', array('@message_label' => variable_get('workbench_access_label', 'Section'), '%section' => implode(', ', $names))));
        }
     }
   }
