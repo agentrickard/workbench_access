@@ -788,16 +788,6 @@ function workbench_access_user_load_data($account) {
     }
     // Add roles.
     $query = db_select('workbench_access_role', 'war')
-     ->addTag('workbench_access_role')
-      ->fields('war', array('access_id'))
-      ->condition('war.rid', array_keys($account->roles), 'IN')
-     ->condition('war.access_scheme', $access_scheme);
-    $result = $query->execute()->fetchAll();
-    foreach ($result as $data) {
-      $items[$data->access_id] = $data;
-    }
-    // Add roles.
-    $query = db_select('workbench_access_role', 'war')
       ->addTag('workbench_access_role')
       ->fields('war', array('access_id'))
       ->condition('war.rid', array_keys($account->roles), 'IN')

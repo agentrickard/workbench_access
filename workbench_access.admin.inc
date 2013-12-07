@@ -682,6 +682,7 @@ function workbench_access_editor_form_submit($form, &$form_state) {
   if (!empty($values['add_user'])) {
     $account = user_load_by_name($values['add_user']);
     $sections = $account->workbench_access;
+    // If the user is assigned by role, ignore that and add anyway.
     if (!empty($account->workbench_access_by_role)) {
       foreach ($account->workbench_access_by_role as $key) {
         unset($sections[$key]);
