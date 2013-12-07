@@ -680,7 +680,8 @@ class WorkbenchAccessMenuTestCase extends WorkbenchAccessTestCase {
     // Delete global permission.
     workbench_access_user_section_delete($account->uid, $menu_name, 'menu');
     // Add sub permission.
-    $mlid = array_shift(array_slice($active['tree'][$menu_name]['children'], 0, 1));
+    $array = array_slice($active['tree'][$menu_name]['children'], 0, 1);
+    $mlid = array_shift($array);
     workbench_access_user_section_save($account->uid, $mlid, 'menu');
 
     $form = $this->workbenchAccessNodeForm($account->uid, $node->type);
