@@ -318,17 +318,26 @@ function workbench_access_taxonomy_autocomplete_validate($element, &$form_state)
 function workbench_access_query_term_access_alter(QueryAlterableInterface $query) {
   global $user;
   if (workbench_access_is_active_autocomplete()) {
+    // Iterate through the query tables to find the taxonomy_term_data table alias
+    $term_data_alias = 't';
+    $tables = $query->getTables();
+    foreach ($tables as $table_alias => $table_info) {
+      if ($table_info['table'] == 'taxonomy_term_data') {
+        $term_data_alias = $table_alias;
+        break;
+      }
+    }
     // Alter the query.
     if (!isset($user->workbench_access)) {
       workbench_access_user_load_data($user);
     }
     $tree = workbench_access_get_user_tree($user);
     if (!empty($tree)) {
-      $query->condition('t.tid', array_keys($tree), 'IN');
+      $query->condition($term_data_alias . '.tid', array_keys($tree), 'IN');
     }
     // Force a NULL return if the user has no section assignments.
     else {
-      $query->condition('t.tid', -10);
+      $query->condition($term_data_alias . '.tid', -10);
     }
   }
 }
