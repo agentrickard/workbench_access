@@ -1885,6 +1885,9 @@ function workbench_access_node_operations($form = array(), $form_state = array()
     return;
   }
   $active = workbench_access_get_active_tree();
+  if (!$active) {
+    return;
+  }
   $tree = $active['tree'];
   workbench_access_build_tree($tree);
   $options = workbench_access_options($tree, $active['active']);
