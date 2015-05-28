@@ -41,4 +41,23 @@ class WorkbenchAccessNodeTypeFormTest extends WebTestBase {
     $this->drupalLogin($this->editor);
   }
 
+  /**
+   * Test that the Workbench Access setting applies properly.
+   */
+  public function testWorkbenchAccessNodeTypeForm() {
+
+    // Get the page content type settings.
+
+    // Workbench Access should not be visible.
+
+    // Set permission to 'administer workbench access'.
+
+    // Workbench Access should be visible.
+
+    // Save the form.
+
+    // Test the setting in the form.
+
+    // Test the setting on the entity.
+  }
 }
