@@ -40,6 +40,7 @@ function workbench_access_form_node_type_form_alter(&$form, FormStateInterface $
     '#title' => t('Enable Workbench Access control for @type content.', array('@type' => $type->label())),
     '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
     '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
+    '#access' => \Drupal::currentUser()->hasPermission('administer workbench access'),
   );
   $form['#entity_builders'][] = 'workbench_access_form_node_type_form_builder';
  }
