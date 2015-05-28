@@ -1,0 +1,24 @@
+administer workbench access:
+  description: 'Administer access control settings for Workbench Access.'
+  title: 'Administer Workbench Access configuration'
+  restrict access: TRUE
+
+assign workbench access:
+  description: 'Assign users and roles to edit content in specific editorial sections.'
+  title: 'Assign users to Workbench Access sections'
+  restrict access: FALSE
+
+batch update workbench access:
+  description: 'Perform batch section assignments from the content overview page.'
+  title: 'Batch update section assignments for content'
+  restrict access: FALSE
+
+use workbench access:
+  description: 'Lets users be assigned to editorial sections.'
+  title: 'Allow all members of this role to be assigned to Workbench Access sections'
+  restrict access: FALSE
+
+view workbench access information:
+  description: 'View the editorial access status of each content page.'
+  title: 'View Workbench Access information'
+  restrict access: FALSE
