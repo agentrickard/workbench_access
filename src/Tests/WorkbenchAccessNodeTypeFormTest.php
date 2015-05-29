@@ -9,6 +9,11 @@ namespace Drupal\workbench_access\Tests;
 
 use Drupal\simpletest\WebTestBase;
 
+/**
+ * Add configuration options to node types.
+ *
+ * @group workbench_access
+ */
 class WorkbenchAccessNodeTypeFormTest extends WebTestBase {
 
   /**
