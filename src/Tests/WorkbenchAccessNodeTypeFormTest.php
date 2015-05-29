@@ -59,14 +59,14 @@ class WorkbenchAccessNodeTypeFormTest extends WebTestBase {
     $this->drupalGet($path);
 
     // Workbench Access should not be visible.
-    $this->assertNoRaw($string);
+    $this->assertNoText($string);
 
     // Set permission to 'administer workbench access'.
     user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('administer workbench access'));
 
     // Workbench Access should be visible.
     $this->drupalGet('admin/structure/types/manage/page');
-    $this->assertRaw($string);
+    $this->assertText($string);
 
     // Test the setting on the entity.
     $type = entity_load('node_type', 'page');
@@ -80,7 +80,7 @@ class WorkbenchAccessNodeTypeFormTest extends WebTestBase {
     // Test the setting on the entity.
     $type = entity_load('node_type', 'page');
     $status = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
-    $this->assertTrue($status === 1, 'Access control status is set to one (on).');
+    $this->assertTrue($status == 1, 'Access control status is set to one (on).');
 
   }
 }
