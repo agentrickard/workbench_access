@@ -1,0 +1,7 @@
+node.type.*.third_party.workbench_access:
+  type: mapping
+  label: 'Per-content type access control settings'
+  mapping:
+    workbench_access_status:
+      type: boolean
+      label: 'Workbench Access status'

@@ -6,6 +6,8 @@
  */
 
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\node\NodeTypeInterface;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Implements hook_help().
@@ -21,4 +23,34 @@ function workbench_access_help($route_name, RouteMatchInterface $route_match) {
 
     default:
   }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ *
+ * Adds menu options to the node type form.
+ *
+ * @see NodeTypeForm::form().
+ * @see menu_ui_form_node_type_form_builder().
+ */
+function workbench_access_form_node_type_form_alter(&$form, FormStateInterface $form_state) {
+  // Add a checkbox to registration form about agreeing to terms of use.
+  $type = $form_state->getFormObject()->getEntity();
+  $form['workflow']['workbench_access_status'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Enable Workbench Access control for @type content.', array('@type' => $type->label())),
+    '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
+    '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
+    '#access' => \Drupal::currentUser()->hasPermission('administer workbench access'),
+  );
+  $form['#entity_builders'][] = 'workbench_access_form_node_type_form_builder';
+ }
+
+/**
+ * Entity builder for the node type form with Workbench Access options.
+ *
+ * @see workbench_access_form_node_type_form_alter().
+ */
+function workbench_access_form_node_type_form_builder($entity_type, NodeTypeInterface $type, &$form, FormStateInterface $form_state) {
+  $type->setThirdPartySetting('workbench_access', 'workbench_access_status', $form_state->getValue('workbench_access_status'));
 }
