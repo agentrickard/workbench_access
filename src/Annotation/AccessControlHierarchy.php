@@ -15,7 +15,7 @@ use Drupal\Component\Annotation\Plugin;
  * Plugin Namespace: Plugin\AccessControlHierarchy
  *
  * For a working example, see
- * \Drupal\workbench_access\Plugin\AccessControlHierarchy\Vocabulary
+ * \Drupal\workbench_access\Plugin\AccessControlHierarchy\Taxonomy
  *
  * @see plugin_api
  *
