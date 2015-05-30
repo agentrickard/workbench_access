@@ -12,6 +12,7 @@ use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Config\Config;
 
 class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAccessManagerInterface {
   use StringTranslationTrait;
@@ -53,7 +54,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   }
 
   public function getActiveScheme() {
-
+    // @TODO: Inject the config service?
   }
 
   public function getActiveTree() {
