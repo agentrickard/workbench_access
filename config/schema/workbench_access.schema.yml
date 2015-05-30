@@ -4,7 +4,10 @@ workbench_access.settings:
   mapping:
     scheme:
       type: text
-      label: 'Active access scheme'
+      label: 'Active access scheme.'
+    parents:
+      type: array
+      label: 'Active access parents for a scheme.'
     label:
       type: text
       label: 'Label shown to define a Workbench Access control group.'

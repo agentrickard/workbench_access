@@ -15,6 +15,8 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
  * @AccessControlHierarchy(
  *   id = "taxonomy",
  *   module = "taxonomy",
+ *   base_entity = "taxonomy_vocabulary",
+ *   entity = "taxonomy_term",
  *   label = @Translation("Taxonomy"),
  *   description = @Translation("Uses a taxonomy vocabulary as an access control hierarchy.")
  * )

@@ -50,7 +50,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   }
 
   public function getScheme($id) {
-
+    return $this->createInstance($id);
   }
 
   public function getActiveScheme() {

@@ -38,6 +38,23 @@ class AccessControlHierarchy extends Plugin {
   public $module;
 
   /**
+   * The entity that defines an access control group. (Optional)
+   *
+   * If this value is not set, your plugin class will need to provide it's own
+   * version of the options() method.
+   *
+   * @var string
+   */
+  public $base_entity;
+
+  /**
+   * The entity that defines an access control item. (Optional)
+   *
+   * @var string
+   */
+  public $entity;
+
+  /**
    * The human-readable name of the hierarchy system.
    *
    * @ingroup plugin_translatable

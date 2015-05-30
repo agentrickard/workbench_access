@@ -33,6 +33,11 @@ interface AccessControlHierarchyInterface {
   public function setStatus();
 
   /**
+   * Gets the options for a hierarchy.
+   */
+  public function options();
+
+  /**
    * Gets the entire hierarchy tree.
    *
    * @return array

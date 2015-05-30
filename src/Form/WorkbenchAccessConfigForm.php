@@ -95,6 +95,21 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#options' => $schemes,
         '#default_value' => $config->get('scheme', ''),
       );
+      foreach ($schemes as $id => $label) {
+        $scheme = $this->manager->getScheme($id);
+        $form['parents'][$id] = array(
+          '#type' => 'checkboxes',
+          '#title' => t('!label Editorial access options', array('!label' => $label)),
+          '#options' => $scheme->options(),
+          '#default_value' => $config->get('parents', array()),
+          '#states' => array(
+            'visible' => array(
+            ':input[name=scheme]' => array('value' => $id),
+            ),
+          ),
+          '#description' => t('Select the !label options to be used for access control.', array('!label' => $label)),
+        );
+      }
     }
     $form['label'] = array(
       '#type' => 'textfield',
@@ -118,8 +133,10 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    $scheme = $form_state->getValue('scheme');
     $this->config('workbench_access.settings')
-      ->set('scheme', $form_state->getValue('scheme'))
+      ->set('scheme', $scheme)
+      ->set('parents', array_filter($form_state->getValue($scheme)))
       ->set('label', $form_state->getValue('label'))
       ->set('plural_label', $form_state->getValue('plural_label'))
       ->save();
