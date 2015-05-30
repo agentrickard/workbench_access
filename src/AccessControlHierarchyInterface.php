@@ -13,6 +13,11 @@ namespace Drupal\workbench_access;
 interface AccessControlHierarchyInterface {
 
   /**
+   * Returns the id for a hierarchy.
+   */
+  public function id();
+
+  /**
    * Returns the label for a hierarchy.
    */
   public function label();
