@@ -99,7 +99,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         $scheme = $this->manager->getScheme($id);
         $form['parents'][$id] = array(
           '#type' => 'checkboxes',
-          '#title' => t('!label Editorial access options', array('!label' => $label)),
+          '#title' => t('!label editorial access options', array('!label' => $label)),
           '#options' => $scheme->options(),
           '#default_value' => $config->get('parents', array()),
           '#states' => array(

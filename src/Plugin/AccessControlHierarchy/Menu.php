@@ -15,6 +15,8 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
  * @AccessControlHierarchy(
  *   id = "menu",
  *   module = "menu_ui",
+ *   base_entity = "menu",
+ *   entity = "menu_link_content",
  *   label = @Translation("Menu"),
  *   description = @Translation("Uses a menu as an access control hierarchy.")
  * )
