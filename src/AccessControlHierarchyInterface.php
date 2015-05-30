@@ -35,9 +35,12 @@ interface AccessControlHierarchyInterface {
   public function getTree();
 
   /**
-   * Loads a hierarchy definition.
+   * Loads a hierarchy definition for a single item in the tree.
+   *
+   * @param $id
+   *   The identifier for the item, such as a term id.
    */
-  public function load();
+  public function load($id);
 
   /**
    * Provides configuration options.
