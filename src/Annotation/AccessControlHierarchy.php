@@ -31,6 +31,13 @@ class AccessControlHierarchy extends Plugin {
   public $id;
 
   /**
+   * The module required by the plugin.
+   *
+   * @var string
+   */
+  public $module;
+
+  /**
    * The human-readable name of the hierarchy system.
    *
    * @ingroup plugin_translatable

@@ -12,8 +12,9 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
 /**
  * Defines a hierarchy based on a Menu.
  *
- * @Menu(
+ * @AccessControlHierarchy(
  *   id = "menu",
+ *   module = "menu_ui",
  *   label = @Translation("Menu"),
  *   description = @Translation("Uses a menu as an access control hierarchy.")
  * )

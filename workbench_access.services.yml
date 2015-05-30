@@ -1,0 +1,4 @@
+services:
+  plugin.manager.workbench_access.scheme:
+    class: Drupal\workbench_access\WorkbenchAccessManager
+    parent: default_plugin_manager

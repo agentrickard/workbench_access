@@ -12,8 +12,9 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
 /**
  * Defines a hierarchy based on a Vocaulary.
  *
- * @Taxonomy(
+ * @AccessControlHierarchy(
  *   id = "taxonomy",
+ *   module = "taxonomy",
  *   label = @Translation("Taxonomy"),
  *   description = @Translation("Uses a taxonomy vocabulary as an access control hierarchy.")
  * )

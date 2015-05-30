@@ -14,4 +14,19 @@ use Drupal\workbench_access\AccessControlHierarchyInterface;
  */
 abstract class AccessControlHierarchyBase implements AccessControlHierarchyInterface {
 
+  /**
+   * {@inheritdoc}
+   */
+  public function id() {
+    return $this->pluginDefinition['id'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function label() {
+    return $this->pluginDefinition['label'];
+  }
+
+
 }
