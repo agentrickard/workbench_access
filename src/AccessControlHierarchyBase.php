@@ -34,7 +34,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public function status() {
     $config = $this->config('workbench_access.settings');
-    $scheme = $config->get->('scheme');
+    $scheme = $config->get('scheme');
     return $scheme == $this->id();
   }
 
