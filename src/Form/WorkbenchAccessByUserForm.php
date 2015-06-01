@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Contains \Drupal\workbench_access\Form\WorkbenchAccessByRoleForm.
+ * Contains \Drupal\workbench_access\Form\WorkbenchAccessByUserForm.
  */
 
 namespace Drupal\workbench_access\Form;
@@ -17,13 +17,13 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 /**
  * Configure Workbench access settings for this site.
  */
-class WorkbenchAccessByRoleForm extends FormBase {
+class WorkbenchAccessByUserForm extends FormBase {
 
   /**
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'workbench_access_by_role';
+    return 'workbench_access_by_user';
   }
 
   /**

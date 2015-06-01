@@ -9,6 +9,7 @@ namespace Drupal\workbench_access\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\Core\Url;
 
 /**
  * Generates the sections list page.
@@ -25,18 +26,18 @@ class WorkbenchAccessSections extends ControllerBase {
     $list = '';
     foreach ($parents as $id => $label) {
       // @TODO: Move to a theme function?
-      foreach ($tree[$id] as $item) {
+      foreach ($tree[$id] as $iid => $item) {
         $row = [];
         $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
-        $row[] = '0'; // List of all editors.
-        $row[] = '0'; // List of all roles.
+        $row[] = \Drupal::l('0 editors', Url::fromRoute('workbench_access.by_user', array('id' => $iid))); // List of all editors.
+        $row[] = \Drupal::l('0 roles', Url::fromRoute('workbench_access.by_role', array('id' => $iid))); // List of all editors.
         $rows[] = $row;
       }
     }
 
     $build = array(
       '#type' => 'table',
-      '#header' => array($config->get('plural_label'), t('Editors'), t('Roles')),
+      '#header' => array($config->get('plural_label'), t('Editors'), t('Roles'), t('Actions')),
       '#rows' => $rows,
     );
     return $build;
