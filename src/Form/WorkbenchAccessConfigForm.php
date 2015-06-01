@@ -60,7 +60,6 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     );
   }
 
-
   /**
    * {@inheritdoc}
    */

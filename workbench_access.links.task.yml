@@ -1,0 +1,10 @@
+workbench_acess.admin:
+  title: 'Settings'
+  route_name: workbench_access.admin
+  base_route: workbench_access.admin
+
+workbench_acess.sections:
+  title: 'Sections'
+  route_name: workbench_access.sections
+  base_route: workbench_access.admin
+  weight: 10
