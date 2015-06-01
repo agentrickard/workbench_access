@@ -28,11 +28,6 @@ interface AccessControlHierarchyInterface {
   public function status();
 
   /**
-   * Sets the status of a hierarchy.
-   */
-  public function setStatus();
-
-  /**
    * Gets the options for a hierarchy.
    */
   public function options();

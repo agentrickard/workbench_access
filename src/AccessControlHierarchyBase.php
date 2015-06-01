@@ -33,14 +33,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * Returns the status of a hierarchy.
    */
   public function status() {
-
-  }
-
-  /**
-   * Sets the status of a hierarchy.
-   */
-  public function setStatus() {
-
+    $config = $this->config('workbench_access.settings');
+    $scheme = $config->get->('scheme');
+    return $scheme == $this->id();
   }
 
   /**
@@ -95,4 +90,57 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public function configSubmit() {
   }
+
+  /**
+   * Returns the service container.
+   *
+   * This method is marked private to prevent sub-classes from retrieving
+   * services from the container through it. Instead,
+   * \Drupal\Core\DependencyInjection\ContainerInjectionInterface should be used
+   * for injecting services.
+   *
+   * @return \Symfony\Component\DependencyInjection\ContainerInterface $container
+   *   The service container.
+   */
+  private function container() {
+    return \Drupal::getContainer();
+  }
+
+  /**
+   * Returns the requested cache bin.
+   *
+   * @param string $bin
+   *   (optional) The cache bin for which the cache object should be returned,
+   *   defaults to 'default'.
+   *
+   * @return \Drupal\Core\Cache\CacheBackendInterface
+   *   The cache object associated with the specified bin.
+   */
+  protected function cache($bin = 'default') {
+    return $this->container()->get('cache.' . $bin);
+  }
+
+  /**
+   * Retrieves a configuration object.
+   *
+   * This is the main entry point to the configuration API. Calling
+   * @code $this->config('book.admin') @endcode will return a configuration
+   * object in which the book module can store its administrative settings.
+   *
+   * @param string $name
+   *   The name of the configuration object to retrieve. The name corresponds to
+   *   a configuration file. For @code \Drupal::config('book.admin') @endcode,
+   *   the config object returned will contain the contents of book.admin
+   *   configuration file.
+   *
+   * @return \Drupal\Core\Config\Config
+   *   A configuration object.
+   */
+  protected function config($name) {
+    if (!$this->configFactory) {
+      $this->configFactory = $this->container()->get('config.factory');
+    }
+    return $this->configFactory->get($name);
+  }
+
 }
