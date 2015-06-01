@@ -23,4 +23,33 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
  */
 class Taxonomy extends AccessControlHierarchyBase {
 
+  /**
+   * @inheritdoc
+   */
+  public function getTree() {
+    $config = $this->config('workbench_access.settings');
+    $parents = $config->get('parents');
+    $tree = array();
+    foreach ($parents as $id => $label) {
+      $tree[$id][$id] = array(
+        'label' => $label,
+        'depth' => 0,
+        'parent' => '',
+        'weight' => 0,
+        'description' => $label,
+      );
+      $data = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($id);
+      foreach ($data as $term) {
+        $tree[$id][$term->tid] = array(
+          'label' => $term->name,
+          'depth' => $term->depth + 1,
+          'parent' => current($term->parents),
+          'weight' => $term->weight,
+          'description' => $term->description__value, // @TODO: security
+        );
+      }
+    }
+    return $tree;
+  }
+
 }

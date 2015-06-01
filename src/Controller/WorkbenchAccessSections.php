@@ -22,7 +22,23 @@ class WorkbenchAccessSections extends ControllerBase {
     $scheme = $this->manager->getScheme($scheme_id);
     $parents = $config->get('parents');
     $tree = $scheme->getTree();
-    dpm($tree);
-    return array('foo');
+    $list = '';
+    foreach ($parents as $id => $label) {
+      // @TODO: Move to a theme function?
+      foreach ($tree[$id] as $item) {
+        $row = [];
+        $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
+        $row[] = '0'; // List of all editors.
+        $row[] = '0'; // List of all roles.
+        $rows[] = $row;
+      }
+    }
+
+    $build = array(
+      '#type' => 'table',
+      '#header' => array($config->get('plural_label'), t('Editors'), t('Roles')),
+      '#rows' => $rows,
+    );
+    return $build;
   }
 }
