@@ -37,7 +37,7 @@ class WorkbenchAccessSections extends ControllerBase {
 
     $build = array(
       '#type' => 'table',
-      '#header' => array($config->get('plural_label'), t('Editors'), t('Roles'), t('Actions')),
+      '#header' => array($config->get('plural_label'), t('Editors'), t('Roles')),
       '#rows' => $rows,
     );
     return $build;
