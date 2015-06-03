@@ -31,20 +31,20 @@ class WorkbenchAccessNodeTypeFormTest extends BrowserTestBase {
    */
   public static $modules = array('workbench_access', 'node');
 
-  /*protected function setUp() {
+  protected function setUp() {
     parent::setUp();
 
-    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
+    #$this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
 
-    $this->editor = $this->drupalCreateUser(array(
+    /*$this->editor = $this->drupalCreateUser(array(
       'access administration pages',
       'administer content types',
       'create page content',
       'edit any page content',
       'delete any page content',
-    ));
-    $this->drupalLogin($this->editor);
-  }*/
+    ));*/
+    #$this->drupalLogin($this->editor);
+  }
 
   /**
    * Test that the Workbench Access setting applies properly.
@@ -53,7 +53,7 @@ class WorkbenchAccessNodeTypeFormTest extends BrowserTestBase {
     // The form text string to find.
     $string = 'Enable Workbench Access control for Basic page content.';
     // The form path.
-    $path = 'admin/structure/types/manage/page';
+    $path = '/admin/structure/types/manage/page';
 
     // Get the page content type settings.
     $this->drupalGet($path);
