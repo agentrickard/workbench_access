@@ -2,10 +2,10 @@
 
 /**
  * @file
- * Contains \Drupal\workbench_access\Tests\WorkbenchAccessNodeTypeFormTest
+ * Contains \Drupal\Tests\workbench_access\Functional\WorkbenchAccessNodeTypeFormTest.
  */
 
-namespace Drupal\Tests\simpletest\Functional;
+namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\simpletest\BrowserTestBase;
 use Drupal\node\NodeTypeInterface;
