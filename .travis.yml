@@ -1,0 +1,64 @@
+language: php
+
+php:
+  - 5.4
+  - 5.5
+
+mysql:
+  database: drupal
+  username: root
+  encoding: utf8
+
+env:
+  - PATH=$PATH:/home/travis/.composer/vendor/bin
+
+before_install:
+  # Update Composer so that the Drush installation doesn't fail.
+  - composer selfupdate
+
+install:
+  - sudo apt-get update
+  # Install Apache.
+  - sudo apt-get install apache2 libapache2-mod-fastcgi
+
+  # Set up PHP-FPM.
+  - sudo cp ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf.default ~/.phpenv/versions/$(phpenv version-name)/etc/php-fpm.conf
+  - sudo a2enmod rewrite actions fastcgi alias
+  - echo "cgi.fix_pathinfo = 1" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
+  - ~/.phpenv/versions/$(phpenv version-name)/sbin/php-fpm
+
+  # Set up the Apache vhost.
+  - sudo cp -f $TRAVIS_BUILD_DIR/.travis/apache-vhost.conf /etc/apache2/sites-available/default
+  - sudo sed -e "s?%TRAVIS_BUILD_DIR%?$TRAVIS_BUILD_DIR/../drupal?g" --in-place /etc/apache2/sites-available/default
+  - sudo service apache2 restart
+
+  # Install Drush.
+  - composer global require drush/drush:dev-master
+
+before_script:
+  # Checkout a directory structure with all dependencies.
+  #!switch to beta11 maybe
+  - git clone --depth 1 --branch 8.0.0-beta10 http://git.drupal.org/project/drupal.git $TRAVIS_BUILD_DIR/../drupal
+  #!- git clone --branch 8.x-1.x https://github.com/dickolsson/drupal-key_value.git $TRAVIS_BUILD_DIR/../drupal/modules/key_value
+  - ln -s $TRAVIS_BUILD_DIR $TRAVIS_BUILD_DIR/../drupal/modules/workbench_access
+
+  # Install the site that will host our tests.
+  - cd $TRAVIS_BUILD_DIR/../drupal
+  - php -d sendmail_path=`which true` ~/.composer/vendor/bin/drush.php --yes site-install --db-url=mysql://root:@127.0.0.1/drupal testing
+
+  # Enable required modules and ignore any output to not break the test.
+  - drush --yes pm-enable workbench_access || true
+
+script:
+  # Enable Simpletest and run Simpletest tests.
+  - drush en --yes simpletest
+  - drush cr
+  - cd $TRAVIS_BUILD_DIR/../drupal/core
+  - #!./vendor/bin/phpunit --group multiversion --verbose --debug --coverage-text | tee ; export TEST_PHPUNIT=${PIPESTATUS[0]}
+  - if [ $TEST_PHPUNIT -eq 1 ]; then exit 1; fi
+  - cd $TRAVIS_BUILD_DIR/../drupal
+  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --php `which php` --url http://localhost "workbench_access" | tee /tmp/test.txt ; export TEST_EXIT=${PIPESTATUS[0]}
+  # Simpletest does not exit with code 0 on success, so we will need to analyze
+  # the output to ascertain whether the tests passed.
+  - TEST_SIMPLETEST=$(! egrep -i "([0-9]+ fails)|(PHP Fatal error)|([0-9]+ exceptions)" /tmp/test.txt > /dev/null)$?
+  - if [ $TEST_EXIT -eq 0 ] && [ $TEST_SIMPLETEST -eq 0 ] && [ $TEST_PHPUNIT -eq 0 ]; then exit 0; else exit 1; fi
