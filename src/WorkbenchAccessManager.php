@@ -61,4 +61,8 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
 
   }
 
+  public function getElement($id) {
+
+  }
+
 }

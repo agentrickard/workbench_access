@@ -13,5 +13,6 @@ interface WorkbenchAccessManagerInterface {
   public function getScheme($id);
   public function getActiveScheme();
   public function getActiveTree();
+  public function getElement($id);
 
 }
