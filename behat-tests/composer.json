@@ -1,0 +1,12 @@
+{
+    "name": "stevepersch/drupal8-skeleton",
+    "require": {
+        "drupal/drupal-extension": "~3.0"
+    },
+    "authors": [
+        {
+            "name": "Steve Persch",
+            "email": "persch@palantir.net"
+        }
+    ]
+}
