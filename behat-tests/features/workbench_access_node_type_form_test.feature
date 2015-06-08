@@ -33,3 +33,12 @@ Feature: Node Type pages
     And I press the "Save content type" button
     When I visit "admin/structure/types/manage/page"
     Then the checkbox "workbench_access_status" should be checked
+
+  Scenario: Saving the disabling of Workbench Access for a content type
+    Given I am logged in as a user with the "administrator" role
+    When I visit "admin/structure/types/manage/page"
+    Then the checkbox "workbench_access_status" should be checked
+    And I uncheck the box "workbench_access_status"
+    And I press the "Save content type" button
+    When I visit "admin/structure/types/manage/page"
+    Then the checkbox "workbench_access_status" should not be checked
