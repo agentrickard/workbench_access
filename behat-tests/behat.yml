@@ -11,7 +11,7 @@ default:
     Behat\MinkExtension:
       goutte: ~
       selenium2: ~
-      base_url: http://drupal8-skeleton.local
+      base_url: http://workbench.local
     Drupal\DrupalExtension:
       blackbox: ~
       api_driver: 'drupal'
