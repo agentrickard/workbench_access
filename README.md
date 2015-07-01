@@ -16,7 +16,6 @@ Palantir developers should use this Vagrant environment for developing Workbench
 
 ### Testing
 
-Pull requests should include tests. Use Behat or PHPUnit. Do not use Simpletest.
-@todo, add more detail to this section: https://redmine.palantir.net/issues/43688
+This module contains Behat tests in the directory /behat-tests and PHPUnit tests in /tests/src/Unit. Those directories contain instructions for writing and running tests.
 
 
