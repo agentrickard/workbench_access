@@ -9,8 +9,8 @@ php:
 
 env:
   global:
-    - MODULE_NAME='workbench_moderation'
-    - MODULE_TEST_GROUP='workbench_moderation'
+    - MODULE_NAME='workbench_access'
+    - MODULE_TEST_GROUP='workbench_access'
     - DRUPAL_REPO='git://drupalcode.org/project/drupal.git'
     - DRUPAL_VERSION='8.0.x'
     - PHPCS_VERSION='2.0.*@dev'
@@ -66,7 +66,7 @@ before_script:
   # @todo, switch from "standard" profile back to "testing" profile,
   # or a new workbench_moderation testing profile.
   - cd $TRAVIS_BUILD_DIR/drupal && drush --yes site-install standard --db-url="mysql://root@127.0.0.1/drupal"
-  - cd $TRAVIS_BUILD_DIR/drupal/modules/workbench_moderation/behat-tests && composer install --prefer-source --no-interaction
+  - cd $TRAVIS_BUILD_DIR/drupal/modules/$MODULE_NAME/behat-tests && composer install --prefer-source --no-interaction
   - cd $TRAVIS_BUILD_DIR/drupal && drush --yes en $MODULE_NAME
 
   # Start a web server.
@@ -76,5 +76,5 @@ before_script:
 script:
   # Run code sniffer.
   - phpcs --report=full --ignore=behat-tests/vendor --standard=Drupal $TRAVIS_BUILD_DIR/drupal/modules/$MODULE_NAME
-  - cd $TRAVIS_BUILD_DIR/drupal/modules/workbench_moderation/behat-tests && ./vendor/bin/behat -f pretty --config behat.travis.yml
-  - cd $TRAVIS_BUILD_DIR/drupal/core && ./vendor/bin/phpunit  --group workbench_moderation
+  - cd $TRAVIS_BUILD_DIR/drupal/modules/$MODULE_NAME/behat-tests && ./vendor/bin/behat -f pretty --config behat.travis.yml
+  - cd $TRAVIS_BUILD_DIR/drupal/core && ./vendor/bin/phpunit  --group $MODULE_NAME
