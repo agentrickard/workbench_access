@@ -1,0 +1,81 @@
+# This file was adapted from
+# https://github.com/drupal-media/media_entity/blob/3b365eddb4b4af4c3212c4cf7814464987f44e46/.travis.yml
+
+language: php
+
+php:
+  - 5.4
+  - 5.5
+
+env:
+  global:
+    - MODULE_NAME='workbench_access'
+    - MODULE_TEST_GROUP='workbench_access'
+    - DRUPAL_REPO='git://drupalcode.org/project/drupal.git'
+    - DRUPAL_VERSION='8.0.x'
+    - PHPCS_VERSION='2.0.*@dev'
+    - CODER_VERSION='8.2.0-beta1'
+
+matrix:
+  allow-failures:
+    - php: 5.5
+
+before_install:
+  # Ensure we have the latest sources.
+  - sudo apt-get -y update
+
+  # Composer.
+  - sed -i '1i export PATH="$HOME/.composer/vendor/bin:$PATH"' $HOME/.bashrc
+  - source $HOME/.bashrc
+  # - composer self-update
+
+  # Drush.
+  - composer global require "youngj/httpserver:dev-master#41dd2b7"
+  - composer global require drush/drush:dev-master
+
+  # Codesniffer.
+  - composer global require squizlabs/php_codesniffer:$PHPCS_VERSION
+
+  # Coder.
+  - composer global require drupal/coder:$CODER_VERSION
+  - ln -s ~/.composer/vendor/drupal/coder/coder_sniffer/Drupal ~/.composer/vendor/squizlabs/php_codesniffer/CodeSniffer/Standards/
+
+  # Ensure the PHP environment is ready.
+  - phpenv rehash
+
+install:
+  # Basic PHP packages.
+  - sudo apt-get install -y --force-yes php5-cgi php5-mysql
+
+  # Move the checked out module into the correct structure.
+  - mkdir /tmp/$MODULE_NAME
+  - mv * /tmp/$MODULE_NAME/
+  - git clone --branch $DRUPAL_VERSION $DRUPAL_REPO drupal --depth 1
+  - mv /tmp/$MODULE_NAME drupal/modules/
+
+before_script:
+  # This fixes a fail when install Drupal.
+  - echo 'sendmail_path = /bin/true' >> ~/.phpenv/versions/$(phpenv version-name)/etc/conf.d/travis.ini
+
+  # Mysql might time out for long tests, increase the wait timeout.
+  - mysql -e 'SET @@GLOBAL.wait_timeout=1200'
+
+  # Install Drupal and enable the required modules (including this one).
+  - mysql -e 'create database drupal;'
+  # @todo, switch from "standard" profile back to "testing" profile,
+  # or a new workbench testing profile.
+  - cd $TRAVIS_BUILD_DIR/drupal && drush --yes site-install standard --db-url="mysql://root@127.0.0.1/drupal"
+  - cd $TRAVIS_BUILD_DIR/drupal/modules/$MODULE_NAME/behat-tests && composer install --prefer-source --no-interaction
+  - cd $TRAVIS_BUILD_DIR/drupal && drush --yes en $MODULE_NAME
+
+  # Start a web server.
+  - drush runserver 127.0.0.1:8080 &
+  - until netstat -an 2>/dev/null | grep '8080.*LISTEN'; do true; done
+
+script:
+  # Run code sniffer.
+  # @todo, turn on code sniffing after we get a working sniffer for D8
+  # https://redmine.palantir.net/issues/44400
+  # - phpcs --report=full --ignore=behat-tests/vendor --standard=Drupal $TRAVIS_BUILD_DIR/drupal/modules/$MODULE_NAME
+  - cd $TRAVIS_BUILD_DIR/drupal/modules/$MODULE_NAME/behat-tests && ./vendor/bin/behat -f pretty --config behat.travis.yml
+  - cd $TRAVIS_BUILD_DIR/drupal/core && ./vendor/bin/phpunit  --group $MODULE_NAME
