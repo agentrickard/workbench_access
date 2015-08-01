@@ -218,10 +218,11 @@ function workbench_access_uninstall() {
       taxonomy_vocabulary_delete($vocabulary->vid);
     }
   }
+
   variable_del('workbench_access');
-  variable_del('workbench_access_taxonomy');
-  variable_del('workbench_access_menu');
-  variable_del('workbench_access_auto_assign');
+  db_delete('variable')
+    ->condition('name', 'workbench_access_%', 'LIKE')
+    ->execute();
 }
 
 /**
