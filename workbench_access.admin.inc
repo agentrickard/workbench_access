@@ -637,7 +637,7 @@ function workbench_access_editor_form($form, &$form_state, $access_type, $access
   $rows = array();
   $form['users']['#tree'] = TRUE;
   foreach ($result as $account) {
-    $form['users'][$account->uid]['name'] = array('#markup' => l($account->name, 'user/' . $account->uid));
+    $form['users'][$account->uid]['name'] = array('#markup' => l(format_username($account), 'user/' . $account->uid));
     $form['users'][$account->uid]['remove'] = array(
       '#type' => 'checkbox',
       '#title' => t('Remove'),
@@ -799,7 +799,7 @@ function workbench_access_role_form($form, &$form_state, $access_type, $access_t
   }
   $users_by_role = array();
   foreach ($users as $data) {
-    $users_by_role[$data->uid]['name'] = $data->name;
+    $users_by_role[$data->uid]['name'] = format_username($data);
     if (is_array($data->roles)) {
       array_walk($data->roles, 'check_plain');
       $users_by_role[$data->uid]['roles'] = array_values($data->roles);
