@@ -170,29 +170,30 @@ function taxonomy_workbench_access_tree($info, $keys) {
     }
   }
   foreach ($items as $vid => $tid) {
-    $vocabulary = taxonomy_vocabulary_machine_name_load($vid);
-    if ($tid == 0) {
-      $tree[$vocabulary->machine_name] = array(
-        'access_id' => $vocabulary->machine_name,
-        'access_type_id' => $vocabulary->machine_name,
-        'name' => $vocabulary->name,
-        'description' => $vocabulary->description,
-        'weight' => 0,
-        'depth' => 0,
-        'parent' => $vocabulary->machine_name,
-      );
-    }
-    $children = taxonomy_get_tree($vocabulary->vid, $tid);
-    foreach ($children as $child) {
-      $tree[$child->tid] = array(
-        'access_id' => $child->tid,
-        'access_type_id' => $vocabulary->machine_name,
-        'name' => $child->name,
-        'description' => $child->description,
-        'weight' => $child->weight,
-        'depth' => $child->depth+1,
-        'parent' => !empty($child->parents[0]) ? $child->parents[0] : $vocabulary->machine_name,
-      );
+    if ($vocabulary = taxonomy_vocabulary_machine_name_load($vid)) {
+      if ($tid == 0) {
+        $tree[$vocabulary->machine_name] = array(
+          'access_id' => $vocabulary->machine_name,
+          'access_type_id' => $vocabulary->machine_name,
+          'name' => $vocabulary->name,
+          'description' => $vocabulary->description,
+          'weight' => 0,
+          'depth' => 0,
+          'parent' => $vocabulary->machine_name,
+        );
+      }
+      $children = taxonomy_get_tree($vocabulary->vid, $tid);
+      foreach ($children as $child) {
+        $tree[$child->tid] = array(
+          'access_id' => $child->tid,
+          'access_type_id' => $vocabulary->machine_name,
+          'name' => $child->name,
+          'description' => $child->description,
+          'weight' => $child->weight,
+          'depth' => $child->depth+1,
+          'parent' => !empty($child->parents[0]) ? $child->parents[0] : $vocabulary->machine_name,
+        );
+      }
     }
   }
   if ($keys) {
