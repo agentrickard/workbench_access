@@ -555,34 +555,37 @@ function workbench_access_get_active_tree() {
 
   workbench_access_load_include($scheme);
 
-  // Now check the cache.
-  $cache = cache_get('workbench_access_tree', 'cache_bootstrap');
-  if (isset($cache->data)) {
-    $access_tree = $cache->data;
-  }
-  if (isset($access_tree['access_scheme'])) {
-    return $access_tree;
-  }
-  // Retrieve and cache data.
-  $func = $scheme . '_workbench_access_info';
-  $info = $func();
-  $data = $info[$scheme];
-  $stored = workbench_access_get_ids_by_scheme($data);
-  $tree = workbench_access_tree($data);
-  workbench_access_build_tree($tree);
-  // Ensure that we have no orphaned ids.
-  $active = array();
-  foreach ($stored as $access_id => $access_scheme) {
-    if (isset($tree[$access_id])) {
-      $active[$access_id] = $access_scheme;
+  $access_tree = &drupal_static(__FUNCTION__);
+  if (!isset($access_tree)) {
+    // Now check the cache.
+    $cache = cache_get('workbench_access_tree', 'cache_bootstrap');
+    if (isset($cache->data)) {
+      $access_tree = $cache->data;
     }
+    if (isset($access_tree['access_scheme'])) {
+      return $access_tree;
+    }
+    // Retrieve and cache data.
+    $func = $scheme . '_workbench_access_info';
+    $info = $func();
+    $data = $info[$scheme];
+    $stored = workbench_access_get_ids_by_scheme($data);
+    $tree = workbench_access_tree($data);
+    workbench_access_build_tree($tree);
+    // Ensure that we have no orphaned ids.
+    $active = array();
+    foreach ($stored as $access_id => $access_scheme) {
+      if (isset($tree[$access_id])) {
+        $active[$access_id] = $access_scheme;
+      }
+    }
+    $access_tree = array(
+      'access_scheme' => $data,
+      'tree' => $tree,
+      'active' => $active,
+    );
+    cache_set('workbench_access_tree', $access_tree, 'cache_bootstrap');
   }
-  $access_tree = array(
-    'access_scheme' => $data,
-    'tree' => $tree,
-    'active' => $active,
-  );
-  cache_set('workbench_access_tree', $access_tree, 'cache_bootstrap');
   return $access_tree;
 }
 
@@ -976,6 +979,7 @@ function workbench_access_section_delete($section) {
 function workbench_access_reset_tree() {
   cache_clear_all('workbench_access_tree', 'cache_bootstrap');
   drupal_static_reset('workbench_access_get_access_tree');
+  drupal_static_reset('workbench_access_get_active_tree');
   drupal_static_reset('workbench_access_get_ids_by_scheme');
   drupal_static_reset('workbench_access_get_user_tree');
   drupal_static_reset('workbench_access_user_load_data');
