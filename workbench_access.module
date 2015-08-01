@@ -664,6 +664,10 @@ function workbench_access_node_presave($node) {
   if (empty($node->nid)) {
     return;
   }
+  // Only run this on enabled node types.
+  if (!variable_get('workbench_access_node_type_' . $node->type, 1)) {
+    return;
+  }
   // Did we use the default field form?
   workbench_access_prepare_field_save($node);
   if (isset($node->workbench_access_fields)) {
@@ -729,6 +733,24 @@ function workbench_access_prepare_field_save($node) {
     $fields = workbench_access_get_assigned_fields($node->type);
     foreach ($fields as $field => $info) {
       $node->workbench_access_fields[] = $field;
+    }
+  }
+
+  // Make sure that the required fields are present, even if they're empty.
+  foreach ($node->workbench_access_fields as $field) {
+    if (!isset($node->{$field})) {
+      if ($field == 'menu') {
+        menu_node_prepare($node);
+        if (!empty($node->menu)) {
+          // menu_node_prepare() expects FAPI to mark the link enabled.
+          // If it's not marked enabled, when we execute node_save(),
+          // menu_node_save() would delete it. Avoid this:
+          $node->menu['enabled'] = empty($node->menu['mlid']) ? 0 : 1;
+        }
+      }
+      else {
+        $node->{$field} = array();
+      }
     }
   }
 }
