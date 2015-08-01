@@ -351,14 +351,14 @@ function workbench_access_load_include($module = NULL) {
  * Enforces our access rules when users try to edit/delete a node.
  */
 function workbench_access_node_access($node, $op, $account) {
-  // If not configured, do nothing.
-  $tree = workbench_access_get_active_tree();
-  if (empty($tree['active'])) {
+  // View step. We ignore for published nodes.
+  if ($op == 'view' && $node->status) {
     return NODE_ACCESS_IGNORE;
   }
 
-  // View step. We ignore for published nodes.
-  if ($op == 'view' && $node->status) {
+  // If not configured, do nothing.
+  $tree = workbench_access_get_active_tree();
+  if (empty($tree['active'])) {
     return NODE_ACCESS_IGNORE;
   }
 
