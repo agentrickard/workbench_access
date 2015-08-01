@@ -312,9 +312,10 @@ function workbench_access_section_form($form, &$form_state) {
         '#tree' => TRUE,
       );
     }
+    $string = str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']);
     $form['sections'][$parent][$section['access_id']] = array(
       '#type' => 'checkbox',
-      '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
+      '#title' => $section['depth'] == 0 ? t('All of @string', array('@string' => $string)): t('@string', array('@string' => $string)),
       '#default_value' => isset($active['active'][$section['access_id']]),
       '#disabled' => variable_get('workbench_access_auto_assign', 1),
     );
@@ -424,17 +425,19 @@ function workbench_access_user_form($form, &$form_state, $account) {
     // Do we show inactive sections here?
     if (isset($active['active'][$section['access_id']])) {
       if (user_access('assign workbench access') && !empty($active['active'][$section['access_id']])) {
+        $string = str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']);
         $form['sections'][$parent][$section['access_id']] = array(
           '#type' => 'checkbox',
-          '#title' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']),
+          '#title' => $section['depth'] == 0 ? t('All of @string', array('@string' => $string)): t('@string', array('@string' => $string)),
           '#default_value' => isset($sections[$section['access_id']]),
           # '#disabled' => empty($sections[$section['access_id']]),
         );
       }
       elseif (isset($sections[$section['access_id']])) {
+        $string = str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />';
         $form['sections'][$parent][$section['access_id']] = array(
           '#type' => 'markup',
-          '#markup' => ($section['depth'] == 0 ? t('All of') . ' ' : '') . str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />',
+          '#markup' => $section['depth'] == 0 ? t('All of @string', array('@string' => $string)): t('@string', array('@string' => $string)),
         );
       }
       /* Unused. Here for reference.
