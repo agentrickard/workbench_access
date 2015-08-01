@@ -816,7 +816,8 @@ function workbench_access_user_load_data($account) {
       ->condition('war.access_scheme', $access_scheme);
     $result = $query->execute()->fetchAll();
     foreach ($result as $data) {
-      if (!isset($items[$data->access_id])) {
+      // If the role is set it matches a role the user has
+      if (isset($items[$data->access_id])) {
         $items[$data->access_id] = $data;
         // Identify the access-by-role features.
         $account->workbench_access_by_role[] = $data->access_id;
