@@ -137,7 +137,8 @@ class workbench_access_handler_filter_access extends views_handler_filter_many_t
       $subquery->condition($table . '.' . $active['access_scheme']['query_field'], $ids, 'IN');
       $subquery->condition($table . '.access_scheme', $active['access_scheme']['access_scheme']);
 
-      $this->query->add_where($group, "{$this->query->base_table}.nid", $subquery, 'IN');
+      $where_table = !empty($this->relationship) ? $this->relationship : $this->query->base_table;
+      $this->query->add_where($group, "$where_table.nid", $subquery, 'IN');
     }
 
     // If not all node types use workbench access for permissions, add them here.
