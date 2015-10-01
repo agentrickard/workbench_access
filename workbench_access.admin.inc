@@ -434,9 +434,9 @@ function workbench_access_user_form($form, &$form_state, $account) {
         );
       }
       elseif (isset($sections[$section['access_id']])) {
-        $string = str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']) . '<br />';
+        $string = str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']);
         $form['sections'][$parent][$section['access_id']] = array(
-          '#type' => 'markup',
+          '#type' => 'item',
           '#markup' => $section['depth'] == 0 ? t('All of @string', array('@string' => $string)): t('@string', array('@string' => $string)),
         );
       }
