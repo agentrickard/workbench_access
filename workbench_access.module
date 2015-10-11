@@ -818,12 +818,17 @@ function workbench_access_user_load_data($account) {
       ->condition('war.rid', array_keys($account->roles), 'IN')
       ->condition('war.access_scheme', $access_scheme);
     $result = $query->execute()->fetchAll();
+    $account->workbench_access_by_role = array();
     foreach ($result as $data) {
-      // If the role is set it matches a role the user has
-      if (isset($items[$data->access_id])) {
+      // If the role is set it matches a role the user has and does not need to
+      // be added again, but we should still track it.
+      if (!isset($items[$data->access_id])) {
         $items[$data->access_id] = $data;
-        // Identify the access-by-role features.
-        $account->workbench_access_by_role[] = $data->access_id;
+      }
+      // Identify the access-by-role features. These can be duplicated for
+      // users with multiple roles.
+      if (!isset($account->workbench_access_by_role[$data->access_id])) {
+        $account->workbench_access_by_role[$data->access_id] = $data->access_id;
       }
     }
     foreach ($items as $item) {

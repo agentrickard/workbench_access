@@ -992,3 +992,64 @@ class WorkbenchAccessTokenTestCase extends DrupalWebTestCase {
     return $values;
   }
 }
+
+class WorkbenchAccessRoleTestCase extends WorkbenchAccessTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Workbench access role',
+      'description' => 'Test Taxonomy access control rules applied by role.',
+      'group' => 'Workbench Access'
+    );
+  }
+
+  // Test for assignment by role.
+  function testWorkbenchAccessRoles() {
+    // Create some nodes and users.
+    $this->createWorkbenchAccessNodes();
+    $this->createWorkbenchAccessUsers();
+    // Create the taxonomy test scheme.
+    module_load_include('inc', 'workbench_access', 'workbench_access.admin');
+    workbench_access_example_taxonomy();
+    $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid")->fetchField();
+    $this->assertTrue($count == 10, t('Initial nodes assigned access data.'));
+
+    // Check that the vocabulary is setup correctly.
+    $this->assertWorkbenchScheme('taxonomy');
+
+    // Check that nodes have been assigned to the top-level item.
+    $count = db_query("SELECT COUNT(n.nid) FROM {node} n INNER JOIN {workbench_access_node} wan ON n.nid = wan.nid WHERE wan.access_id = 'workbench_access' AND wan.access_scheme = 'taxonomy'")->fetchField();
+    $this->assertTrue($count == 10, t('Initial nodes assigned to top-level hierarchy.'));
+
+    // First, the user should not be able to do anything (Create, Update or Delete).
+    $account = $this->getWorkbenchAccessUser();
+    $id = $account->testId;
+    $this->assertTrue(empty($account->workbench_access['workbench_access']), t('Test user not assigned to a section.'));
+    $nids = db_query("SELECT nid FROM {node}")->fetchAllAssoc('nid');
+    $nodes = node_load_multiple(array_keys($nids));
+    $assigned = TRUE;
+    foreach ($nodes as $node) {
+      if (!isset($node->workbench_access['workbench_access'])) {
+        $assigned = FALSE;
+      }
+    }
+    $this->assertTrue(!empty($assigned), t('All nodes properly assigned.'));
+    $this->assertWorkbenchAccessCheck($nodes, $account, t('No sections'), FALSE);
+
+    // Test that the role lookup function works correctly.
+    $roles = workbench_access_get_roles('access workbench access by role');
+    // The 'administrator' role always has permission.
+    $this->assertTrue(count($roles) == 2, t('One user role assigned.'));
+
+    // Now, we assign the user's role to a section and check again.
+    $active = workbench_access_get_active_tree();
+    workbench_access_role_section_save($this->editor_role, 'workbench_access', $active['access_scheme']['access_scheme']);
+    $account = user_load($account->uid, TRUE);
+    $this->assertTrue(!empty($account->workbench_access['workbench_access']), t('Test user assigned to top-level hierarchy.'));
+    $this->assertWorkbenchAccessCheck($nodes, $account, t('Assigned sections by role'), TRUE);
+    // Revoke the role and test again.
+    workbench_access_role_section_delete($this->editor_role, 'workbench_access', $active['access_scheme']['access_scheme']);
+    $account = user_load($account->uid, TRUE);
+    $this->assertTrue(empty($account->workbench_access['workbench_access']), t('Test user removed from top-level hierarchy.'));
+    $this->assertWorkbenchAccessCheck($nodes, $account, t('No assigned sections by role'), FALSE);
+  }
+}

@@ -383,8 +383,8 @@ function workbench_access_user_form($form, &$form_state, $account) {
   $section_items = array_keys($sections);
   $parent = 0;
   $used = array();
-
   foreach ($active['tree'] as $section) {
+    $disabled = FALSE;
     if (in_array($section['access_id'], $used)) {
       continue;
     }
@@ -426,18 +426,27 @@ function workbench_access_user_form($form, &$form_state, $account) {
     if (isset($active['active'][$section['access_id']])) {
       if (user_access('assign workbench access') && !empty($active['active'][$section['access_id']])) {
         $string = str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']);
+        if (isset($account->workbench_access_by_role[$section['access_id']])) {
+          $string .= '*';
+          $show_message = TRUE;
+          $disabled = TRUE;
+        }
         $form['sections'][$parent][$section['access_id']] = array(
           '#type' => 'checkbox',
           '#title' => $section['depth'] == 0 ? t('All of @string', array('@string' => $string)): t('@string', array('@string' => $string)),
           '#default_value' => isset($sections[$section['access_id']]),
-          # '#disabled' => empty($sections[$section['access_id']]),
+          '#disabled' => !empty($disabled),
         );
       }
       elseif (isset($sections[$section['access_id']])) {
         $string = str_repeat('-', $section['depth']) . ' ' . check_plain($section['name']);
+        if (isset($account->workbench_access_by_role[$section['access_id']])) {
+          $string .= '*';
+          $show_message = TRUE;
+        }
         $form['sections'][$parent][$section['access_id']] = array(
-          '#type' => 'item',
-          '#markup' => $section['depth'] == 0 ? t('All of @string', array('@string' => $string)): t('@string', array('@string' => $string)),
+          '#type' => 'markup',
+          '#markup' => $section['depth'] == 0 ? t('All of @string', array('@string' => $string)): t('@string', array('@string' => $string)) . '<br />',
         );
       }
       /* Unused. Here for reference.
@@ -457,6 +466,12 @@ function workbench_access_user_form($form, &$form_state, $account) {
       );
     }
     $used[] = $section['access_id'];
+  }
+  if (!empty($show_message)) {
+    $form['sections'][$parent]['message'] = array(
+      '#type' => 'markup',
+      '#markup' => '<p>' . t('Items marked with an asterisk (*) are assigned by role.') . '</p>',
+    );
   }
   $form['submit'] = array(
     '#type' => 'submit',
