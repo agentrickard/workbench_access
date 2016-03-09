@@ -2,6 +2,12 @@ workbench_access.settings:
   type: config_object
   label: 'Workbench Access settings'
   mapping:
+    scheme:
+      type: text
+      label: 'Active access scheme.'
+    parents:
+      type: array
+      label: 'Active access parents for a scheme.'
     label:
       type: text
       label: 'Label shown to define a Workbench Access control group.'
