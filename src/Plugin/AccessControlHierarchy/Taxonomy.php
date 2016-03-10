@@ -8,6 +8,7 @@
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
@@ -36,7 +37,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         $tree[$id][$id] = array(
           'label' => $vocabulary->label(),
           'depth' => 0,
-          'parent' => '',
+          'parent' => 0,
           'weight' => 0,
           'description' => $vocabulary->label(),
         );

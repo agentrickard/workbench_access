@@ -14,6 +14,7 @@ use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\system\Entity\Menu as MenuEntity;
+use Drupal\menu_link_content\Entity\MenuLinkContent;
 
 /**
  * Defines a hierarchy based on a Menu.
@@ -42,7 +43,7 @@ class Menu extends AccessControlHierarchyBase {
         $tree[$id][$id] = array(
           'label' => $menu->label(),
           'depth' => 0,
-          'parent' => '',
+          'parent' => 0,
           'weight' => 0,
           'description' => $menu->label(),
         );
