@@ -13,6 +13,7 @@ use Drupal\Core\Menu\MenuLinkTreeElement;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
 use Drupal\Core\Menu\MenuLinkInterface;
+use Drupal\system\Entity\Menu as MenuEntity;
 
 /**
  * Defines a hierarchy based on a Menu.
@@ -37,22 +38,24 @@ class Menu extends AccessControlHierarchyBase {
     $tree = array();
     $this->menuTree = \Drupal::getContainer()->get('menu.link_tree');
     foreach ($parents as $id => $label) {
-      $tree[$id][$id] = array(
-        'label' => $label,
-        'depth' => 0,
-        'parent' => '',
-        'weight' => 0,
-        'description' => $label,
-      );
-      $data = $this->menuTree->load($id, new MenuTreeParameters());
-      foreach ($data as $link_id => $link) {
-        $tree[$id][$link_id] = array(
-          'label' => $link->link->getTitle(),
-          'depth' => $link->depth,
-          'parent' => $link->link->getParent(),
-          'weight' => $link->link->getWeight(),
-          'description' => $link->link->getDescription(),
+      if ($menu = MenuEntity::load($id)) {
+        $tree[$id][$id] = array(
+          'label' => $menu->label(),
+          'depth' => 0,
+          'parent' => '',
+          'weight' => 0,
+          'description' => $menu->label(),
         );
+        $data = $this->menuTree->load($id, new MenuTreeParameters());
+        foreach ($data as $link_id => $link) {
+          $tree[$id][$link_id] = array(
+            'label' => $link->link->getTitle(),
+            'depth' => $link->depth,
+            'parent' => $link->link->getParent(),
+            'weight' => $link->link->getWeight(),
+            'description' => $link->link->getDescription(),
+          );
+        }
       }
     }
     return $tree;

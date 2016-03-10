@@ -8,6 +8,7 @@
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
  * Defines a hierarchy based on a Vocaulary.
@@ -31,22 +32,24 @@ class Taxonomy extends AccessControlHierarchyBase {
     $parents = $config->get('parents');
     $tree = array();
     foreach ($parents as $id => $label) {
-      $tree[$id][$id] = array(
-        'label' => $label,
-        'depth' => 0,
-        'parent' => '',
-        'weight' => 0,
-        'description' => $label,
-      );
-      $data = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($id);
-      foreach ($data as $term) {
-        $tree[$id][$term->tid] = array(
-          'label' => $term->name,
-          'depth' => $term->depth + 1,
-          'parent' => current($term->parents),
-          'weight' => $term->weight,
-          'description' => $term->description__value, // @TODO: security
+      if ($vocabulary = Vocabulary::load($id)) {
+        $tree[$id][$id] = array(
+          'label' => $vocabulary->label(),
+          'depth' => 0,
+          'parent' => '',
+          'weight' => 0,
+          'description' => $vocabulary->label(),
         );
+        $data = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($id);
+        foreach ($data as $term) {
+          $tree[$id][$term->tid] = array(
+            'label' => $term->name,
+            'depth' => $term->depth + 1,
+            'parent' => current($term->parents),
+            'weight' => $term->weight,
+            'description' => $term->description__value, // @TODO: security
+          );
+        }
       }
     }
     return $tree;
