@@ -68,7 +68,12 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    *   The identifier for the item, such as a term id.
    */
   public function load($id) {
-
+    $tree = $this->getTree();
+    foreach ($tree as $parent => $data) {
+      if (isset($data[$id])) {
+        return $data[$id];
+      }
+    }
   }
 
   /**

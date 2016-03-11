@@ -54,15 +54,18 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   }
 
   public function getActiveScheme() {
-    // @TODO: Inject the config service?
+    $config = \Drupal::config('workbench_access.settings');
+    $scheme_id = $config->get('scheme');
+    $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+    return $this->manager->getScheme($scheme_id);
   }
 
   public function getActiveTree() {
-
+    return $this->getActiveScheme()->getTree();
   }
 
   public function getElement($id) {
-
+    return $this->getActiveScheme()->load($id);
   }
 
 }
