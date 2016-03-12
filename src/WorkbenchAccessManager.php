@@ -68,4 +68,8 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $this->getActiveScheme()->load($id);
   }
 
+  public function getDefaultValue() {
+    return NULL;
+  }
+
 }

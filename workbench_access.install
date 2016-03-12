@@ -1,0 +1,33 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Workbench Access module.
+ */
+
+/**
+ * Implements hook_install().
+ *
+ * Installs the default on users.
+ * @TODO: Can we do this via schema?
+ */
+function workbench_access_install() {
+  // Assign domain access to bundles.
+  $list['user'] = 'user';
+  foreach ($list as $bundle => $entity_type) {
+    workbench_access_confirm_fields($entity_type, $bundle);
+  }
+}
+/**
+ * Implements hook_uninstall().
+ *
+ * Removes access control fields on uninstall.
+ */
+function workbench_access_uninstall() {
+  foreach (array('user') as $type) {
+    $id = $type . '.' . WORKBENCH_ACCESS_FIELD;
+    if ($field = \Drupal::entityManager()->getStorage('field_storage_config')->load($id)) {
+      $field->delete();
+    }
+  }
+}

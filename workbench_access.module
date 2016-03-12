@@ -10,6 +10,11 @@ use Drupal\node\NodeTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
+ * Defines the name of the node access control field.
+ */
+define('WORKBENCH_ACCESS_FIELD', 'field_workbench_access');
+
+/**
  * Implements hook_help().
  */
 function workbench_access_help($route_name, RouteMatchInterface $route_match) {
@@ -53,4 +58,47 @@ function workbench_access_form_node_type_form_alter(&$form, FormStateInterface $
  */
 function workbench_access_form_node_type_form_builder($entity_type, NodeTypeInterface $type, &$form, FormStateInterface $form_state) {
   $type->setThirdPartySetting('workbench_access', 'workbench_access_status', $form_state->getValue('workbench_access_status'));
+}
+
+/**
+ * Creates our fields for an entity bundle.
+ *
+ * @param $entity_type
+ *   The entity type being created. Users are supported.
+ * @param $bundle
+ *   The bundle being created.
+ */
+function workbench_access_confirm_fields($entity_type, $bundle) {
+  $text = [
+    'user' => [
+      'type' => 'user',
+      'label' => 'Sections', // @TODO tie to config
+      'description' => 'Assign the editorial sections that this user belongs to.',
+    ]
+  ];
+  $id = $entity_type . '.' . $bundle . '.' . WORKBENCH_ACCESS_FIELD;
+
+  if (!$field = \Drupal::entityManager()->getStorage('field_config')->load($id)) {
+    $field = array(
+      'field_name' => WORKBENCH_ACCESS_FIELD,
+      'entity_type' => $entity_type,
+      'label' => $text[$entity_type]['label'],
+      'bundle' => $bundle,
+      'required' => FALSE,
+      'description' => $text[$entity_type]['description'],
+      'default_value_callback' => 'Drupal\workbench_access\WorkbenchAccessManager::getDefaultValue',
+    );
+    $field_config = \Drupal::entityManager()->getStorage('field_config')->create($field);
+    $field_config->save();
+  }
+  // Tell the form system how to behave. Default to select list.
+  // @TODO: This function is deprecated, but using the OO syntax is causing
+  // test fails.
+  entity_get_form_display($entity_type, $bundle, 'default')
+    ->setComponent(WORKBENCH_ACCESS_FIELD, array(
+      'type' => 'options_buttons',
+      'weight' => 40,
+      'hidden' => TRUE, // @TODO: Work on this UI.
+    ))
+    ->save();
 }

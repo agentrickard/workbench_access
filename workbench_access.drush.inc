@@ -84,5 +84,6 @@ function drush_workbench_access_test() {
   catch (Exception $e) {
     drush_print('The test vocabulary has already been created.');
   }
+  workbench_access_confirm_fields('user', 'user');
 }
 
