@@ -6,6 +6,7 @@
  */
 
 namespace Drupal\workbench_access;
+use Drupal\Core\Form\FormStateInterface;
 
 /**
  * Defines a base hierarchy class that others may extend.
@@ -60,6 +61,6 @@ interface AccessControlHierarchyInterface {
   /**
    * Submits configuration options.
    */
-  public function configSubmit();
+  public function configSubmit(array &$form, FormStateInterface $form_state);
 
 }

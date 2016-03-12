@@ -62,4 +62,8 @@ class Menu extends AccessControlHierarchyBase {
     return $tree;
   }
 
+  public function fields($entity_type, $bundle) {
+    return 'menu';
+  }
+
 }
