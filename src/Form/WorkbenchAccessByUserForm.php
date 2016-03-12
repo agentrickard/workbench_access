@@ -20,6 +20,32 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 class WorkbenchAccessByUserForm extends FormBase {
 
   /**
+   * The Workbench Access manager service.
+   *
+   * @var \Drupal\workbench_access\WorkbenchAccessManager
+   */
+  protected $manager;
+
+  /**
+   * Constructs a new WorkbenchAccessConfigForm.
+   *
+   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface
+   *   The Workbench Access hierarchy manager.
+   */
+  public function __construct(WorkbenchAccessManagerInterface $manager) {
+    $this->manager = $manager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('plugin.manager.workbench_access.scheme')
+    );
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function getFormId() {
@@ -30,7 +56,8 @@ class WorkbenchAccessByUserForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
-
+    $element = $this->manager->getElement($id);
+    kint($element);
   }
 
   /**
