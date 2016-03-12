@@ -92,7 +92,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#type' => 'radios',
         '#title' => t('Active access scheme'),
         '#options' => $schemes,
-        '#default_value' => $config->get('scheme', ''),
+        '#default_value' => $config->get('scheme', 'taxonomy'),
       );
       foreach ($schemes as $id => $label) {
         $scheme = $this->manager->getScheme($id);
@@ -110,14 +110,30 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         );
       }
     }
-    $form['label'] = array(
+    // @TODO: These should change dynamically id form settings change.
+    $scheme = $this->manager->getScheme($config->get('scheme', 'taxonomy'));
+    $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents', array()));
+    if (!empty($custom)) {
+      $form['custom'] = array(
+        '#type' => 'details',
+        '#title' => $this->t('Scheme settings'),
+        '#open' => TRUE,
+        '#markup' => '<strong>' . $this->t('These settings must be confirmed after saving the scheme and options above.') . '</strong>',
+      );
+      $form['custom'] += $custom;
+    }
+    $form['labels'] = array(
+      '#type' => 'details',
+      '#title' => $this->t('Labels'),
+    );
+    $form['labels']['label'] = array(
       '#type' => 'textfield',
       '#size' => 32,
       '#title' => t('Access group label'),
       '#default_value' => $config->get('label', 'Section'),
       '#description' => t('Label shown to define a Workbench Access control group.'),
     );
-    $form['plural_label'] = array(
+    $form['labels']['plural_label'] = array(
       '#type' => 'textfield',
       '#size' => 32,
       '#title' => t('Access group label (plural form)'),
@@ -133,12 +149,16 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $scheme = $form_state->getValue('scheme');
-    $this->config('workbench_access.settings')
-      ->set('scheme', $scheme)
+    $config = $this->config('workbench_access.settings');
+    $config->set('scheme', $scheme)
       ->set('parents', array_filter($form_state->getValue($scheme)))
       ->set('label', $form_state->getValue('label'))
-      ->set('plural_label', $form_state->getValue('plural_label'))
-      ->save();
+      ->set('plural_label', $form_state->getValue('plural_label'));
+    $extra = $this->manager->getActiveScheme()->configSubmit($form, $form_state);
+    foreach ($extra as $key => $value) {
+      $config->set($key, $value);
+    }
+    $config->save();
     parent::submitForm($form, $form_state);
   }
 

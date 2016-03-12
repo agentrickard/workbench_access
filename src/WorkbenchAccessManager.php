@@ -13,6 +13,11 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\Config;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\user\RoleInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\State\StateInterface;
 
 class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAccessManagerInterface {
   use StringTranslationTrait;
@@ -66,6 +71,119 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
 
   public function getElement($id) {
     return $this->getActiveScheme()->load($id);
+  }
+
+  public function getDefaultValue() {
+    return NULL;
+  }
+
+  public function addUser($user_id, $sections = array()) {
+    $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
+    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
+    if ($values->isEmpty()) {
+      $new = $sections;
+    }
+    else {
+      $new = array_keys($old) + $sections;
+    }
+    $entity->set(WORKBENCH_ACCESS_FIELD, $new);
+    $entity->save();
+  }
+
+  public function addRole($role_id, $sections = array()) {
+    $settings = \Drupal::state()->get('workbench_access_roles_' . $role_id, array());
+    foreach ($sections as $id) {
+      $settings[$id] = 1;
+    }
+    \Drupal::state()->set('workbench_access_roles_' . $role_id, $settings);
+  }
+
+  public function addEntity($entity_id, $entity_type, $sections = array()) {
+
+  }
+
+  public function removeUser($user_id, $sections = array()) {
+    $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
+    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
+    $new = array_keys($values);
+    foreach ($sections as $id) {
+      unset($new[$id]);
+    }
+    $entity->set(WORKBENCH_ACCESS_FIELD, $new);
+    $entity->save();
+  }
+
+  public function removeRole($role_id, $sections = array()) {
+    $settings = \Drupal::state()->get('workbench_access_roles_' . $role_id, array());
+    foreach ($sections as $id) {
+      if (isset($settings[$id])) {
+        unset($settings[$id]);
+      }
+    }
+    \Drupal::state()->set('workbench_access_roles_' . $role_id, $settings);
+  }
+
+  public function removeEntity($entity_id, $entity_type, $sections = array()) {
+
+  }
+
+  public function getEditors($id) {
+    $users = \Drupal::entityQuery('user')
+      ->condition(WORKBENCH_ACCESS_FIELD, $id)
+      ->condition('status', 1)
+      ->sort('name')
+      ->execute();
+    return $this->filterByPermission($users);
+  }
+
+  public function getPotentialEditors($id) {
+    $query = \Drupal::entityQuery('user');
+    // For right now, we just show all possible users. If we switch to using
+    // an autocomplete form, then we may change back to the filtered query.
+    /*
+    $query->condition($query->orConditionGroup()
+        ->condition(WORKBENCH_ACCESS_FIELD, $id, '<>')
+        ->condition(WORKBENCH_ACCESS_FIELD, NULL, 'IS NULL'))
+      ->condition('status', 1);
+    $users = $query->execute();
+    */
+    $users = \Drupal::entityQuery('user')
+      ->condition('status', 1)
+      ->sort('name')
+      ->execute();
+    return $this->filterByPermission($users);
+  }
+
+  private function filterByPermission($users = array()) {
+    $list = [];
+    $entities = \Drupal::entityManager()->getStorage('user')->loadMultiple($users);
+    foreach ($entities as $account) {
+      if ($account->hasPermission('use workbench access')) {
+        $list[$account->id()] = $account->label();
+      }
+    }
+    return $list;
+  }
+
+  public function getRoles($id) {
+    $list = [];
+    $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
+    foreach ($roles as $rid => $role) {
+      $settings = \Drupal::state()->get('workbench_access_roles_' . $rid, array());
+      if (!empty($settings[$id])) {
+        $list[$rid] = $role->label();
+      }
+    }
+    return $list;
+  }
+
+  public function getPotentialRoles($id) {
+    $list = [];
+    $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
+    foreach ($roles as $rid => $role) {
+      $list[$rid] = $role->label();
+    }
+    return $list;
   }
 
 }

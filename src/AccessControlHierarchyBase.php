@@ -9,11 +9,16 @@ namespace Drupal\workbench_access;
 
 use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\Component\Plugin\PluginBase;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeTypeInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Defines a base hierarchy class that others may extend.
  */
 abstract class AccessControlHierarchyBase extends PluginBase implements AccessControlHierarchyInterface {
+
+  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}
@@ -79,8 +84,32 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * Provides configuration options.
    */
-  public function configForm() {
-    return array();
+  public function configForm($scheme, $parents = array()) {
+    $node_types = \Drupal::entityManager()->getStorage('node_type')->loadMultiple();
+    foreach ($node_types as $id => $type) {
+      $form['workbench_access_status_' . $id] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Enable Workbench Access control for @type content.', array('@type' => $type->label())),
+        '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
+        '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
+      );
+      $options = $scheme->getFields('node', $type->id(), $parents);
+      if (!empty($options)) {
+        $form['field_' . $id] = array(
+          '#type' => 'select',
+          '#title' => $this->t('Access control field'),
+          '#options' => $options,
+          '#default_value' => $this->fields('node', $type->id()),
+        );
+      }
+      else {
+        $form['field_' . $id] = array(
+          '#type' => 'markup',
+          '#markup' => $this->t('There are no eligible fields on this content type.'),
+        );
+      }
+    }
+    return $form;
   }
 
   /**
@@ -93,7 +122,26 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * Submits configuration options.
    */
-  public function configSubmit() {
+  public function configSubmit(array &$form, FormStateInterface $form_state) {
+    $config = $this->config('workbench_access.settings');
+    $fields = $config->get('fields');
+
+    $node_types = \Drupal::entityManager()->getStorage('node_type')->loadMultiple();
+    foreach ($node_types as $id => $type) {
+      $field = $form_state->getValue('field_' . $id);
+      if (!empty($field)) {
+        $type->setThirdPartySetting('workbench_access', 'workbench_access_status', $form_state->getValue('workbench_access_status_' . $id));
+        $fields['node'][$id][$field] = $field;
+      }
+      else {
+        $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 0);
+        if(isset($fields['node'][$id])) {
+          unset($fields['node'][$id]);
+        }
+      }
+      $type->save();
+    }
+    return ['fields' => $fields];
   }
 
   /**
@@ -146,6 +194,15 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $this->configFactory = $this->container()->get('config.factory');
     }
     return $this->configFactory->get($name);
+  }
+
+  /**
+   * Returns the access control fields used by the plugin.
+   */
+  public function fields($entity_type, $bundle) {
+    $config = $this->config('workbench_access.settings');
+    $fields = $config->get('fields');
+    return $fields[$entity_type][$bundle];
   }
 
 }

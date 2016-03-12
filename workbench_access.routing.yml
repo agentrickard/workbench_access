@@ -18,7 +18,7 @@ workbench_access.by_role:
   path: '/admin/config/workflow/workbench_access/sections/{id}/roles'
   defaults:
     _form: 'Drupal\workbench_access\Form\WorkbenchAccessByRoleForm'
-    _title: 'Roles'
+    _title_callback: 'Drupal\workbench_access\Form\WorkbenchAccessByRoleForm::pageTitle'
   requirements:
     _permission: 'assign workbench access'
 
@@ -26,6 +26,6 @@ workbench_access.by_user:
   path: '/admin/config/workflow/workbench_access/sections/{id}/users'
   defaults:
     _form: 'Drupal\workbench_access\Form\WorkbenchAccessByUserForm'
-    _title: 'Editors'
+    _title_callback: 'Drupal\workbench_access\Form\WorkbenchAccessByUserForm::pageTitle'
   requirements:
     _permission: 'assign workbench access'
