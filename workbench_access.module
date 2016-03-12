@@ -91,14 +91,6 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
     $field_config = \Drupal::entityManager()->getStorage('field_config')->create($field);
     $field_config->save();
   }
-  // Tell the form system how to behave. Default to select list.
-  // @TODO: This function is deprecated, but using the OO syntax is causing
-  // test fails.
-  entity_get_form_display($entity_type, $bundle, 'default')
-    ->setComponent(WORKBENCH_ACCESS_FIELD, array(
-      'type' => 'options_buttons',
-      'weight' => 40,
-      'hidden' => TRUE, // @TODO: Work on this UI.
-    ))
-    ->save();
+  // Installing without setting form display leaves the field hidden, which is
+  // what we want right now. @TODO: UI for user form.
 }
