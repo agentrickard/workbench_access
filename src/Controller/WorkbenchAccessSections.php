@@ -26,11 +26,14 @@ class WorkbenchAccessSections extends ControllerBase {
     $list = '';
     foreach ($parents as $id => $label) {
       // @TODO: Move to a theme function?
+      // @TODO: format plural
       foreach ($tree[$id] as $iid => $item) {
+        $editor_count = count($this->manager->getEditors($iid));
+        $role_count = count($this->manager->getRoles($iid));
         $row = [];
         $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
-        $row[] = \Drupal::l('0 editors', Url::fromRoute('workbench_access.by_user', array('id' => $iid))); // List of all editors.
-        $row[] = \Drupal::l('0 roles', Url::fromRoute('workbench_access.by_role', array('id' => $iid))); // List of all editors.
+        $row[] = \Drupal::l($this->t('@count editors', ['@count' => $editor_count]), Url::fromRoute('workbench_access.by_user', array('id' => $iid))); // List of all editors.
+        $row[] = \Drupal::l($this->t('@count roles', ['@count' => $role_count]), Url::fromRoute('workbench_access.by_role', array('id' => $iid))); // List of all editors.
         $rows[] = $row;
       }
     }
