@@ -15,5 +15,8 @@ interface WorkbenchAccessManagerInterface {
   public function getActiveTree();
   public function getElement($id);
   public function getDefaultValue();
+  public function assignUser(AccountInterface $account, $sections = array());
+  public function assignRole(RoleInterface $role, $sections = array());
+  public function assignEntity(EntityInterface $entity, $sections = array());
 
 }

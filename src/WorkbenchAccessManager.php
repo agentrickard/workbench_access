@@ -13,6 +13,10 @@ use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\Config;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\user\RoleInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
 
 class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAccessManagerInterface {
   use StringTranslationTrait;
@@ -72,4 +76,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return NULL;
   }
 
+  public function assignUser(AccountInterface $account, $sections = array()) {
+    $entity = \Drupal::entityManager()->getStorage('user')->load($account->id());
+    $entity->set(WORKBENCH_ACCESS_FIELD, $sections);
+    $entity->save();
+  }
 }
