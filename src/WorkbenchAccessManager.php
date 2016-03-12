@@ -81,4 +81,12 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $entity->set(WORKBENCH_ACCESS_FIELD, $sections);
     $entity->save();
   }
+
+  public function assignRole(RoleInterface $role, $sections = array()) {
+
+  }
+
+  public function assignEntity(EntityInterface $entity, $sections = array()) {
+
+  }
 }

@@ -7,6 +7,11 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\Session\AccountInterface;
+use Drupal\user\RoleInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+
 interface WorkbenchAccessManagerInterface {
 
   public function getSchemes();
