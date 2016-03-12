@@ -77,4 +77,9 @@ class WorkbenchAccessByRoleForm extends FormBase {
 
   }
 
+  public function pageTitle($id) {
+    $element = $this->manager->getElement($id);
+    return $this->t('Roles assigned to %label', array('%label' => $element['label']));
+  }
+
 }

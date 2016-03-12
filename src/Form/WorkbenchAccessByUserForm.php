@@ -57,28 +57,25 @@ class WorkbenchAccessByUserForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
     $element = $this->manager->getElement($id);
-    $editors = $this->manager->getEditors($id);
-    // @TODO: Reset the page title properly.
-    $form['title'] = array(
-      '#type' => 'markup',
-      '#markup' => '<h2>' . $this->t('Assigned editors for %label', array('%label' => $element['label'])) . '</h2>' ,
-    );
-    $form['existing_editors'] = ['#type' => 'value', '#value' => $editors];
+    $existing_editors = $this->manager->getEditors($id);
+    $potential_editors = $this->manager->getPotentialEditors($id);
+
+    $form['existing_editors'] = ['#type' => 'value', '#value' => $existing_editors];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
-    if (!$editors) {
+    if (!$existing_editors) {
       $text = $this->t('There are no editors assigned to the %label section.', array('%label' => $element['label']));
       $form['help'] = array(
         '#type' => 'markup',
         '#markup' => '<p>' . $text . '</p>',
       );
     }
-    $potential_editors = $this->manager->getPotentialEditors($id);
+
     if ($potential_editors) {
       $form['editors'] = array(
         '#title' => $this->t('Editors for the %label section.', array('%label' => $element['label'])),
         '#type' => 'checkboxes',
         '#options' => $potential_editors,
-        '#default_value' => array_keys($editors),
+        '#default_value' => array_keys($existing_editors),
       );
       $form['actions'] = array('#type' => 'actions');
       $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Submit'));
@@ -110,6 +107,11 @@ class WorkbenchAccessByUserForm extends FormBase {
         $this->manager->removeUser($user_id, array($id));
       }
     }
+  }
+
+  public function pageTitle($id) {
+    $element = $this->manager->getElement($id);
+    return $this->t('Editors assigned to %label', array('%label' => $element['label']));
   }
 
 }
