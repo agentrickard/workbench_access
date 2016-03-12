@@ -51,7 +51,7 @@ interface AccessControlHierarchyInterface {
   /**
    * Provides configuration options.
    */
-  public function configForm();
+  public function configForm($scheme, $parents = array());
 
   /**
    * Validates configuration options.

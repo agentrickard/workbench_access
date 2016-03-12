@@ -56,4 +56,28 @@ class Taxonomy extends AccessControlHierarchyBase {
     return $tree;
   }
 
+  public function getFields($entity_type, $bundle, $parents) {
+    $list = [];
+    $query = \Drupal::entityQuery('field_config')
+      ->condition('status', 1)
+      ->condition('entity_type', $entity_type)
+      ->condition('bundle', $bundle)
+      ->condition('field_type', 'entity_reference')
+      ->sort('label')
+      ->execute();
+    $fields = \Drupal::entityManager()->getStorage('field_config')->loadMultiple(array_keys($query));
+    foreach ($fields as $id => $field) {
+      $handler = $field->getSetting('handler');
+      $settings = $field->getSetting('handler_settings');
+      if (substr_count($handler, 'taxonomy_term') > 0) {
+        foreach ($settings['target_bundles'] as $key => $target) {
+          if (isset($parents[$key])) {
+            $list[$field->getName()] = $field->label();
+          }
+        }
+      }
+    }
+    return $list;
+  }
+
 }
