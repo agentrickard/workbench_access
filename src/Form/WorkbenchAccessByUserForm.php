@@ -57,7 +57,22 @@ class WorkbenchAccessByUserForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
     $element = $this->manager->getElement($id);
-    kint($element);
+    $editors = $this->manager->getEditors($id);
+    // @TODO: Reset the page title properly.
+    $form['title'] = array(
+      '#type' => 'markup',
+      '#markup' => '<h2>' . $this->t('Assigned editors for %label', array('%label' => $element['label'])) . '</h2>' ,
+    );
+    if (!$editors) {
+      $text = $this->t('There are no editors assigned to the %label section', array('%label' => $element['label']));
+      $form['help'] = array(
+        '#type' => 'markup',
+        '#markup' => $text,
+      );
+    }
+    $potential_editors = $this->manager->getPotentialEditors($id);
+kint($potential_editors);
+    return $form;
   }
 
   /**

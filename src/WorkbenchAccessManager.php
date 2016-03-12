@@ -89,4 +89,40 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public function assignEntity(EntityInterface $entity, $sections = array()) {
 
   }
+
+  public function getEditors($id) {
+    $editors = array();
+    $users = \Drupal::entityQuery('user')
+      ->condition(WORKBENCH_ACCESS_FIELD, $id)
+      ->condition('status', 1)
+      ->execute();
+    return $this->filterByPermission($users);
+  }
+
+  public function getPotentialEditors($id) {
+    $editors = array();
+    $values = [WORKBENCH_ACCESS_FIELD => $id];
+    $query = \Drupal::entityQuery('user');
+    $query->condition($query->orConditionGroup()
+        ->condition(WORKBENCH_ACCESS_FIELD, $id, '<>')
+        ->condition(WORKBENCH_ACCESS_FIELD, NULL, 'IS NULL'))
+      ->condition('status', 1);
+    $users = $query->execute();
+    return $this->filterByPermission($users);
+  }
+
+  private function filterByPermission($users = array()) {
+    $list = [];
+    $entities = \Drupal::entityManager()->getStorage('user')->loadMultiple($users);
+    foreach ($entities as $account) {
+      if ($account->hasPermission('use workbench access')) {
+        $list[$account->id()] = $account->label();
+      }
+    }
+    return $list;
+  }
+
+  public function getRoles($id) {
+
+  }
 }

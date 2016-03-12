@@ -23,5 +23,8 @@ interface WorkbenchAccessManagerInterface {
   public function assignUser(AccountInterface $account, $sections = array());
   public function assignRole(RoleInterface $role, $sections = array());
   public function assignEntity(EntityInterface $entity, $sections = array());
+  public function getEditors($id);
+  public function getPotentialEditors($id);
+  public function getRoles($id);
 
 }
