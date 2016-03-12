@@ -76,22 +76,47 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return NULL;
   }
 
-  public function assignUser(AccountInterface $account, $sections = array()) {
-    $entity = \Drupal::entityManager()->getStorage('user')->load($account->id());
-    $entity->set(WORKBENCH_ACCESS_FIELD, $sections);
+  public function addUser($user_id, $sections = array()) {
+    $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
+    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
+    if ($values->isEmpty()) {
+      $new = $sections;
+    }
+    else {
+      $new = array_keys($old) + $sections;
+    }
+    $entity->set(WORKBENCH_ACCESS_FIELD, $new);
     $entity->save();
   }
 
-  public function assignRole(RoleInterface $role, $sections = array()) {
+  public function addRole($role_id, $sections = array()) {
 
   }
 
-  public function assignEntity(EntityInterface $entity, $sections = array()) {
+  public function addEntity($entity_id, $entity_type, $sections = array()) {
+
+  }
+
+  public function removeUser($user_id, $sections = array()) {
+    $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
+    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
+    $new = array_keys($values);
+    foreach ($sections as $id) {
+      unset($new[$id]);
+    }
+    $entity->set(WORKBENCH_ACCESS_FIELD, $new);
+    $entity->save();
+  }
+
+  public function removeRole($role_id, $sections = array()) {
+
+  }
+
+  public function removeEntity($entity_id, $entity_type, $sections = array()) {
 
   }
 
   public function getEditors($id) {
-    $editors = array();
     $users = \Drupal::entityQuery('user')
       ->condition(WORKBENCH_ACCESS_FIELD, $id)
       ->condition('status', 1)
@@ -100,14 +125,19 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   }
 
   public function getPotentialEditors($id) {
-    $editors = array();
-    $values = [WORKBENCH_ACCESS_FIELD => $id];
     $query = \Drupal::entityQuery('user');
+    // For right now, we just show all possible users. If we switch to using
+    // an autocomplete form, then we may change back to the filtered query.
+    /*
     $query->condition($query->orConditionGroup()
         ->condition(WORKBENCH_ACCESS_FIELD, $id, '<>')
         ->condition(WORKBENCH_ACCESS_FIELD, NULL, 'IS NULL'))
       ->condition('status', 1);
     $users = $query->execute();
+    */
+    $users = \Drupal::entityQuery('user')
+      ->condition('status', 1)
+      ->execute();
     return $this->filterByPermission($users);
   }
 

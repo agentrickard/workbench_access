@@ -63,15 +63,33 @@ class WorkbenchAccessByUserForm extends FormBase {
       '#type' => 'markup',
       '#markup' => '<h2>' . $this->t('Assigned editors for %label', array('%label' => $element['label'])) . '</h2>' ,
     );
+    $form['existing_editors'] = ['#type' => 'value', '#value' => $editors];
+    $form['section_id'] = ['#type' => 'value', '#value' => $id];
     if (!$editors) {
-      $text = $this->t('There are no editors assigned to the %label section', array('%label' => $element['label']));
+      $text = $this->t('There are no editors assigned to the %label section.', array('%label' => $element['label']));
       $form['help'] = array(
         '#type' => 'markup',
-        '#markup' => $text,
+        '#markup' => '<p>' . $text . '</p>',
       );
     }
     $potential_editors = $this->manager->getPotentialEditors($id);
-kint($potential_editors);
+    if ($potential_editors) {
+      $form['editors'] = array(
+        '#title' => $this->t('Editors for the %label section.', array('%label' => $element['label'])),
+        '#type' => 'checkboxes',
+        '#options' => $potential_editors,
+        '#default_value' => array_keys($editors),
+      );
+      $form['actions'] = array('#type' => 'actions');
+      $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Submit'));
+    }
+    else {
+      $form['message'] = array(
+        '#type' => 'markup',
+        '#markup' => '<p>' . $this->t('There are no addtional users that can be added to the %label section', array('%label' => $element['label'])) . '</p>',
+      );
+    }
+
     return $form;
   }
 
@@ -79,7 +97,19 @@ kint($potential_editors);
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-
+    $editors = $form_state->getValue('editors');
+    $existing_editors = $form_state->getValue('existing_editors');
+    $id = $form_state->getValue('section_id');
+    foreach ($editors as $user_id => $value) {
+      // Add user to section.
+      if ($value && !isset($existing_editors[$user_id])) {
+        $this->manager->addUser($user_id, array($id));
+      }
+      // Remove user from section.
+      if (!$value && isset($existing_editors[$user_id])) {
+        $this->manager->removeUser($user_id, array($id));
+      }
+    }
   }
 
 }

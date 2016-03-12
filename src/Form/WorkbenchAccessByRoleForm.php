@@ -68,7 +68,6 @@ class WorkbenchAccessByRoleForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
     $element = $this->manager->getElement($id);
-    kint($element);
   }
 
   /**
