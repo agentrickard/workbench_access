@@ -85,7 +85,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * Provides configuration options.
    */
   public function configForm($scheme, $parents = array()) {
-    $node_types = \Drupal::entityManager()->getStorage('node_type')->loadMultiple();
+    $node_types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
     foreach ($node_types as $id => $type) {
       $form['workbench_access_status_' . $id] = array(
         '#type' => 'checkbox',

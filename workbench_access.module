@@ -8,6 +8,9 @@
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
 
 /**
  * Defines the name of the node access control field.
@@ -93,4 +96,39 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
   }
   // Installing without setting form display leaves the field hidden, which is
   // what we want right now. @TODO: UI for user form.
+}
+
+/**
+ * Implements hook_node_access().
+ */
+function workbench_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  // No opinion is our default response.
+  $return = AccessResult::neutral();
+
+  // Check that our access control is configured.
+  $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+  $scheme = $manager->getActiveScheme();
+
+  // Check that the content type is configured.
+  $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($node->bundle());
+  $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
+  $fields = $scheme->fields('node', $type->id());
+
+  if ($active && !empty($scheme) && !empty($fields)) {
+    // Discover the field and dispatch to the plugin.
+    $field = current($fields);
+    // If no value is set on the entity, ignore.
+    // @TODO: Is this the correct logic? It is helpful for new installs.
+    if (empty($manager->getEntityValues($node, $field))) {
+      $return = AccessResult::neutral();
+    }
+    elseif ($manager->checkEntityAccess($node, $account, $field)) {
+      $return = AccessResult::allowed();
+    }
+    else {
+      $return = AccessResult::forbidden();
+    }
+  }
+
+  return $return;
 }

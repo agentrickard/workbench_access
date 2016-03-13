@@ -186,4 +186,36 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $list;
   }
 
+  /**
+   * @inheritdoc
+   */
+  public function checkEntityAccess(EntityInterface $entity, AccountInterface $account, $field) {
+    $entity_sections = $this->getEntityValues($entity, $field);
+
+    $user = \Drupal::entityTypeManager()->getStorage('user')->load($account->id());
+
+    $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+    $user_sections += $this->getRoleSections($user);
+    if (empty($user_sections)) {
+      return FALSE;
+    }
+
+    // @TODO: Check the tree status of the $entity against the $user.
+
+    return FALSE;
+  }
+
+  public function getRoleSections(AccountInterface $account) {
+    $sections = [];
+    foreach ($account->getRoles() as $rid) {
+      $settings = \Drupal::state()->get('workbench_access_roles_' . $rid, array());
+      $sections += array_keys($settings);
+    }
+    return $sections;
+  }
+
+  public function getEntityValues(EntityInterface $entity, $field) {
+    return $entity->get($field)->getValue();
+  }
+
 }
