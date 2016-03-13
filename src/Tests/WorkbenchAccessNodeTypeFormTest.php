@@ -29,7 +29,7 @@ class WorkbenchAccessNodeTypeFormTest extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('workbench_access', 'node');
+  public static $modules = array('workbench_access', 'node', 'taxonomy', 'options');
 
   protected function setUp() {
     parent::setUp();

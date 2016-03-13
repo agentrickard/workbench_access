@@ -14,7 +14,7 @@ interface WorkbenchAccessManagerInterface {
   public function getActiveScheme();
   public function getActiveTree();
   public function getElement($id);
-  public function getDefaultValue();
+  public static function getDefaultValue();
   public function addUser($user_id, $sections = array());
   public function addRole($role_id, $sections = array());
   public function addEntity($entity_id, $entity_type, $sections = array());

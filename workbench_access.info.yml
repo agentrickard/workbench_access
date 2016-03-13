@@ -7,3 +7,4 @@ package: Workbench
 dependencies:
   - node
   - taxonomy
+  - options
