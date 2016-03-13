@@ -41,7 +41,7 @@ class Taxonomy extends AccessControlHierarchyBase {
           'weight' => 0,
           'description' => $vocabulary->label(),
         );
-        $data = \Drupal::entityManager()->getStorage('taxonomy_term')->loadTree($id);
+        $data = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($id);
         foreach ($data as $term) {
           $tree[$id][$term->tid] = array(
             'label' => $term->name,
