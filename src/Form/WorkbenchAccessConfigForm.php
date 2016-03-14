@@ -94,6 +94,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#options' => $schemes,
         '#default_value' => $config->get('scheme', 'taxonomy'),
       );
+      // @TODO: Add a separate submit button here.
       foreach ($schemes as $id => $label) {
         $scheme = $this->manager->getScheme($id);
         $form['parents'][$id] = array(
