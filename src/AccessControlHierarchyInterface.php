@@ -7,6 +7,11 @@
 
 namespace Drupal\workbench_access;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\workbench_access\WorkbenchAccessManager;
 
 /**
  * Defines a base hierarchy class that others may extend.
@@ -62,5 +67,12 @@ interface AccessControlHierarchyInterface {
    * Submits configuration options.
    */
   public function configSubmit(array &$form, FormStateInterface $form_state);
+
+  /**
+   * Responds to request for node access.
+   *
+   * @see workbench_access_node_access()
+   */
+  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManager $manager);
 
 }
