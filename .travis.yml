@@ -14,7 +14,7 @@ cache:
 
 env:
   - DRUPAL=8.0.x
-  - DRUPAL=8.1.x
+  # - DRUPAL=8.1.x // disabled due to Composer changes.
 
 mysql:
   database: wa
