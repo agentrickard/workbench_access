@@ -251,7 +251,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         }
         // @TODO: Check the tree status of the $entity against the $user.
         // Return neutral if in tree, forbidden if not.
-        $return = AccessResult::neutral();
+        if ($manager->checkTree($entity_sections, $user_sections)) {
+          kint('hi');
+          $return = AccessResult::neutral();
+        }
+        else {
+          $return = AccessResult::forbidden();
+        }
       }
     }
     return $return;

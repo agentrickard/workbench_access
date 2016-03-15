@@ -50,9 +50,10 @@ class Menu extends AccessControlHierarchyBase {
         $data = $this->menuTree->load($id, new MenuTreeParameters());
         foreach ($data as $link_id => $link) {
           $tree[$id][$link_id] = array(
+            'id' => $link_id,
             'label' => $link->link->getTitle(),
             'depth' => $link->depth,
-            'parent' => $link->link->getParent(),
+            'parents' => $link->link->getParent(), // @TODO: fix this.
             'weight' => $link->link->getWeight(),
             'description' => $link->link->getDescription(),
           );

@@ -24,5 +24,6 @@ interface WorkbenchAccessManagerInterface {
   public function getEditors($id);
   public function getPotentialEditors($id);
   public function getRoles($id);
+  public function checkTree($entity_sections, $user_sections);
 
 }
