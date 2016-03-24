@@ -98,7 +98,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
         '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
       );
-      $options = $scheme->getFields('node', $type->id(), $parents);
+      $options = ['__none' => $this->t('No field set')];
+      $options += $scheme->getFields('node', $type->id(), $parents);
       if (!empty($options)) {
         $form['field_' . $id] = array(
           '#type' => 'select',
@@ -136,13 +137,11 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $field = $form_state->getValue('field_' . $id);
       if (!empty($field)) {
         $type->setThirdPartySetting('workbench_access', 'workbench_access_status', $form_state->getValue('workbench_access_status_' . $id));
-        $fields['node'][$id][$field] = $field;
+        $fields['node'][$id] = $field;
       }
       else {
         $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 0);
-        if(isset($fields['node'][$id])) {
-          unset($fields['node'][$id]);
-        }
+        $fields['node'][$id] = '__none';
       }
       $type->save();
     }
