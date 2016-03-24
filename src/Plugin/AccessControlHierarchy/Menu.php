@@ -43,21 +43,41 @@ class Menu extends AccessControlHierarchyBase {
         $tree[$id][$id] = array(
           'label' => $menu->label(),
           'depth' => 0,
-          'parent' => 0,
+          'parents' => [],
           'weight' => 0,
           'description' => $menu->label(),
         );
-        $data = $this->menuTree->load($id, new MenuTreeParameters());
-        foreach ($data as $link_id => $link) {
-          $tree[$id][$link_id] = array(
-            'id' => $link_id,
-            'label' => $link->link->getTitle(),
-            'depth' => $link->depth,
-            'parents' => $link->link->getParent(), // @TODO: fix this.
-            'weight' => $link->link->getWeight(),
-            'description' => $link->link->getDescription(),
-          );
-        }
+        $params = new MenuTreeParameters();
+        $data = $this->menuTree->load($id, $params);
+        $tree = $this->buildTree($id, $data, $tree);
+      }
+    }
+    return $tree;
+  }
+
+  /**
+   * Traverses the link tree and builds parentage arrays.
+   */
+  public function buildTree($id, $data, &$tree) {
+    foreach ($data as $link_id => $link) {
+      $tree[$id][$link_id] = array(
+        'id' => $link_id,
+        'label' => $link->link->getTitle(),
+        'depth' => $link->depth,
+        'parents' => [],
+        'weight' => $link->link->getWeight(),
+        'description' => $link->link->getDescription(),
+      );
+      // Get the parents.
+      if ($parent = $link->link->getParent()) {
+        $tree[$id][$link_id]['parents'] = array_merge($tree[$id][$link_id]['parents'], [$parent]);
+        $tree[$id][$link_id]['parents'] = array_merge($tree[$id][$link_id]['parents'], $tree[$id][$parent]['parents']);
+      }
+      else {
+        $tree[$id][$link_id]['parents'] = [$id];
+      }
+      if (isset($link->subtree)) {
+        $this->buildTree($id, $link->subtree, $tree);
       }
     }
     return $tree;
