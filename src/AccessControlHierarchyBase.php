@@ -12,6 +12,11 @@ use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\workbench_access\WorkbenchAccessManager;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Access\AccessResult;
 
 /**
  * Defines a base hierarchy class that others may extend.
@@ -85,7 +90,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * Provides configuration options.
    */
   public function configForm($scheme, $parents = array()) {
-    $node_types = \Drupal::entityManager()->getStorage('node_type')->loadMultiple();
+    $node_types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
     foreach ($node_types as $id => $type) {
       $form['workbench_access_status_' . $id] = array(
         '#type' => 'checkbox',
@@ -93,7 +98,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
         '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
       );
-      $options = $scheme->getFields('node', $type->id(), $parents);
+      $options = ['' => $this->t('No field set')];
+      $options += $scheme->getFields('node', $type->id(), $parents);
       if (!empty($options)) {
         $form['field_' . $id] = array(
           '#type' => 'select',
@@ -131,13 +137,11 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $field = $form_state->getValue('field_' . $id);
       if (!empty($field)) {
         $type->setThirdPartySetting('workbench_access', 'workbench_access_status', $form_state->getValue('workbench_access_status_' . $id));
-        $fields['node'][$id][$field] = $field;
+        $fields['node'][$id] = $field;
       }
       else {
         $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 0);
-        if(isset($fields['node'][$id])) {
-          unset($fields['node'][$id]);
-        }
+        $fields['node'][$id] = '';
       }
       $type->save();
     }
@@ -203,6 +207,61 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     $config = $this->config('workbench_access.settings');
     $fields = $config->get('fields');
     return $fields[$entity_type][$bundle];
+  }
+
+  /**
+   * By handling access control here, we allow plugins to create custom behavior.
+   */
+  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManager $manager) {
+    // Deny is our default response.
+    $return = AccessResult::forbidden();
+
+    // Check that the content type is configured.
+    // @TODO: Right now this only handles nodes.
+    $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity->bundle());
+    $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
+
+    // Get the field data.
+    $scheme = $manager->getActiveScheme();
+    $field = $scheme->fields('node', $type->id());
+
+    // @TODO: Check for super-admin?
+    // We don't care about the View operation right now.
+    if ($op == 'view') {
+      $return = AccessResult::neutral();
+    }
+    elseif ($active && !empty($scheme) && !empty($field)) {
+      // Discover the field and check status.
+      $entity_sections = $this->getEntityValues($entity, $field);
+      // If no value is set on the entity, ignore.
+      // @TODO: Is this the correct logic? It is helpful for new installs.
+      if (empty($entity_sections)) {
+        $return = AccessResult::neutral();
+      }
+      else {
+        // Get the information from the account.
+        $user = \Drupal::entityTypeManager()->getStorage('user')->load($account->id());
+        $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+        // Merge in role data.
+        $user_sections += $manager->getRoleSections($user);
+        if (empty($user_sections)) {
+          $return = AccessResult::forbidden();
+        }
+        // Check the tree status of the $entity against the $user.
+        // Return neutral if in tree, forbidden if not.
+        if ($manager->checkTree($entity_sections, $user_sections)) {
+          $return = AccessResult::neutral();
+        }
+        else {
+          $return = AccessResult::forbidden();
+        }
+      }
+    }
+    return $return;
+  }
+
+  public function getEntityValues(EntityInterface $entity, $field) {
+    return $entity->get($field)->getValue();
   }
 
 }

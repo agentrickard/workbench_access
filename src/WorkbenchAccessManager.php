@@ -15,8 +15,6 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Config\Config;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\RoleInterface;
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\State\StateInterface;
 
 class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAccessManagerInterface {
@@ -184,6 +182,42 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
       $list[$rid] = $role->label();
     }
     return $list;
+  }
+
+  public function getRoleSections(AccountInterface $account) {
+    $sections = [];
+    foreach ($account->getRoles() as $rid) {
+      $settings = \Drupal::state()->get('workbench_access_roles_' . $rid, array());
+      $sections += array_keys($settings);
+    }
+    return $sections;
+  }
+
+  public function checkTree($entity_sections, $user_sections) {
+    $tree = $this->getActiveTree();
+    $list = array_flip($user_sections);
+    foreach ($entity_sections as $field) {
+      $section = $field['target_id'];
+      // Simple check first: is there an exact match?
+      if (isset($list[$section])) {
+        return TRUE;
+      }
+      // Check for section on the tree.
+      foreach ($tree as $id => $info) {
+        if (isset($list[$section]) && isset($info[$section])) {
+          return TRUE;
+        }
+        // Recursive check for parents.
+        $parents = array_flip($info[$section]['parents']);
+        // Check for parents.
+        foreach ($list as $uid => $data) {
+          if (isset($parents[$uid])) {
+            return TRUE;
+          }
+        }
+      }
+    }
+    return FALSE;
   }
 
 }

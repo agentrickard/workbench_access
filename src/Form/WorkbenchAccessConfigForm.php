@@ -89,14 +89,20 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     }
     else {
       $form['scheme'] = array(
+        '#type' => 'details',
+        '#title' => t('Active access scheme'),
+        '#open' => TRUE,
+      );
+      $form['scheme']['scheme'] = array(
         '#type' => 'radios',
         '#title' => t('Active access scheme'),
         '#options' => $schemes,
         '#default_value' => $config->get('scheme', 'taxonomy'),
       );
+      // @TODO: Add a separate submit button here.
       foreach ($schemes as $id => $label) {
         $scheme = $this->manager->getScheme($id);
-        $form['parents'][$id] = array(
+        $form['scheme']['parents'][$id] = array(
           '#type' => 'checkboxes',
           '#title' => t('!label editorial access options', array('!label' => $label)),
           '#options' => $scheme->options(),
@@ -109,8 +115,13 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
           '#description' => t('Select the !label options to be used for access control.', array('!label' => $label)),
         );
       }
+      $form['scheme']['set'] = array(
+        '#type' => 'submit',
+        '#value' => t('Set active scheme'),
+        '#submit' => array('::submitActiveScheme'),
+      );
     }
-    // @TODO: These should change dynamically id form settings change.
+    // @TODO: These should change dynamically if form settings change.
     $scheme = $this->manager->getScheme($config->get('scheme', 'taxonomy'));
     $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents', array()));
     if (!empty($custom)) {
@@ -148,11 +159,8 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $scheme = $form_state->getValue('scheme');
     $config = $this->config('workbench_access.settings');
-    $config->set('scheme', $scheme)
-      ->set('parents', array_filter($form_state->getValue($scheme)))
-      ->set('label', $form_state->getValue('label'))
+    $config->set('label', $form_state->getValue('label'))
       ->set('plural_label', $form_state->getValue('plural_label'));
     $extra = $this->manager->getActiveScheme()->configSubmit($form, $form_state);
     foreach ($extra as $key => $value) {
@@ -160,6 +168,18 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     }
     $config->save();
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Custom submit handler.
+   */
+  public function submitActiveScheme(array $form, FormStateInterface $form_state) {
+    $scheme = $form_state->getValue('scheme');
+    $config = $this->config('workbench_access.settings');
+    $config->set('scheme', $scheme)
+      ->set('parents', array_filter($form_state->getValue($scheme)));
+    $config->save();
+    // @TODO: Flush access data on scheme change.
   }
 
 }

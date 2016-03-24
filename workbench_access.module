@@ -8,6 +8,9 @@
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\node\NodeInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
 
 /**
  * Defines the name of the node access control field.
@@ -94,3 +97,19 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
   // Installing without setting form display leaves the field hidden, which is
   // what we want right now. @TODO: UI for user form.
 }
+
+/**
+ * Implements hook_node_access().
+ */
+function workbench_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
+  // Check that our access control is configured.
+  $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+  if ($scheme = $manager->getActiveScheme()) {
+    return $scheme->checkEntityAccess($node, $op, $account, $manager);
+  }
+  else {
+    return AccessResult::neutral();
+  }
+
+}
+
