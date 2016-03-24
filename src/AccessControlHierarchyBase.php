@@ -98,7 +98,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
         '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
       );
-      $options = ['__none' => $this->t('No field set')];
+      $options = ['' => $this->t('No field set')];
       $options += $scheme->getFields('node', $type->id(), $parents);
       if (!empty($options)) {
         $form['field_' . $id] = array(
@@ -141,7 +141,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       }
       else {
         $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 0);
-        $fields['node'][$id] = '__none';
+        $fields['node'][$id] = '';
       }
       $type->save();
     }
@@ -223,16 +223,15 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
 
     // Get the field data.
     $scheme = $manager->getActiveScheme();
-    $fields = $scheme->fields('node', $type->id());
+    $field = $scheme->fields('node', $type->id());
 
     // @TODO: Check for super-admin?
     // We don't care about the View operation right now.
     if ($op == 'view') {
       $return = AccessResult::neutral();
     }
-    elseif ($active && !empty($scheme) && !empty($fields)) {
+    elseif ($active && !empty($scheme) && !empty($field)) {
       // Discover the field and check status.
-      $field = current($fields);
       $entity_sections = $this->getEntityValues($entity, $field);
       // If no value is set on the entity, ignore.
       // @TODO: Is this the correct logic? It is helpful for new installs.
