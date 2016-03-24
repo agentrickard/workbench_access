@@ -1,4 +1,4 @@
-scheme: taxonomy
+scheme:
 parents: {}
 label: Section
 plural_label: Sections

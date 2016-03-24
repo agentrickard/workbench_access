@@ -5,11 +5,11 @@
  * Contains workbench_access.module.
  */
 
-use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\node\NodeTypeInterface;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 
 /**
@@ -36,7 +36,7 @@ function workbench_access_help($route_name, RouteMatchInterface $route_match) {
 /**
  * Implements hook_form_FORM_ID_alter().
  *
- * Adds menu options to the node type form.
+ * Adds Workbench Access options to the node type form.
  *
  * @see NodeTypeForm::form().
  * @see menu_ui_form_node_type_form_builder().
@@ -110,6 +110,4 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
   else {
     return AccessResult::neutral();
   }
-
 }
-
