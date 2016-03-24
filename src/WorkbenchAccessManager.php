@@ -195,11 +195,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
 
   public function checkTree($entity_sections, $user_sections) {
     $tree = $this->getActiveTree();
-    kint($tree);
-    kint($entity_sections);
-    kint($user_sections);
     $list = array_flip($user_sections);
-    kint($list);
     foreach ($entity_sections as $field) {
       $section = $field['target_id'];
       // Simple check first: is there an exact match?
@@ -213,11 +209,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
         }
         // Recursive check for parents.
         $parents = array_flip($info[$section]['parents']);
-        kint($parents);
-        // @TODO: this is broken.
         // Check for parents.
-        foreach ($list as $lid) {
-          if (isset($parents[$lid])) {
+        foreach ($list as $uid => $data) {
+          if (isset($parents[$uid])) {
             return TRUE;
           }
         }
