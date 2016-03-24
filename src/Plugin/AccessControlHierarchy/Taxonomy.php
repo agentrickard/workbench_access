@@ -37,7 +37,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         $tree[$id][$id] = array(
           'label' => $vocabulary->label(),
           'depth' => 0,
-          'parent' => 0,
+          'parents' => 0,
           'weight' => 0,
           'description' => $vocabulary->label(),
         );

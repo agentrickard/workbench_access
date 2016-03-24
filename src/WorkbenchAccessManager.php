@@ -39,6 +39,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $this->moduleHandler = $module_handler;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getSchemes() {
     $schemes = array();
     $definitions = $this->getDefinitions();
@@ -52,10 +55,16 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $schemes;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getScheme($id) {
     return $this->createInstance($id);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getActiveScheme() {
     $config = \Drupal::config('workbench_access.settings');
     $scheme_id = $config->get('scheme');
@@ -63,18 +72,30 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $this->manager->getScheme($scheme_id);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getActiveTree() {
     return $this->getActiveScheme()->getTree();
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getElement($id) {
     return $this->getActiveScheme()->load($id);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public static function getDefaultValue() {
-    return NULL;
+    return array();
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function addUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
     $values = $entity->get(WORKBENCH_ACCESS_FIELD);
@@ -88,6 +109,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $entity->save();
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function addRole($role_id, $sections = array()) {
     $settings = \Drupal::state()->get('workbench_access_roles_' . $role_id, array());
     foreach ($sections as $id) {
@@ -96,10 +120,16 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     \Drupal::state()->set('workbench_access_roles_' . $role_id, $settings);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function addEntity($entity_id, $entity_type, $sections = array()) {
 
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function removeUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
     $values = $entity->get(WORKBENCH_ACCESS_FIELD);
@@ -111,6 +141,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $entity->save();
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function removeRole($role_id, $sections = array()) {
     $settings = \Drupal::state()->get('workbench_access_roles_' . $role_id, array());
     foreach ($sections as $id) {
@@ -121,10 +154,16 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     \Drupal::state()->set('workbench_access_roles_' . $role_id, $settings);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function removeEntity($entity_id, $entity_type, $sections = array()) {
 
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getEditors($id) {
     $users = \Drupal::entityQuery('user')
       ->condition(WORKBENCH_ACCESS_FIELD, $id)
@@ -134,6 +173,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $this->filterByPermission($users);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getPotentialEditors($id) {
     $query = \Drupal::entityQuery('user');
     // For right now, we just show all possible users. If we switch to using
@@ -152,6 +194,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $this->filterByPermission($users);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   private function filterByPermission($users = array()) {
     $list = [];
     $entities = \Drupal::entityManager()->getStorage('user')->loadMultiple($users);
@@ -163,6 +208,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $list;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getRoles($id) {
     $list = [];
     $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
@@ -175,6 +223,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $list;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getPotentialRoles($id) {
     $list = [];
     $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
@@ -184,6 +235,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $list;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function getRoleSections(AccountInterface $account) {
     $sections = [];
     foreach ($account->getRoles() as $rid) {
@@ -193,6 +247,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return $sections;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function checkTree($entity_sections, $user_sections) {
     $tree = $this->getActiveTree();
     $list = array_flip($user_sections);
