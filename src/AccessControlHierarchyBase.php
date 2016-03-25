@@ -8,15 +8,14 @@
 namespace Drupal\workbench_access;
 
 use Drupal\workbench_access\AccessControlHierarchyInterface;
-use Drupal\Component\Plugin\PluginBase;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\node\NodeTypeInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
-use Drupal\Core\Session\AccountInterface;
+use Drupal\node\NodeTypeInterface;
+use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Defines a base hierarchy class that others may extend.
@@ -40,7 +39,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * Returns the status of a hierarchy.
+   * {@inheritdoc}
    */
   public function status() {
     $config = $this->config('workbench_access.settings');
@@ -63,19 +62,14 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * Gets the entire hierarchy tree.
-   *
-   * @return array
+   * {@inheritdoc}
    */
   public function getTree() {
     return array();
   }
 
   /**
-   * Loads a hierarchy definition for a single item in the tree.
-   *
-   * @param $id
-   *   The identifier for the item, such as a term id.
+   * {@inheritdoc}
    */
   public function load($id) {
     $tree = $this->getTree();
@@ -87,7 +81,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * Provides configuration options.
+   * {@inheritdoc}
    */
   public function configForm($scheme, $parents = array()) {
     $node_types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
@@ -119,14 +113,14 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * Validates configuration options.
+   * {@inheritdoc}
    */
-  public function configValidate() {
-    return array();
+  public function configValidate(array &$form, FormStateInterface $form_state) {
+    // No default implementation.
   }
 
   /**
-   * Submits configuration options.
+   * {@inheritdoc}
    */
   public function configSubmit(array &$form, FormStateInterface $form_state) {
     $config = $this->config('workbench_access.settings');
@@ -149,68 +143,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * Returns the service container.
-   *
-   * This method is marked private to prevent sub-classes from retrieving
-   * services from the container through it. Instead,
-   * \Drupal\Core\DependencyInjection\ContainerInjectionInterface should be used
-   * for injecting services.
-   *
-   * @return \Symfony\Component\DependencyInjection\ContainerInterface $container
-   *   The service container.
-   */
-  private function container() {
-    return \Drupal::getContainer();
-  }
-
-  /**
-   * Returns the requested cache bin.
-   *
-   * @param string $bin
-   *   (optional) The cache bin for which the cache object should be returned,
-   *   defaults to 'default'.
-   *
-   * @return \Drupal\Core\Cache\CacheBackendInterface
-   *   The cache object associated with the specified bin.
-   */
-  protected function cache($bin = 'default') {
-    return $this->container()->get('cache.' . $bin);
-  }
-
-  /**
-   * Retrieves a configuration object.
-   *
-   * This is the main entry point to the configuration API. Calling
-   * @code $this->config('book.admin') @endcode will return a configuration
-   * object in which the book module can store its administrative settings.
-   *
-   * @param string $name
-   *   The name of the configuration object to retrieve. The name corresponds to
-   *   a configuration file. For @code \Drupal::config('book.admin') @endcode,
-   *   the config object returned will contain the contents of book.admin
-   *   configuration file.
-   *
-   * @return \Drupal\Core\Config\Config
-   *   A configuration object.
-   */
-  protected function config($name) {
-    if (!$this->configFactory) {
-      $this->configFactory = $this->container()->get('config.factory');
-    }
-    return $this->configFactory->get($name);
-  }
-
-  /**
-   * Returns the access control fields used by the plugin.
-   */
-  public function fields($entity_type, $bundle) {
-    $config = $this->config('workbench_access.settings');
-    $fields = $config->get('fields');
-    return $fields[$entity_type][$bundle];
-  }
-
-  /**
-   * By handling access control here, we allow plugins to create custom behavior.
+   * {@inheritdoc}
    */
   public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManager $manager) {
     // Deny is our default response.
@@ -260,8 +193,58 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     return $return;
   }
 
+  /**
+   * Returns the access control fields configured for use by the plugin.
+   *
+   * @param $entity_type
+   *   The type of entity access control is being tested for (e.g. 'node').
+   * @param $bundle
+   *   The entity bundle being tested (e.g. 'article').
+   */
+  public function fields($entity_type, $bundle) {
+    $config = $this->config('workbench_access.settings');
+    $fields = $config->get('fields');
+    return $fields[$entity_type][$bundle];
+  }
+
+  /**
+   * Retrieves the access control values from an entity.
+   *
+   * @param EntityInterface $entity
+   *   A Drupal entity, typically a node or a user.
+   * @param $field
+   *   The field holding the access control data.
+   *
+   * @return array
+   *   An array of field data.
+   *
+   * @TODO: Does this method belong here or in the manager? In the interface?
+   */
   public function getEntityValues(EntityInterface $entity, $field) {
     return $entity->get($field)->getValue();
+  }
+
+  /**
+   * Retrieves a configuration object.
+   *
+   * This is the main entry point to the configuration API. Calling
+   * @code $this->config('book.admin') @endcode will return a configuration
+   * object in which the book module can store its administrative settings.
+   *
+   * @param string $name
+   *   The name of the configuration object to retrieve. The name corresponds to
+   *   a configuration file. For @code \Drupal::config('book.admin') @endcode,
+   *   the config object returned will contain the contents of book.admin
+   *   configuration file.
+   *
+   * @return \Drupal\Core\Config\Config
+   *   A configuration object.
+   */
+  protected function config($name) {
+    if (!$this->configFactory) {
+      $this->configFactory = \Drupal::getContainer()->get('config.factory');
+    }
+    return $this->configFactory->get($name);
   }
 
 }
