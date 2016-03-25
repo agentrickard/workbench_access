@@ -7,15 +7,15 @@
 
 namespace Drupal\workbench_access\Form;
 
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\State\StateInterface;
-use Drupal\Core\Form\FormBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
- * Configure Workbench access settings for this site.
+ * Configure Workbench Access per user.
  */
 class WorkbenchAccessByUserForm extends FormBase {
 
@@ -109,6 +109,15 @@ class WorkbenchAccessByUserForm extends FormBase {
     }
   }
 
+  /**
+   * Returns a dynamic page title for the route.
+   *
+   * @param $id
+   *   The section id.
+   *
+   * @return string
+   *   A page title.
+   */
   public function pageTitle($id) {
     $element = $this->manager->getElement($id);
     return $this->t('Editors assigned to %label', array('%label' => $element['label']));

@@ -7,12 +7,12 @@
 
 namespace Drupal\workbench_access\Form;
 
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\State\StateInterface;
-use Drupal\Core\Form\ConfigFormBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Configure Workbench access settings for this site.
@@ -99,7 +99,6 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#options' => $schemes,
         '#default_value' => $config->get('scheme', 'taxonomy'),
       );
-      // @TODO: Add a separate submit button here.
       foreach ($schemes as $id => $label) {
         $scheme = $this->manager->getScheme($id);
         $form['scheme']['parents'][$id] = array(
@@ -121,7 +120,6 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#submit' => array('::submitActiveScheme'),
       );
     }
-    // @TODO: These should change dynamically if form settings change.
     $scheme = $this->manager->getScheme($config->get('scheme', 'taxonomy'));
     $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents', array()));
     if (!empty($custom)) {
@@ -171,7 +169,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
   }
 
   /**
-   * Custom submit handler.
+   * Custom submit handler for schema changes.
    */
   public function submitActiveScheme(array $form, FormStateInterface $form_state) {
     $scheme = $form_state->getValue('scheme');
