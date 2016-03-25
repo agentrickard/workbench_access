@@ -15,7 +15,10 @@ use Drupal\Component\Annotation\Plugin;
  * Plugin Namespace: Plugin\AccessControlHierarchy
  *
  * For a working example, see
- * \Drupal\workbench_access\Plugin\AccessControlHierarchy\Taxonomy
+ * \Drupal\workbench_access\Plugin\AccessControlHierarchy\Taxonomy.
+ *
+ * Modules should use Drupal\workbench_access\AccessControlHierarchyBase as
+ * a basis for new implementations.
  *
  * @see plugin_api
  *
