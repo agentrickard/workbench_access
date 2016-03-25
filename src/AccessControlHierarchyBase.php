@@ -194,6 +194,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function getEntityValues(EntityInterface $entity, $field) {
+    return $entity->get($field)->getValue();
+  }
+
+  /**
    * Returns the access control fields configured for use by the plugin.
    *
    * @param $entity_type
@@ -205,23 +212,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     $config = $this->config('workbench_access.settings');
     $fields = $config->get('fields');
     return $fields[$entity_type][$bundle];
-  }
-
-  /**
-   * Retrieves the access control values from an entity.
-   *
-   * @param EntityInterface $entity
-   *   A Drupal entity, typically a node or a user.
-   * @param $field
-   *   The field holding the access control data.
-   *
-   * @return array
-   *   An array of field data.
-   *
-   * @TODO: Does this method belong here or in the manager? In the interface?
-   */
-  public function getEntityValues(EntityInterface $entity, $field) {
-    return $entity->get($field)->getValue();
   }
 
   /**

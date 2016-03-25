@@ -8,13 +8,13 @@
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\system\Entity\Menu as MenuEntity;
+use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\Core\Menu\MenuLinkManagerInterface;
 use Drupal\Core\Menu\MenuLinkTreeElement;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
-use Drupal\Core\Menu\MenuLinkInterface;
-use Drupal\system\Entity\Menu as MenuEntity;
-use Drupal\menu_link_content\Entity\MenuLinkContent;
 
 /**
  * Defines a hierarchy based on a Menu.
@@ -56,7 +56,19 @@ class Menu extends AccessControlHierarchyBase {
   }
 
   /**
-   * Traverses the link tree and builds parentage arrays.
+   * Traverses the menu link tree and builds parentage arrays.
+   *
+   * Note: this method is necessary because Menu does not auto-load parents.
+   *
+   * @param $id
+   *   The root id of the section tree.
+   * @param array $data
+   *   An array of menu tree or subtree data.
+   * @param array &$tree
+   *   The computed tree array to return.
+   *
+   * @return array $tree
+   *   The compiled tree data.
    */
   public function buildTree($id, $data, &$tree) {
     foreach ($data as $link_id => $link) {
@@ -83,6 +95,9 @@ class Menu extends AccessControlHierarchyBase {
     return $tree;
   }
 
+  /**
+   * @inheritdoc
+   */
   public function getFields($entity_type, $bundle, $parents) {
     return ['menu' => 'Menu field'];
   }

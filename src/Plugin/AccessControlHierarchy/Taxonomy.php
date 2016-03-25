@@ -57,6 +57,9 @@ class Taxonomy extends AccessControlHierarchyBase {
     return $tree;
   }
 
+  /**
+   * @inheritdoc
+   */
   public function getFields($entity_type, $bundle, $parents) {
     $list = [];
     $query = \Drupal::entityQuery('field_config')
