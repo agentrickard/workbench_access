@@ -7,8 +7,8 @@
 
 namespace Drupal\workbench_access\Controller;
 
-use Drupal\Core\Controller\ControllerBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
 
 /**
@@ -16,6 +16,9 @@ use Drupal\Core\Url;
  */
 class WorkbenchAccessSections extends ControllerBase {
 
+  /**
+   * Returns the section assignment page.
+   */
   public function page() {
     $config = $this->config('workbench_access.settings');
     $scheme_id = $config->get('scheme');
