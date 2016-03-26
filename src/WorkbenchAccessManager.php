@@ -96,6 +96,22 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   /**
    * {@inheritdoc}
    */
+  public function getUserSections($uid = NULL, $add_roles = TRUE) {
+    // Get the information from the account.
+    if (is_null($uid)) {
+      $uid = \Drupal::currentUser()->id();
+    }
+    $user = \Drupal::entityTypeManager()->getStorage('user')->load($uid);
+    $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+    // Merge in role data.
+    $user_sections += $this->getRoleSections($user);
+
+    return $user_sections;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function addUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
     $values = $entity->get(WORKBENCH_ACCESS_FIELD);
@@ -253,8 +269,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public function checkTree($entity_sections, $user_sections) {
     $tree = $this->getActiveTree();
     $list = array_flip($user_sections);
-    foreach ($entity_sections as $field) {
-      $section = $field['target_id'];
+    foreach ($entity_sections as $section) {
       // Simple check first: is there an exact match?
       if (isset($list[$section])) {
         return TRUE;

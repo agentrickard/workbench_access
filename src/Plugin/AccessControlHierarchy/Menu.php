@@ -8,6 +8,7 @@
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\system\Entity\Menu as MenuEntity;
 use Drupal\Core\Menu\MenuLinkInterface;

@@ -39,7 +39,15 @@ function workbench_access_help($route_name, RouteMatchInterface $route_match) {
  * Restricts selection options for the node form.
  */
 function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_state) {
- # kint($form);
+  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+  if ($scheme = $manager->getActiveScheme()) {
+    $info = $form_state->getBuildInfo();
+    $node = $info['callback_object']->getEntity();
+    $field = $scheme->fields('node', $node->bundle());
+    if (!empty($form[$field]['#access'])) {
+      $form[$field] = $scheme->alterOptions($form[$field], $manager);
+    }
+  }
 }
 
 /**
