@@ -103,4 +103,21 @@ class Menu extends AccessControlHierarchyBase {
     return ['menu' => 'Menu field'];
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function alterOptions($field, WorkbenchAccessManagerInterface $manager) {
+    $element = $field;
+    if (isset($element['widget']['#options'])) {
+      $user_sections = $manager->getUserSections();
+      foreach ($element['widget']['#options'] as $id => $data) {
+        $sections = [$id];
+        if (empty($manager->checkTree($sections, $user_sections))) {
+          unset($element['widget']['#options'][$id]);
+        }
+      }
+    }
+    return $element;
+  }
+
 }
