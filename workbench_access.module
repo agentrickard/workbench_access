@@ -42,7 +42,7 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
   if ($scheme = $manager->getActiveScheme()) {
     $info = $form_state->getBuildInfo();
-    $node = $info['callback_object']->getEntity();
+    $node = $form_state->getFormObject()->getEntity();
     $field = $scheme->fields('node', $node->bundle());
     if (!empty($form[$field]['#access'])) {
       $form[$field] = $scheme->alterOptions($form[$field], $manager);

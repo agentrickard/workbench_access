@@ -11,6 +11,10 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\system\Entity\Menu as MenuEntity;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Menu\MenuLinkInterface;
 use Drupal\Core\Menu\MenuLinkManagerInterface;
 use Drupal\Core\Menu\MenuLinkTreeElement;
@@ -108,16 +112,38 @@ class Menu extends AccessControlHierarchyBase {
    */
   public function alterOptions($field, WorkbenchAccessManagerInterface $manager) {
     $element = $field;
-    if (isset($element['widget']['#options'])) {
-      $user_sections = $manager->getUserSections();
-      foreach ($element['widget']['#options'] as $id => $data) {
-        $sections = [$id];
-        if (empty($manager->checkTree($sections, $user_sections))) {
-          unset($element['widget']['#options'][$id]);
+    $user_sections = $manager->getUserSections();
+    $menu_check = [];
+    foreach ($element['link']['menu_parent']['#options'] as $id => $data) {
+      // The menu value here prepends the menu name. Remove that.
+      $parts = explode(':', $id);
+      $menu = array_shift($parts);
+      $sections = [implode(':', $parts)];
+      // Remove unusable elements, except the existing parent.
+      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty($manager->checkTree($sections, $user_sections))) {
+        unset($element['link']['menu_parent']['#options'][$id]);
+      }
+      // Check for the root menu item.
+      if (!isset($menu_check[$menu]) && isset($element['link']['menu_parent']['#options'][$menu . ':'])) {
+        if (empty($manager->checkTree([$menu], $user_sections))) {
+          unset($element['link']['menu_parent']['#options'][$menu . ':']);
         }
+        $menu_check[$menu] = TRUE;
       }
     }
     return $element;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityValues(EntityInterface $entity, $field) {
+    $values = array();
+    $defaults = menu_ui_get_menu_link_defaults($entity);
+    if (!empty($defaults['id'])) {
+      $values = [$defaults['id']];
+    }
+    return $values;
   }
 
 }

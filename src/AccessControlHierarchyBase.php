@@ -147,7 +147,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManager $manager) {
+  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
     // Deny is our default response.
     $return = AccessResult::forbidden();
 

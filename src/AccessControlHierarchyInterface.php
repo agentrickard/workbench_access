@@ -139,7 +139,7 @@ interface AccessControlHierarchyInterface {
    *   The node being checked. In future this may handle other entity types.
    * @param AccountInterface $account
    *   The user requesting access to the node.
-   * @param WorkbenchAccessManager $manager
+   * @param WorkbenchAccessManagerInterface $manager
    *   The access control manager.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
@@ -147,7 +147,7 @@ interface AccessControlHierarchyInterface {
    *
    * @see workbench_access_node_access()
    */
-  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManager $manager);
+  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
 
   /**
    * Alter the selection options provided for an access control field.
