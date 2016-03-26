@@ -9,6 +9,7 @@ namespace Drupal\workbench_access;
 
 use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Access\AccessResult;
@@ -100,6 +101,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
           '#title' => $this->t('Access control field'),
           '#options' => $options,
           '#default_value' => $this->fields('node', $type->id()),
+          '#description' => $this->t('Autocomplete fields are not supported.'),
         );
       }
       else {
@@ -145,7 +147,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManager $manager) {
+  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
     // Deny is our default response.
     $return = AccessResult::forbidden();
 
@@ -172,11 +174,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         $return = AccessResult::neutral();
       }
       else {
-        // Get the information from the account.
-        $user = \Drupal::entityTypeManager()->getStorage('user')->load($account->id());
-        $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
-        // Merge in role data.
-        $user_sections += $manager->getRoleSections($user);
+        $user_sections = $manager->getUserSections($account->id);
         if (empty($user_sections)) {
           $return = AccessResult::forbidden();
         }
@@ -197,7 +195,11 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function getEntityValues(EntityInterface $entity, $field) {
-    return $entity->get($field)->getValue();
+    $values = array();
+    foreach ($entity->get($field)->getValue() as $item) {
+      $values[] = $item['target_id'];
+    }
+    return $values;
   }
 
   /**

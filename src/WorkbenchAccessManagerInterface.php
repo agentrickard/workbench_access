@@ -186,4 +186,17 @@ interface WorkbenchAccessManagerInterface {
    */
   public function checkTree($entity_sections, $user_sections);
 
+  /**
+   * Gets the editorial sections assigned to a user.
+   *
+   * @param $uid
+   *   An optional user id. If not provided, the active user is returned.
+   * @param $add_roles
+   *   Whether to add the role-based assignments to the user. Defaults to true.
+   *
+   * @return
+   *   An array of section ids that the user is assigned to.
+   */
+  public function getUserSections($uid = NULL, $add_roles = TRUE);
+
 }

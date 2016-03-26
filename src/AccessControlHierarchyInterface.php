@@ -8,6 +8,7 @@
 namespace Drupal\workbench_access;
 
 use Drupal\workbench_access\WorkbenchAccessManager;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -138,7 +139,7 @@ interface AccessControlHierarchyInterface {
    *   The node being checked. In future this may handle other entity types.
    * @param AccountInterface $account
    *   The user requesting access to the node.
-   * @param WorkbenchAccessManager $manager
+   * @param WorkbenchAccessManagerInterface $manager
    *   The access control manager.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
@@ -146,6 +147,19 @@ interface AccessControlHierarchyInterface {
    *
    * @see workbench_access_node_access()
    */
-  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManager $manager);
+  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
+
+  /**
+   * Alter the selection options provided for an access control field.
+   *
+   * @param $field
+   *   The field element from a node form.
+   * @param WorkbenchAccessManagerInterface $manager
+   *   The access manager.
+   *
+   * @return $element
+   *   The field element, after restricting selection options.
+   */
+  public function alterOptions($field, WorkbenchAccessManagerInterface $manager);
 
 }

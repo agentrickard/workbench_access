@@ -8,6 +8,7 @@
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 
@@ -70,6 +71,7 @@ class Taxonomy extends AccessControlHierarchyBase {
       ->sort('label')
       ->execute();
     $fields = \Drupal::entityManager()->getStorage('field_config')->loadMultiple(array_keys($query));
+    kint($fields);
     foreach ($fields as $id => $field) {
       $handler = $field->getSetting('handler');
       $settings = $field->getSetting('handler_settings');
@@ -82,6 +84,23 @@ class Taxonomy extends AccessControlHierarchyBase {
       }
     }
     return $list;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function alterOptions($field, WorkbenchAccessManagerInterface $manager) {
+    $element = $field;
+    if (isset($element['widget']['#options'])) {
+      $user_sections = $manager->getUserSections();
+      foreach ($element['widget']['#options'] as $id => $data) {
+        $sections = [$id];
+        if (empty($manager->checkTree($sections, $user_sections))) {
+          unset($element['widget']['#options'][$id]);
+        }
+      }
+    }
+    return $element;
   }
 
 }
