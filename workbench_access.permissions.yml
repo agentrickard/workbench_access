@@ -13,6 +13,11 @@ batch update workbench access:
   title: 'Batch update section assignments for content'
   restrict access: FALSE
 
+bypass workbench access:
+  description: 'Automatically grant access to all access sections.'
+  title: 'Bypass Workbench Access permissions'
+  restrict access: TRUE
+
 use workbench access:
   description: 'Lets users be assigned to editorial sections.'
   title: 'Allow all members of this role to be assigned to Workbench Access sections'

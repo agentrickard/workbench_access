@@ -162,7 +162,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
 
     // @TODO: Check for super-admin?
     // We don't care about the View operation right now.
-    if ($op == 'view') {
+    if ($op == 'view' || $account->hasPermission('bypass workbench access')) {
       $return = AccessResult::neutral();
     }
     elseif ($active && !empty($scheme) && !empty($field)) {
