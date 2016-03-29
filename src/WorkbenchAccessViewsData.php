@@ -19,10 +19,23 @@ class WorkbenchAccessViewsData extends EntityViewsData {
    */
   public function getViewsData() {
     $data = parent::getViewsData();
-
+kint($data);
     // If config... add proper table definitions.
     // Get the field for Taxonomy.
     // What field to use for Menu Links?
+    $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+    if ($scheme = $manager->getActiveScheme()) {
+      $data['node']['workbench_access_section'] = array(
+        'title' => t('Workbench Section'),
+        'help' => t('The section to which this content belongs.'),
+        'field' => array(
+          'id' => 'workbench_access_section',
+        ),
+        'filter' => array(
+          'id' => 'workbench_access_section',
+        ),
+      );
+    }
 
     // Handles nodes and users.
     // Users might be handled for us, though the filter probably needs to have

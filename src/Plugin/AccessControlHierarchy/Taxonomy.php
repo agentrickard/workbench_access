@@ -118,4 +118,15 @@ class Taxonomy extends AccessControlHierarchyBase {
     return $element;
   }
 
+  /**
+   * {inheritdoc}
+   */
+  public function viewsData() {
+    $data = array();
+
+
+    kint($data);
+    return $data();
+  }
+
 }
