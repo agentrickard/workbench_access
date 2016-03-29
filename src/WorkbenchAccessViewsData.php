@@ -20,6 +20,14 @@ class WorkbenchAccessViewsData extends EntityViewsData {
   public function getViewsData() {
     $data = parent::getViewsData();
 
+    // If config... add proper table definitions.
+    // Get the field for Taxonomy.
+    // What field to use for Menu Links?
+
+    // Handles nodes and users.
+    // Users might be handled for us, though the filter probably needs to have
+    // the list of choices restricted.
+
     return $data;
   }
 
