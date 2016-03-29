@@ -71,7 +71,6 @@ class Taxonomy extends AccessControlHierarchyBase {
       ->sort('label')
       ->execute();
     $fields = \Drupal::entityManager()->getStorage('field_config')->loadMultiple(array_keys($query));
-    kint($fields);
     foreach ($fields as $id => $field) {
       $handler = $field->getSetting('handler');
       $settings = $field->getSetting('handler_settings');
@@ -100,7 +99,11 @@ class Taxonomy extends AccessControlHierarchyBase {
         }
       }
     }
-    // Check Autocomplete.
+    // Check for autocomplete fields. In this case, we replace the selection
+    // handler with our own, which likely breaks Views-based handlers, but that
+    // can be handled later. We swap out the default handler for our own, since
+    // we don't have another way to filter the autocomplete results.
+    // @TODO: test this against views-based handlers.
     else {
       foreach ($element['widget'] as $key => $item) {
         if (isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
@@ -108,7 +111,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         }
       }
     }
-    kint($element);
+
     return $element;
   }
 
