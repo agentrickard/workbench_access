@@ -141,6 +141,7 @@ function workbench_access_views_data_alter(array &$data) {
         'id' => 'workbench_access_section',
       ),
       'filter' => array(
+        'field' => 'nid',
         'id' => 'workbench_access_section',
       ),
     );
@@ -151,6 +152,7 @@ function workbench_access_views_data_alter(array &$data) {
         'id' => 'workbench_access_user_section',
       ),
       'filter' => array(
+        'field' => 'uid',
         'id' => 'workbench_access_user_section',
       ),
     );

@@ -102,9 +102,18 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
       $uid = \Drupal::currentUser()->id();
     }
     $user = \Drupal::entityTypeManager()->getStorage('user')->load($uid);
-    $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
-    // Merge in role data.
-    $user_sections += $this->getRoleSections($user);
+    if ($user->hasPermission('bypass workbench access')) {
+      foreach ($this->getActiveTree() as $data) {
+        foreach ($data as $id => $section) {
+          $user_sections[] = $id;
+        }
+      }
+    }
+    else {
+      $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+      // Merge in role data.
+      $user_sections += $this->getRoleSections($user);
+    }
 
     return $user_sections;
   }
