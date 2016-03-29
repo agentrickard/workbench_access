@@ -44,7 +44,9 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
     $info = $form_state->getBuildInfo();
     $node = $form_state->getFormObject()->getEntity();
     $field = $scheme->fields('node', $node->bundle());
-    if (!empty($form[$field]['#access'])) {
+    $account = \Drupal::currentUser();
+    // If the user cannot access the form element or us a superuser, ignore.
+    if (!empty($form[$field]['#access']) && !$account->hasPermission('bypass workbench access')) {
       $form[$field] = $scheme->alterOptions($form[$field], $manager);
     }
   }
