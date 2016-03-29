@@ -42,6 +42,8 @@ class Taxonomy extends AccessControlHierarchyBase {
           'weight' => 0,
           'description' => $vocabulary->label(),
         );
+        // @TODO: It is possible that this will return a filtered set, if
+        // term_access is applied to the query.
         $data = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($id);
         foreach ($data as $term) {
           $tree[$id][$term->tid] = array(
@@ -104,6 +106,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     // can be handled later. We swap out the default handler for our own, since
     // we don't have another way to filter the autocomplete results.
     // @TODO: test this against views-based handlers.
+    // @see \Drupal\workbench_access\Plugin\EntityReferenceSelection\TaxonomyHierarchySelection
     else {
       foreach ($element['widget'] as $key => $item) {
         if (isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
