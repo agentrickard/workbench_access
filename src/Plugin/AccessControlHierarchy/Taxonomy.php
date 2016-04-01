@@ -50,7 +50,7 @@ class Taxonomy extends AccessControlHierarchyBase {
             'id' => $term->tid,
             'label' => $term->name,
             'depth' => $term->depth + 1,
-            'parents' => $term->parents,
+            'parents' => $term->parents, // @TODO: This doesn't return what we want.
             'weight' => $term->weight,
             'description' => $term->description__value, // @TODO: security
           );

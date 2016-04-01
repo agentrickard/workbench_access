@@ -217,6 +217,18 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * Returns the access control fields configured for use by the plugin.
+   *
+   * @param $entity_type
+   *   The type of entity access control is being tested for (e.g. 'node').
+   */
+  public function fieldsByEntityType($entity_type) {
+    $config = $this->config('workbench_access.settings');
+    $fields = $config->get('fields');
+    return $fields[$entity_type];
+  }
+
+  /**
    * Retrieves a configuration object.
    *
    * This is the main entry point to the configuration API. Calling
