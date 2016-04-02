@@ -47,20 +47,10 @@ class Section extends ManyToOne {
   public function query() {
     $info = $this->operators();
     $helper = new ManyToOneHelper($this);
-    $fields = $this->scheme->fieldsByEntityType('node');
-    foreach ($fields as $field) {
-      if (!empty($field)) {
-        $configuration = [
-         'table' => 'node__' . $field,
-         'field' => 'entity_id',
-         'left_table' => 'node',
-         'left_field' => 'nid',
-         'operator' => '=',
-        ];
-        $join = Views::pluginManager('join')->createInstance('standard', $configuration);
-        $this->tableAlias = $helper->addTable($join, $field);
-        $this->realField = $field . '_target_id';
-      }
+    foreach ($this->scheme->getViewsJoin() as $configuration) {
+      $join = Views::pluginManager('join')->createInstance('standard', $configuration);
+      $this->tableAlias = $helper->addTable($join, $configuration['table_alias']);
+      $this->realField = $configuration['real_field'];
     }
     if (!empty($info[$this->operator]['method'])) {
       $this->{$info[$this->operator]['method']}();
@@ -72,7 +62,7 @@ class Section extends ManyToOne {
       return;
     }
     if ($values = $this->getChildren()) {
-      $this->query->addWhere($this->options['group'], "$this->tableAlias.$this->realField", array_values($values), 'IN');
+      $this->scheme->addWhere($this, $values);
     }
   }
 
@@ -80,11 +70,11 @@ class Section extends ManyToOne {
     if (empty($this->value)) {
       return;
     }
-    $this->ensureMyTable();
+    $this->opHelper();
 
     // We use array_values() because the checkboxes keep keys and that can cause
     // array addition problems.
-    $this->query->addWhere($this->options['group'], "$this->tableAlias.$this->realField", array_values($this->value), $this->operator);
+    #$this->query->addWhere($this->options['group'], "$this->tableAlias.$this->realField", array_values($this->value), $this->operator);
   }
 
   protected function getChildren() {

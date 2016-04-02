@@ -163,6 +163,35 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {inheritdoc}
    */
+  public function getViewsJoin() {
+    $fields = $this->fieldsByEntityType('node');
+    foreach ($fields as $field) {
+      if (!empty($field)) {
+        $configuration[$field] = [
+         'table' => 'node__' . $field,
+         'field' => 'entity_id',
+         'left_table' => 'node',
+         'left_field' => 'nid',
+         'operator' => '=',
+         'table_alias' => $field,
+         'real_field' => $field . '_target_id',
+        ];
+      }
+    }
+    return $configuration;
+  }
+
+  public function addWhere($view, $values) {
+    // The JOIN data tells us if we have multiple tables to deal with.
+    $join_data = $this->getViewsJoin();
+    if (count($join_data) == 1) {
+      $view->query->addWhere($view->options['group'], "$view->tableAlias.$view->realField", array_values($values), 'IN');
+    }
+  }
+
+  /**
+   * {inheritdoc}
+   */
   public function viewsData() {
     $data = array();
 
