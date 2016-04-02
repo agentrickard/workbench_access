@@ -44,6 +44,36 @@ class Section extends ManyToOne {
     return $this->valueOptions;
   }
 
+  protected function defineOptions() {
+    $options = parent::defineOptions();
+
+    $options['operator']['default'] = 'in';
+    $options['value']['default'] = array();
+    $options['expose']['contains']['reduce'] = array('default' => TRUE);
+
+    return $options;
+  }
+
+  function operators() {
+    $operators = array(
+      'in' => array(
+        'title' => $this->t('Is one of'),
+        'short' => $this->t('in'),
+        'short_single' => $this->t('='),
+        'method' => 'opSimple',
+        'values' => 1,
+      ),
+      'not in' => array(
+        'title' => $this->t('Is not one of'),
+        'short' => $this->t('not in'),
+        'short_single' => $this->t('<>'),
+        'method' => 'opSimple',
+        'values' => 1,
+      ),
+    );
+    return $operators;
+  }
+
   public function query() {
     $info = $this->operators();
     $helper = new ManyToOneHelper($this);
@@ -52,29 +82,12 @@ class Section extends ManyToOne {
       $this->tableAlias = $helper->addTable($join, $configuration['table_alias']);
       $this->realField = $configuration['real_field'];
     }
-    if (!empty($info[$this->operator]['method'])) {
-      $this->{$info[$this->operator]['method']}();
-    }
-  }
-
-  protected function opHelper() {
     if (empty($this->value)) {
       return;
     }
     if ($values = $this->getChildren()) {
       $this->scheme->addWhere($this, $values);
     }
-  }
-
-  protected function opSimple() {
-    if (empty($this->value)) {
-      return;
-    }
-    $this->opHelper();
-
-    // We use array_values() because the checkboxes keep keys and that can cause
-    // array addition problems.
-    #$this->query->addWhere($this->options['group'], "$this->tableAlias.$this->realField", array_values($this->value), $this->operator);
   }
 
   protected function getChildren() {

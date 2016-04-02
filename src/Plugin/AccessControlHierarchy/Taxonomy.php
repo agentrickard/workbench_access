@@ -185,7 +185,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     // The JOIN data tells us if we have multiple tables to deal with.
     $join_data = $this->getViewsJoin();
     if (count($join_data) == 1) {
-      $view->query->addWhere($view->options['group'], "$view->tableAlias.$view->realField", array_values($values), 'IN');
+      $view->query->addWhere($view->options['group'], "$view->tableAlias.$view->realField", array_values($values), $view->operator);
     }
   }
 
