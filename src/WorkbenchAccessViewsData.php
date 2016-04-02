@@ -19,7 +19,7 @@ class WorkbenchAccessViewsData extends EntityViewsData {
    */
   public function getViewsData() {
     $data = parent::getViewsData();
-kint($data);
+
     // If config... add proper table definitions.
     // Get the field for Taxonomy.
     // What field to use for Menu Links?

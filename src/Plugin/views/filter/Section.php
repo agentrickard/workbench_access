@@ -25,7 +25,6 @@ class Section extends ManyToOne {
 
   public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
     parent::init($view, $display, $options);
-   # $this->additional_fields['field_section_target_id'] = 'field_section_target_id';
     $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
     $this->scheme = $this->manager->getActiveScheme();
   }
