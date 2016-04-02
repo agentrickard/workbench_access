@@ -49,9 +49,13 @@ class Section extends ManyToOne {
 
     $options['operator']['default'] = 'in';
     $options['value']['default'] = array();
-    $options['expose']['contains']['reduce'] = array('default' => TRUE);
 
     return $options;
+  }
+
+  public function defaultExposeOptions() {
+    parent::defaultExposeOptions();
+    $this->options['expose']['reduce'] = TRUE;
   }
 
   function operators() {
