@@ -48,7 +48,7 @@ class Section extends ManyToOne {
     $options = parent::defineOptions();
 
     $options['operator']['default'] = 'in';
-    $options['value']['default'] = array();
+    $options['value']['default'] = array('All');
     $options['expose']['contains']['reduce'] = array('default' => TRUE);
 
     return $options;
@@ -114,4 +114,5 @@ class Section extends ManyToOne {
     }
     return $children;
   }
+
 }
