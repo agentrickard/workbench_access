@@ -1,0 +1,7 @@
+{
+    "name": "drupal/workbench_access",
+    "description": "Hierarchical access control for content.",
+    "type": "drupal-module",
+    "license": "GPL-2.0+",
+    "homepage": "https://www.drupal.org/project/workbench_access"
+}
