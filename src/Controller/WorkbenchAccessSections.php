@@ -23,7 +23,7 @@ class WorkbenchAccessSections extends ControllerBase {
     $config = $this->config('workbench_access.settings');
     if ($scheme_id = $config->get('scheme')) {
       $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-        $scheme = $this->manager->getScheme($scheme_id);
+      $scheme = $this->manager->getScheme($scheme_id);
       $parents = $config->get('parents');
       $tree = $scheme->getTree();
       $list = '';
@@ -40,7 +40,6 @@ class WorkbenchAccessSections extends ControllerBase {
           $rows[] = $row;
         }
       }
-
       $build = array(
         '#type' => 'table',
         '#header' => array($config->get('plural_label'), t('Editors'), t('Roles')),
