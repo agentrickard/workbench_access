@@ -97,7 +97,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#type' => 'radios',
         '#title' => t('Active access scheme'),
         '#options' => $schemes,
-        '#default_value' => $config->get('scheme', 'taxonomy'),
+        '#default_value' => $config->get('scheme'),
       );
       foreach ($schemes as $id => $label) {
         $scheme = $this->manager->getScheme($id);
@@ -120,8 +120,10 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#submit' => array('::submitActiveScheme'),
       );
     }
-    $scheme = $this->manager->getScheme($config->get('scheme', 'taxonomy'));
-    $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents', array()));
+    if ($id = $config->get('scheme')) {
+      $scheme = $this->manager->getScheme($id);
+      $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents', array()));
+    }
     if (!empty($custom)) {
       $form['custom'] = array(
         '#type' => 'details',
