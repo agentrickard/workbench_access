@@ -1,5 +1,17 @@
 # Workbench Access
 
+The Workbench Access module creates editorial access controls based on hierarchies. It is an extensible system that supports structures created by other Drupal modules.
+
+When creating and editing content, users will be asked to place the content in an editorial section. Other users within that section or its parents will be able to edit the content.
+
+A user may be granted editorial rights to a section specific to his account or by her assigned role on the site. To create, edit and delete content in a section, the user must have the core node module permission (e.g. `Edit all Article content`) and the content must be assigned to the same section.
+
+As of this writing, the module supports the core Taxonomy and Menu modules for the management of access hierarchies. It uses Drupal 8's plugin system to create new hierarchies.
+
+Note that the module only controls access to content editing. It does not provide any content filtering of access restrictions for users trying to view that content.
+
+While Workbench Access is part of a larger module suite, it may be run as a stand-alone module with no dependencies.
+
 Contributing
 ====
 
@@ -26,3 +38,7 @@ All pull requests will automatically run tests in TravisCI. Test coverage runs a
 3. Tests also run for the HHVM but are allowed to fail.
 
 [![Build Status](https://travis-ci.org/agentrickard/workbench_access.svg?branch=master)](https://travis-ci.org/agentrickard/workbench_access)
+
+Developer Notes
+====
+
