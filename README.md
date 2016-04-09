@@ -12,6 +12,18 @@ Note that the module only controls access to content editing. It does not provid
 
 While Workbench Access is part of a larger module suite, it may be run as a stand-alone module with no dependencies.
 
+Installation and Configuration
+====
+To start using the module, install normally and then go to the configuration page at `admin/config/workflow/workbench_access`. From there, select the access control scheme you wish to use (by default, either Menu or Taxonomy) and the corresponding hierarchies that you wish to use for access control.
+
+Tip: It is best if you create your hierarchy (say a Taxonomy Vocabulary called `Editorial section` before configuring the module.
+
+If you want to test how the system works, you can run the drush command `drush wa-test` to install and configure a sample taxonomy hierarchy.
+
+After assigning the access control scheme, you must save the form. After saving, you will be asked to select the fields you wish to use for access control. You may elect not to place a content type under access control, but to use Workbench Access with a content type, you must first create and select a field that contains the data that will be used to assign access.
+
+Note that the Menu access scheme only supports one field type, the default menu selection field.
+
 Contributing
 ====
 
