@@ -146,4 +146,13 @@ class Menu extends AccessControlHierarchyBase {
     return $values;
   }
 
+  /**
+   * {inheritdoc}
+   */
+  public function disallowedOptions($field) {
+    // On the menu form, we never remove an existing parent item, so there is
+    // no concept of a disallowed option.
+    return array();
+  }
+
 }
