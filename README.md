@@ -12,8 +12,8 @@ Note that the module only controls access to content editing. It does not provid
 
 While Workbench Access is part of a larger module suite, it may be run as a stand-alone module with no dependencies.
 
-Installation and Configuration
-====
+## Installation and Configuration
+
 To start using the module, install normally and then go to the configuration page at `admin/config/workflow/workbench_access`. From there, select the access control scheme you wish to use (by default, either Menu or Taxonomy) and the corresponding hierarchies that you wish to use for access control.
 
 Tip: It is best if you create your hierarchy (say a Taxonomy Vocabulary called `Editorial section` before configuring the module.
@@ -24,8 +24,7 @@ After assigning the access control scheme, you must save the form. After saving,
 
 Note that the Menu access scheme only supports one field type, the default menu selection field.
 
-Contributing
-====
+## Contributing
 
 If you'd like to contribute, please do. Github forks and pull requests are preferable. If you prefer a patch-based workflow, you can attach patches to GitHub issues or Drupal.org
 issues. If you open a Drupal.org issue, please link to it from the appropriate GitHub issue.
@@ -38,8 +37,7 @@ The GitHub issues are grouped under three milestones:
 
 We would like to tackle issues in that order, but feel free to work on what motivates you.
 
-Testing
-====
+## Testing
 
 The module does not have solid test coverage, and complete coverage is required for release. Right now, we mostly use SimpleTest, because it is most familiar, but unit tests are welcome.
 
@@ -51,17 +49,16 @@ All pull requests will automatically run tests in TravisCI. Test coverage runs a
 
 [![Build Status](https://travis-ci.org/agentrickard/workbench_access.svg?branch=8.x-1.x)](https://travis-ci.org/agentrickard/workbench_access)
 
-Developer Notes
-====
+## Developer Notes
 
-* Access controls
+### Access controls
 Workbench Access only applies to content (node) editing.
 
 By design, Workbench Access never _allows_ access. It only responds with `neutral` or `deny`. The intention is that normal editing permissions should apply, but only within the sections that a user is assigned to.
 
 Access controls are controlled by the `WorkbenchAccessManager` class but the individual response is delegated to plugins via the `checkEntityAccess` method provided in the `AccessControlHierarchyBase` plugin. So if you want to change access behavior, you can write your own plugin or extend an existing one.
 
-* Data storage
+### Data storage
 Access is granted either at the `user` or `role` level. User-level access is stored in the field `user.field_workbench_access`, which installs with the module. Role-level access is stored in the `state` system. We use the state system instead of config because access control hierarchies are typically content entities, which cannot be exported via config.
 
 This means that base configuration of Workbench Access is config-exportable, but the actual access control assignments are not. This is a limitation of Drupal 8's design.
