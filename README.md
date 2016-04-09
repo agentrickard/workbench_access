@@ -49,7 +49,7 @@ All pull requests will automatically run tests in TravisCI. Test coverage runs a
 2. Drupal 8.0.x and 8.1.x.
 3. Tests also run for the HHVM but are allowed to fail.
 
-[![Build Status](https://travis-ci.org/agentrickard/workbench_access.svg?branch=master)](https://travis-ci.org/agentrickard/workbench_access)
+[![Build Status](https://travis-ci.org/agentrickard/workbench_access.svg?branch=8.x-1.x)](https://travis-ci.org/agentrickard/workbench_access)
 
 Developer Notes
 ====
