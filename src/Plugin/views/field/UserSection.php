@@ -46,7 +46,9 @@ class UserSection extends Section {
       $tree = $scheme->getTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
-          $output[] = $this->sanitizeValue($data[$id]['label']);
+          if (isset($data[$id])) {
+            $output[] = $this->sanitizeValue($data[$id]['label']);
+          }
         }
       }
       return trim(implode($this->options['separator'], $output), $this->options['separator']);

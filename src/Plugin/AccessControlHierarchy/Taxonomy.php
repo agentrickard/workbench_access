@@ -181,12 +181,22 @@ class Taxonomy extends AccessControlHierarchyBase {
     return $configuration;
   }
 
+  /**
+   * {inheritdoc}
+   */
   public function addWhere($view, $values) {
     // The JOIN data tells us if we have multiple tables to deal with.
     $join_data = $this->getViewsJoin();
     if (count($join_data) == 1) {
       $view->query->addWhere($view->options['group'], "$view->tableAlias.$view->realField", array_values($values), $view->operator);
     }
+    else {
+      foreach ($join_data as $field => $data) {
+
+      }
+    }
+    // @TODO: If we don't run this, then we get duplicate results?!?
+    $view->query->query();
   }
 
   /**

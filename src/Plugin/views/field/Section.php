@@ -80,7 +80,9 @@ class Section extends FieldPluginBase {
       $tree = $scheme->getTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
-          $output[] = $this->sanitizeValue($data[$id]['label']);
+          if (isset($data[$id])) {
+            $output[] = $this->sanitizeValue($data[$id]['label']);
+          }
         }
       }
       return implode($this->options['separator'], $output);
