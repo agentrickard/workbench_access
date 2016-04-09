@@ -50,6 +50,13 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
       $form[$field] = $scheme->alterOptions($form[$field], $manager);
       // Add the options hidden from the user silently to the form.
       $options_diff = $scheme->disallowedOptions($form[$field]);
+      if (!empty($options_diff)) {
+        // @TODO: Potentially show this information to users with permission.
+        $form['workbench_access_disallowed'] = workbench_access_hidden_field($options_diff, $scheme);
+        // Call our submitEntity() method to merge in values.
+        $class = '\\' . get_class($scheme) . '::submitEntity';
+        array_unshift($form['actions']['submit']['#submit'], $class);
+      }
     }
   }
 }
@@ -131,4 +138,23 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
   else {
     return AccessResult::neutral();
   }
+}
+
+/**
+ * Adds a hidden field that stored access information that cannot be edited.
+ *
+ * @param array $options_diff
+ *   An array of section ids that cannot be edited by the current user.
+ * @param Drupal\workbench_access\Annotation\AccessControlHierarchy $scheme
+ *   The active access control scheme.
+ *
+ * @return array
+ *   A form element.
+ */
+function workbench_access_hidden_field($options_diff, $scheme) {
+  $element = array(
+    '#type' => 'value',
+    '#value' => $options_diff,
+  );
+  return $element;
 }

@@ -173,4 +173,21 @@ interface AccessControlHierarchyInterface {
    */
   public function disallowedOptions($field);
 
+  /**
+   * Responds to the submission of an entity form.
+   *
+   * If the entity contains section values that the user cannot change, they
+   * are passed in the 'workbench_access_disallowed' field on the form. Plugins
+   * should examine that value and make modifications to their target field
+   * as necessary.
+   *
+   * Currently only supports nodes. A default implementation is provided.
+   *
+   * @param array &$form
+   *   A form array.
+   * @param FormStateInterface $form_state
+   *   The form_state object.
+   */
+  public function submitEntity(array &$form, FormStateInterface $form_state);
+
 }
