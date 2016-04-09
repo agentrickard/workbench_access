@@ -14,16 +14,35 @@ While Workbench Access is part of a larger module suite, it may be run as a stan
 
 ## Installation and Configuration
 
+### Install
 To start using the module, install normally and then go to the configuration page at `admin/config/workflow/workbench_access`. From there, select the access control scheme you wish to use (by default, either Menu or Taxonomy) and the corresponding hierarchies that you wish to use for access control.
 
 Tip: It is best if you create your hierarchy (say a Taxonomy Vocabulary called `Editorial section` before configuring the module.
 
 If you want to test how the system works, you can run the drush command `drush wa-test` to install and configure a sample taxonomy hierarchy.
 
+### Configure
 After assigning the access control scheme, you must save the form. After saving, you will be asked to select the fields you wish to use for access control. You may elect not to place a content type under access control, but to use Workbench Access with a content type, you must first create and select a field that contains the data that will be used to assign access.
 
 Note that the Menu access scheme only supports one field type, the default menu selection field.
 
+### Assign
+Once you select the fields, it is time to assign users to editorial sections. For each role that should use Workbench Access, give the role either of the following permissions:
+
+* Bypass Workbench Access permissions
+  This permission assigns users in the role to all sections automatically. Give only to trusted administrators.
+* Allow all members of this role to be assigned to Workbench Access sections
+  This permission lets users and roles be assigned to specific editorial sections. It is the default permission for most roles.
+
+After permissions are assigned, go to the Sections overview page `admin/config/workflow/workbench_access/sections`. This page shows a list of all sections in your access hierarchy and provides links for adding roles or users to those sections.
+
+Note that when granting access, the hierarchy is enforced such that if you have the following structure:
+
+ - Alumni
+ -- Events
+ -- Giving
+
+A user or role assigned to `Alumni` will also have access to `Events` and `Giving` and does not need to be assigned to all three.
 ## Contributing
 
 If you'd like to contribute, please do. Github forks and pull requests are preferable. If you prefer a patch-based workflow, you can attach patches to GitHub issues or Drupal.org
