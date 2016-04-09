@@ -239,4 +239,32 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     return $this->configFactory->get($name);
   }
 
+  /**
+   * {inheritdoc}
+   */
+  public function disallowedOptions($field) {
+    $options = array_diff_key(array_flip($field['widget']['#default_value']), $field['widget']['#options']);
+    return array_keys($options);
+  }
+
+  /**
+   * {inheritdoc}
+   */
+  public function submitEntity(array &$form, FormStateInterface $form_state) {
+    $values = $form_state->getValue('workbench_access_disallowed');
+    if (!empty($values)) {
+      $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+      if ($scheme = $manager->getActiveScheme()) {
+        $info = $form_state->getBuildInfo();
+        $node = $form_state->getFormObject()->getEntity();
+        $field = $scheme->fields('node', $node->bundle());
+        $entity_values = $form_state->getValue($field);
+      }
+      foreach ($values as $value) {
+        $entity_values[]['target_id'] = $value;
+      }
+      $form_state->setValue($field, $entity_values);
+    }
+  }
+
 }
