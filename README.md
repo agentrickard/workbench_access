@@ -38,9 +38,9 @@ After permissions are assigned, go to the Sections overview page `admin/config/w
 
 Note that when granting access, the hierarchy is enforced such that if you have the following structure:
 
- - Alumni
- -- Events
- -- Giving
+* Alumni
+** Events
+** Giving
 
 A user or role assigned to `Alumni` will also have access to `Events` and `Giving` and does not need to be assigned to all three.
 ## Contributing
