@@ -55,7 +55,13 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
         $form['workbench_access_disallowed'] = workbench_access_hidden_field($options_diff, $scheme);
         // Call our submitEntity() method to merge in values.
         $class = '\\' . get_class($scheme) . '::submitEntity';
-        array_unshift($form['actions']['submit']['#submit'], $class);
+        // Account for all the submit buttons on the node form.
+        $buttons = ['submit', 'publish', 'unpublish'];
+        foreach ($buttons as $button) {
+          if (isset($form['actions'][$button]['#submit'])) {
+            array_unshift($form['actions'][$button]['#submit'], $class);
+          }
+        }
       }
     }
   }
