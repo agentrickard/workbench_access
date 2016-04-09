@@ -170,7 +170,7 @@ function workbench_access_views_data_alter(array &$data) {
       ),
       'filter' => array(
         'field' => 'uid',
-        'id' => 'workbench_access_user_section',
+        'id' => 'workbench_access_section',
       ),
     );
   }

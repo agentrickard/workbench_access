@@ -223,9 +223,15 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    *   The type of entity access control is being tested for (e.g. 'node').
    */
   public function fieldsByEntityType($entity_type) {
-    $config = $this->config('workbench_access.settings');
-    $fields = $config->get('fields');
-    return $fields[$entity_type];
+    // User/users do not name the data table consistently.
+    if ($entity_type == 'user' || $entity_type == 'users') {
+      return ['user' => WORKBENCH_ACCESS_FIELD];
+    }
+    else {
+      $config = $this->config('workbench_access.settings');
+      $fields = $config->get('fields');
+      return $fields[$entity_type];
+    }
   }
 
   /**
@@ -276,6 +282,52 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         $entity_values[]['target_id'] = $value;
       }
       $form_state->setValue($field, $entity_values);
+    }
+  }
+
+  /**
+   * {inheritdoc}
+   */
+  public function getViewsJoin($table, $key) {
+    $fields = $this->fieldsByEntityType($table);
+    $table_prefix = $table;
+    $field_suffix = '_target_id';
+    if ($table == 'users') {
+      $table_prefix = 'user';
+      $field_suffix = '_value';
+    }
+    foreach ($fields as $field) {
+      if (!empty($field)) {
+        $configuration[$field] = [
+         'table' => $table_prefix . '__' . $field,
+         'field' => 'entity_id',
+         'left_table' => $table,
+         'left_field' => $key,
+         'operator' => '=',
+         'table_alias' => $field,
+         'real_field' => $field . $field_suffix,
+        ];
+      }
+    }
+    return $configuration;
+  }
+
+  /**
+   * {inheritdoc}
+   */
+  public function addWhere($view, $values) {
+    // The JOIN data tells us if we have multiple tables to deal with.
+    $join_data = $this->getViewsJoin($view->table);
+    if (count($join_data) == 1) {
+      $view->query->addWhere($view->options['group'], "$view->tableAlias.$view->realField", array_values($values), $view->operator);
+    }
+    else {
+      $or = db_or();
+      foreach ($join_data as $field => $data) {
+        $alias = $data['table_alias'] . '.' . $data['real_field'];
+        $or->condition($alias, array_values($values), $view->operator);
+      }
+      $view->query->addWhere($view->options['group'], $or);
     }
   }
 

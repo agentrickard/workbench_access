@@ -40,7 +40,6 @@ class Section extends ManyToOne {
         $this->valueOptions[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
       }
     }
-
     return $this->valueOptions;
   }
 
@@ -82,16 +81,18 @@ class Section extends ManyToOne {
   public function query() {
     $info = $this->operators();
     $helper = new ManyToOneHelper($this);
-    foreach ($this->scheme->getViewsJoin() as $configuration) {
-      $join = Views::pluginManager('join')->createInstance('standard', $configuration);
-      $this->tableAlias = $helper->addTable($join, $configuration['table_alias']);
-      $this->realField = $configuration['real_field'];
-    }
     if (empty($this->value)) {
       return;
     }
-    if ($values = $this->getChildren()) {
-      $this->scheme->addWhere($this, $values);
+    if (!empty($this->table)) {
+      foreach ($this->scheme->getViewsJoin($this->table, $this->realField) as $configuration) {
+        $join = Views::pluginManager('join')->createInstance('standard', $configuration);
+        $this->tableAlias = $helper->addTable($join, $configuration['table_alias']);
+        $this->realField = $configuration['real_field'];
+      }
+      if ($values = $this->getChildren()) {
+        $this->scheme->addWhere($this, $values);
+      }
     }
   }
 
