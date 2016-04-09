@@ -239,4 +239,12 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     return $this->configFactory->get($name);
   }
 
+  /**
+   * {inheritdoc}
+   */
+  public function disallowedOptions($field) {
+    $options = array_diff_key(array_flip($field['widget']['#default_value']), $field['widget']['#options']);
+    return array_keys($options);
+  }
+
 }

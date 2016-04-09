@@ -150,7 +150,7 @@ interface AccessControlHierarchyInterface {
   public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
 
   /**
-   * Alter the selection options provided for an access control field.
+   * Alters the selection options provided for an access control field.
    *
    * @param $field
    *   The field element from a node form.
@@ -161,5 +161,16 @@ interface AccessControlHierarchyInterface {
    *   The field element, after restricting selection options.
    */
   public function alterOptions($field, WorkbenchAccessManagerInterface $manager);
+
+  /**
+   * Gets any options that are set but cannot be changed by the editor.
+   *
+   * @param $field
+   *   The field element from a node form, after running through alterOptions().
+   *
+   * @return array
+   *   An array of section ids to preserve.
+   */
+  public function disallowedOptions($field);
 
 }

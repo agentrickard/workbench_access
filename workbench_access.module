@@ -45,9 +45,11 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
     $node = $form_state->getFormObject()->getEntity();
     $field = $scheme->fields('node', $node->bundle());
     $account = \Drupal::currentUser();
-    // If the user cannot access the form element or us a superuser, ignore.
+    // If the user cannot access the form element or is a superuser, ignore.
     if (!empty($form[$field]['#access']) && !$account->hasPermission('bypass workbench access')) {
       $form[$field] = $scheme->alterOptions($form[$field], $manager);
+      // Add the options hidden from the user silently to the form.
+      $options_diff = $scheme->disallowedOptions($form[$field]);
     }
   }
 }
