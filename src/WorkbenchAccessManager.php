@@ -125,12 +125,12 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function addUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
-    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
-    if ($values->isEmpty()) {
+    $values = $this->getActiveScheme()->getEntityValues($entity, WORKBENCH_ACCESS_FIELD);
+    if (empty($values)) {
       $new = $sections;
     }
     else {
-      $new = array_keys($old) + $sections;
+      $new = array_merge($values, $sections);
     }
     $entity->set(WORKBENCH_ACCESS_FIELD, $new);
     $entity->save();
@@ -159,7 +159,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function removeUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
-    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
+    $values = $entity->get(WORKBENCH_ACCESS_FIELD)->getValue();
     $new = array_keys($values);
     foreach ($sections as $id) {
       unset($new[$id]);
