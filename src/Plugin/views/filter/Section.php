@@ -79,14 +79,19 @@ class Section extends ManyToOne {
   }
 
   public function query() {
-    $info = $this->operators();
     $helper = new ManyToOneHelper($this);
     if (empty($this->value)) {
       return;
     }
     if (!empty($this->table)) {
-      foreach ($this->scheme->getViewsJoin($this->table, $this->realField) as $configuration) {
-        $join = Views::pluginManager('join')->createInstance('standard', $configuration);
+      $alias = $this->query->ensureTable($this->table);
+      foreach ($this->scheme->getViewsJoin($this->table, $this->realField, $alias) as $configuration) {
+        // Allow subquery JOINs, which Menu users.
+        $type = 'standard';
+        if (isset($configuration['left_query'])) {
+          $type = 'subquery';
+        }
+        $join = Views::pluginManager('join')->createInstance($type, $configuration);
         $this->tableAlias = $helper->addTable($join, $configuration['table_alias']);
         $this->realField = $configuration['real_field'];
       }

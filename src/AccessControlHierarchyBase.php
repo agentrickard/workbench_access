@@ -288,7 +288,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {inheritdoc}
    */
-  public function getViewsJoin($table, $key) {
+  public function getViewsJoin($table, $key, $alias = NULL) {
     $fields = $this->fieldsByEntityType($table);
     $table_prefix = $table;
     $field_suffix = '_target_id';
@@ -317,7 +317,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public function addWhere($view, $values) {
     // The JOIN data tells us if we have multiple tables to deal with.
-    $join_data = $this->getViewsJoin($view->table);
+    $join_data = $this->getViewsJoin($view->table, $view->realField);
     if (count($join_data) == 1) {
       $view->query->addWhere($view->options['group'], "$view->tableAlias.$view->realField", array_values($values), $view->operator);
     }
