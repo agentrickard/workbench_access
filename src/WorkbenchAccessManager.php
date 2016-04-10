@@ -112,12 +112,15 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
       }
     }
     else {
-      $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+      $sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+      foreach($sections as $data) {
+        $user_sections[] = $data['value'];
+      }
       // Merge in role data.
       $user_sections += $this->getRoleSections($user);
     }
 
-    return $user_sections;
+    return array_unique($user_sections);
   }
 
   /**
@@ -125,13 +128,8 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function addUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
-    $values = $this->getActiveScheme()->getEntityValues($entity, WORKBENCH_ACCESS_FIELD);
-    if (empty($values)) {
-      $new = $sections;
-    }
-    else {
-      $new = array_merge($values, $sections);
-    }
+    $values = $this->getUserSections($user_id, FALSE);
+    $new = array_merge($values, $sections);
     $entity->set(WORKBENCH_ACCESS_FIELD, $new);
     $entity->save();
   }
@@ -159,12 +157,12 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function removeUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
-    $values = $entity->get(WORKBENCH_ACCESS_FIELD)->getValue();
-    $new = array_keys($values);
+    $values = $this->getUserSections($user_id, FALSE);
+    $new = array_flip($values);
     foreach ($sections as $id) {
       unset($new[$id]);
     }
-    $entity->set(WORKBENCH_ACCESS_FIELD, $new);
+    $entity->set(WORKBENCH_ACCESS_FIELD, array_keys($new));
     $entity->save();
   }
 
