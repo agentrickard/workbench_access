@@ -38,26 +38,68 @@ class Taxonomy extends AccessControlHierarchyBase {
         $tree[$id][$id] = array(
           'label' => $vocabulary->label(),
           'depth' => 0,
-          'parents' => 0,
+          'parents' => [],
           'weight' => 0,
           'description' => $vocabulary->label(),
         );
         // @TODO: It is possible that this will return a filtered set, if
         // term_access is applied to the query.
         $data = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($id);
-        foreach ($data as $term) {
-          $tree[$id][$term->tid] = array(
-            'id' => $term->tid,
-            'label' => $term->name,
-            'depth' => $term->depth + 1,
-            'parents' => $term->parents,
-            'weight' => $term->weight,
-            'description' => $term->description__value, // @TODO: security
-          );
+        $tree = $this->buildTree($id, $data, $tree);
+      }
+    }
+    return $tree;
+  }
+
+  /**
+   * Traverses the taxonomy tree and builds parentage arrays.
+   *
+   * Note: this method is necessary to load all parents to the array.
+   *
+   * @param $id
+   *   The root id of the section tree.
+   * @param array $data
+   *   An array of menu tree or subtree data.
+   * @param array &$tree
+   *   The computed tree array to return.
+   *
+   * @return array $tree
+   *   The compiled tree data.
+   */
+  public function buildTree($id, $data, &$tree) {
+    foreach ($data as $term) {
+      $tree[$id][$term->tid] = array(
+        'id' => $term->tid,
+        'label' => $term->name,
+        'depth' => $term->depth + 1,
+        'parents' => $this->convertParents($term, $id), // @TODO: This doesn't return what we want.
+        'weight' => $term->weight,
+        'description' => $term->description__value, // @TODO: security
+      );
+      foreach ($tree[$id][$term->tid]['parents'] as $key) {
+        if (!empty($tree[$id][$key]['parents'])) {
+          $tree[$id][$term->tid]['parents'] = array_merge($tree[$id][$key]['parents'], $tree[$id][$term->tid]['parents']);
         }
       }
     }
     return $tree;
+  }
+
+  /**
+   * Coverts the 0 parent id to a string.
+   *
+   * @param $term
+   *   The term to modify.
+   * @param $id
+   *   The root parent id string.
+   */
+  private function convertParents($term, $id) {
+    foreach ($term->parents as $pos => $parent) {
+      if ($parent === 0 || $parent === '0') {
+        $term->parents[$pos] = $id;
+      }
+    }
+    return $term->parents;
   }
 
   /**

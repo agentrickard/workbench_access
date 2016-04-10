@@ -104,11 +104,23 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
       $uid = \Drupal::currentUser()->id();
     }
     $user = \Drupal::entityTypeManager()->getStorage('user')->load($uid);
-    $user_sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
-    // Merge in role data.
-    $user_sections += $this->getRoleSections($user);
+    if ($user->hasPermission('bypass workbench access')) {
+      foreach ($this->getActiveTree() as $data) {
+        foreach ($data as $id => $section) {
+          $user_sections[] = $id;
+        }
+      }
+    }
+    else {
+      $sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+      foreach($sections as $data) {
+        $user_sections[] = $data['value'];
+      }
+      // Merge in role data.
+      $user_sections += $this->getRoleSections($user);
+    }
 
-    return $user_sections;
+    return array_unique($user_sections);
   }
 
   /**
@@ -116,13 +128,8 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function addUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
-    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
-    if ($values->isEmpty()) {
-      $new = $sections;
-    }
-    else {
-      $new = array_keys($old) + $sections;
-    }
+    $values = $this->getUserSections($user_id, FALSE);
+    $new = array_merge($values, $sections);
     $entity->set(WORKBENCH_ACCESS_FIELD, $new);
     $entity->save();
   }
@@ -150,12 +157,12 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function removeUser($user_id, $sections = array()) {
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
-    $values = $entity->get(WORKBENCH_ACCESS_FIELD);
-    $new = array_keys($values);
+    $values = $this->getUserSections($user_id, FALSE);
+    $new = array_flip($values);
     foreach ($sections as $id) {
       unset($new[$id]);
     }
-    $entity->set(WORKBENCH_ACCESS_FIELD, $new);
+    $entity->set(WORKBENCH_ACCESS_FIELD, array_keys($new));
     $entity->save();
   }
 

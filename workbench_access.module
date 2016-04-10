@@ -41,7 +41,6 @@ function workbench_access_help($route_name, RouteMatchInterface $route_match) {
 function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_state) {
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
   if ($scheme = $manager->getActiveScheme()) {
-    $info = $form_state->getBuildInfo();
     $node = $form_state->getFormObject()->getEntity();
     $field = $scheme->fields('node', $node->bundle());
     $account = \Drupal::currentUser();
@@ -143,6 +142,37 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
   }
   else {
     return AccessResult::neutral();
+  }
+}
+
+/**
+ * Implements hook_views_data_alter().
+ */
+function workbench_access_views_data_alter(array &$data) {
+  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+  if ($scheme = $manager->getActiveScheme()) {
+    $data['node']['workbench_access_section'] = array(
+      'title' => t('Workbench Section'),
+      'help' => t('The sections to which this content belongs.'),
+      'field' => array(
+        'id' => 'workbench_access_section',
+      ),
+      'filter' => array(
+        'field' => 'nid',
+        'id' => 'workbench_access_section',
+      ),
+    );
+    $data['users']['workbench_access_section'] = array(
+      'title' => t('Workbench Section'),
+      'help' => t('The sections to which this user belongs.'),
+      'field' => array(
+        'id' => 'workbench_access_user_section',
+      ),
+      'filter' => array(
+        'field' => 'uid',
+        'id' => 'workbench_access_section',
+      ),
+    );
   }
 }
 

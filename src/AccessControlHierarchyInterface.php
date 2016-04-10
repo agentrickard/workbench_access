@@ -190,4 +190,29 @@ interface AccessControlHierarchyInterface {
    */
   public function submitEntity(array &$form, FormStateInterface $form_state);
 
+  /**
+   * Returns information about how to join this section data to a base view table.
+   *
+   * @param $table
+   *   The base table of the view.
+   * @param $key
+   *   The primary key of the base table.
+   * @param $alias (optional)
+   *   The views alias of the base table.
+   *
+   * @return array
+   *   The configuration array for adding a views JOIN statement.
+   */
+  public function getViewsJoin($table, $key, $alias = NULL);
+
+  /**
+   * Adds a where cluase to a view when using a section filter.
+   *
+   * @param $view
+   *   The view object.
+   * @param $values
+   *   An array of values for the current view.
+   */
+  public function addWhere($view, $values);
+
 }

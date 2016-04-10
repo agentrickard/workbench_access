@@ -155,4 +155,35 @@ class Menu extends AccessControlHierarchyBase {
     return array();
   }
 
+  /**
+   * {inheritdoc}
+   */
+  public function getViewsJoin($table, $key, $alias = NULL) {
+    if ($table == 'users') {
+      $configuration['menu'] = [
+       'table' => 'user__' . WORKBENCH_ACCESS_FIELD,
+       'field' => 'entity_id',
+       'left_table' => $table,
+       'left_field' => $key,
+       'operator' => '=',
+       'table_alias' => WORKBENCH_ACCESS_FIELD,
+       'real_field' => WORKBENCH_ACCESS_FIELD . '_value',
+      ];
+    }
+    else {
+      $configuration['menu'] = [
+       'table' => 'menu_tree',
+       'field' => 'route_param_key',
+       'left_table' => $table,
+       'left_field' => $key,
+       'left_query' => "CONCAT('{$table}=', {$alias}.{$key})",
+       'operator' => '=',
+       'table_alias' => 'menu_tree',
+       'real_field' => 'id',
+      ];
+    }
+    return $configuration;
+  }
+
+
 }
