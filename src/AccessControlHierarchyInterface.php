@@ -9,6 +9,7 @@ namespace Drupal\workbench_access;
 
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\workbench_access\Plugin\views\filter\Section;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -206,13 +207,13 @@ interface AccessControlHierarchyInterface {
   public function getViewsJoin($table, $key, $alias = NULL);
 
   /**
-   * Adds a where cluase to a view when using a section filter.
+   * Adds a where clause to a view when using a section filter.
    *
-   * @param $view
-   *   The view object.
+   * @param Drupal\workbench_access\Plugin\views\filter\Section $filter
+   *   The views filter object provided by Workbench Access.
    * @param $values
    *   An array of values for the current view.
    */
-  public function addWhere($view, $values);
+  public function addWhere(Section $filter, $values);
 
 }

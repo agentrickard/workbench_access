@@ -185,5 +185,4 @@ class Menu extends AccessControlHierarchyBase {
     return $configuration;
   }
 
-
 }
