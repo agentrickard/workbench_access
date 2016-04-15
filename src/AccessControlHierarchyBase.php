@@ -10,6 +10,7 @@ namespace Drupal\workbench_access;
 use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\workbench_access\Plugin\views\filter\Section;
 use Drupal\node\NodeTypeInterface;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Access\AccessResult;
@@ -17,6 +18,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+
 
 /**
  * Defines a base hierarchy class that others may extend.
@@ -315,19 +317,19 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {inheritdoc}
    */
-  public function addWhere($view, $values) {
+  public function addWhere(Section $filter, $values) {
     // The JOIN data tells us if we have multiple tables to deal with.
-    $join_data = $this->getViewsJoin($view->table, $view->realField);
+    $join_data = $this->getViewsJoin($filter->table, $filter->realField);
     if (count($join_data) == 1) {
-      $view->query->addWhere($view->options['group'], "$view->tableAlias.$view->realField", array_values($values), $view->operator);
+      $filter->query->addWhere($filter->options['group'], "$filter->tableAlias.$filter->realField", array_values($values), $filter->operator);
     }
     else {
       $or = db_or();
       foreach ($join_data as $field => $data) {
         $alias = $data['table_alias'] . '.' . $data['real_field'];
-        $or->condition($alias, array_values($values), $view->operator);
+        $or->condition($alias, array_values($values), $filter->operator);
       }
-      $view->query->addWhere($view->options['group'], $or);
+      $filter->query->addWhere($filter->options['group'], $or);
     }
   }
 
