@@ -18,8 +18,7 @@ class WorkbenchAccessMenuStorage extends MenuTreeStorage implements MenuTreeStor
   /**
    * List of plugin definition fields.
    *
-   * @todo Decide how to keep these field definitions in sync.
-   *   https://www.drupal.org/node/2302085
+   * We override the base class just to add 'mlid' to this array.
    *
    * @see \Drupal\Core\Menu\MenuLinkManager::$defaults
    *
