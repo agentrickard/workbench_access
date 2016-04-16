@@ -99,6 +99,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    */
   public function getUserSections($uid = NULL, $add_roles = TRUE) {
+    $user_sections = [];
     // Get the information from the account.
     if (is_null($uid)) {
       $uid = \Drupal::currentUser()->id();
@@ -121,6 +122,32 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     }
 
     return array_unique($user_sections);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function userInAll($uid = NULL) {
+    $return = FALSE;
+    // Get the information from the account.
+    if (is_null($uid)) {
+      $uid = \Drupal::currentUser()->id();
+    }
+    $user = \Drupal::entityTypeManager()->getStorage('user')->load($uid);
+    if ($user->hasPermission('bypass workbench access')) {
+      $return = TRUE;
+    }
+    else {
+      // If the user is assigned to all the top-level sections, treat as admin.
+      $user_sections = $this->getUserSections($uid);
+      foreach (array_keys($this->getActiveTree()) as $root) {
+        $return = TRUE;
+        if (empty($user_sections[$root])) {
+          $return = FALSE;
+        }
+      }
+    }
+    return $return;
   }
 
   /**

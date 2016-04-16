@@ -199,4 +199,18 @@ interface WorkbenchAccessManagerInterface {
    */
   public function getUserSections($uid = NULL, $add_roles = TRUE);
 
+  /**
+   * Determines if a user is assigned to all sections.
+   *
+   * This method checks the permissions and assignments for a user. Someone set
+   * as an admin or with access to the top-level sections is assumed to be able
+   * to access all sections. We use this logic in query filtering.
+   *
+   * @param $uid
+   *   An optional user id. If not provided, the active user is returned.
+   *
+   * @return boolean
+   */
+  public function userInAll($uid = NULL);
+
 }
