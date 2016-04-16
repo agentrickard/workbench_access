@@ -59,6 +59,7 @@ class Section extends ManyToOne {
     $options['operator']['default'] = 'in';
     $options['value']['default'] = array('All');
     $options['expose']['contains']['reduce'] = array('default' => TRUE);
+    $options['section_filter']['show_hierarchy'] = TRUE;
 
     return $options;
   }
@@ -92,6 +93,19 @@ class Section extends ManyToOne {
       ),
     );
     return $operators;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildOptionsForm(&$form, FormStateInterface $form_state) {
+    parent::buildOptionsForm($form, $form_state);
+    $form['section_filter']['show_hierarchy'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Show children'),
+      '#default_value' => $this->options['section_filter']['show_hierarchy'],
+      '#description' => $this->t('If checked, the filter will return the selected item and all its children.'),
+    ];
   }
 
   /**
@@ -167,7 +181,12 @@ class Section extends ManyToOne {
       }
       // If 'All' was not selected, fetch the query values.
       if (!isset($values)) {
-        $values = $this->getChildren();
+        if (!empty($this->options['section_filter']['show_hierarchy'])) {
+          $values = $this->getChildren();
+        }
+        else {
+          $values = $this->value;
+        }
       }
       // If values, add our standard where clause.
       if (!empty($values)) {
