@@ -12,7 +12,6 @@ use Drupal\Core\Menu\MenuTreeStorageInterface;
 /**
  * Overrides the default menu tree storage so we can access private data.
  */
-
 class WorkbenchAccessMenuStorage extends MenuTreeStorage implements MenuTreeStorageInterface {
 
   /**
