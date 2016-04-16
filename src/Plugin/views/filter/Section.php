@@ -51,6 +51,41 @@ class Section extends ManyToOne {
   }
 
   /**
+   * When using exposed filters, we may be required to reduce the set.
+   */
+  public function reduceValueOptions($input = NULL) {
+    if (!isset($input)) {
+      $input = $this->valueOptions;
+    }
+    // If all, use what was provided.
+    if (empty($this->value) || strtolower(current($this->value)) == 'all') {
+      return $input;
+    }
+
+    // Because options may be an array of strings, or an array of mixed arrays
+    // and strings (optgroups) or an array of objects, we have to
+    // step through and handle each one individually.
+    $options = array();
+    foreach ($input as $id => $option) {
+      if (is_array($option)) {
+        $options[$id] = $this->reduceValueOptions($option);
+        continue;
+      }
+      elseif (is_object($option)) {
+        $keys = array_keys($option->option);
+        $key = array_shift($keys);
+        if (isset($this->options['value'][$key])) {
+          $options[$id] = $option;
+        }
+      }
+      elseif (isset($this->options['value'][$id])) {
+        $options[$id] = $option;
+      }
+    }
+    return $options;
+  }
+
+  /**
    * {@inheritdoc}
    */
   protected function defineOptions() {
@@ -103,7 +138,7 @@ class Section extends ManyToOne {
     $form['section_filter']['show_hierarchy'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Show children'),
-      '#default_value' => $this->options['section_filter']['show_hierarchy'],
+      '#default_value' => !empty($this->options['section_filter']['show_hierarchy']),
       '#description' => $this->t('If checked, the filter will return the selected item and all its children.'),
     ];
   }
