@@ -20,7 +20,6 @@ use Drupal\Core\Menu\MenuLinkManagerInterface;
 use Drupal\Core\Menu\MenuLinkTreeElement;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
-use Drupal\Core\Menu\MenuTreeStorageInterface;
 
 /**
  * Defines a hierarchy based on a Menu.
@@ -52,12 +51,10 @@ class Menu extends AccessControlHierarchyBase {
           'parents' => [],
           'weight' => 0,
           'description' => $menu->label(),
-          'id' => $id,
         );
         $params = new MenuTreeParameters();
         $data = $this->menuTree->load($id, $params);
-        $map = $this->loadMenuLinkData($id);
-        $tree = $this->buildTree($id, $data, $map, $tree);
+        $tree = $this->buildTree($id, $data, $tree);
       }
     }
     return $tree;
@@ -72,19 +69,16 @@ class Menu extends AccessControlHierarchyBase {
    *   The root id of the section tree.
    * @param array $data
    *   An array of menu tree or subtree data.
-   * @param array $map
-   *   An array of menu information, key is string id, value is integer mlid.
    * @param array &$tree
    *   The computed tree array to return.
    *
    * @return array $tree
    *   The compiled tree data.
    */
-  public function buildTree($id, $data, $map, &$tree) {
+  public function buildTree($id, $data, &$tree) {
     foreach ($data as $link_id => $link) {
-      $mlid = $map[$link_id];
-      $tree[$id][$mlid] = array(
-        'id' => $mlid, // This is the numeric mlid.
+      $tree[$id][$link_id] = array(
+        'id' => $link_id,
         'label' => $link->link->getTitle(),
         'depth' => $link->depth,
         'parents' => [],
@@ -93,14 +87,14 @@ class Menu extends AccessControlHierarchyBase {
       );
       // Get the parents.
       if ($parent = $link->link->getParent()) {
-        $tree[$id][$mlid]['parents'] = array_merge($tree[$id][$mlid]['parents'], [$map[$parent]]);
-        $tree[$id][$mlid]['parents'] = array_merge($tree[$id][$mlid]['parents'], $tree[$id][$map[$parent]]['parents']);
+        $tree[$id][$link_id]['parents'] = array_merge($tree[$id][$link_id]['parents'], [$parent]);
+        $tree[$id][$link_id]['parents'] = array_merge($tree[$id][$link_id]['parents'], $tree[$id][$parent]['parents']);
       }
       else {
-        $tree[$id][$mlid]['parents'] = [$id];
+        $tree[$id][$link_id]['parents'] = [$id];
       }
       if (isset($link->subtree)) {
-        $this->buildTree($id, $link->subtree, $map, $tree);
+        $this->buildTree($id, $link->subtree, $tree);
       }
     }
     return $tree;
@@ -144,16 +138,10 @@ class Menu extends AccessControlHierarchyBase {
    * {@inheritdoc}
    */
   public function getEntityValues(EntityInterface $entity, $field) {
-    static $map;
     $values = array();
     $defaults = menu_ui_get_menu_link_defaults($entity);
-    // Because the default menu system doesn't return mlids, we have to do some
-    // handstands.
     if (!empty($defaults['id'])) {
-      if (!isset($map[$defaults['menu_name']])) {
-        $map[$defaults['menu_name']] = $this->loadMenuLinkData($defaults['menu_name']);
-      }
-      $values = [$map[$defaults['menu_name']][$defaults['id']]];
+      $values = [$defaults['id']];
     }
     return $values;
   }
@@ -191,28 +179,10 @@ class Menu extends AccessControlHierarchyBase {
        'left_query' => "CONCAT('{$table}=', {$alias}.{$key})",
        'operator' => '=',
        'table_alias' => 'menu_tree',
-       'real_field' => 'mlid',
+       'real_field' => 'id',
       ];
     }
     return $configuration;
-  }
-
-  /**
-   * Loads menu data that include mlids, which we need for storage.
-   *
-   * @param $id
-   *   The root id of the section tree.
-   *
-   * @return array
-   *   An array of menu information, key is string id, value is integer mlid.
-   */
-  private function loadMenuLinkData($id) {
-    $storage = \Drupal::getContainer()->get('menu.tree_storage');
-    $data = $storage->loadByProperties(['menu_name' => $id]);
-    foreach ($data as $link) {
-      $map[$link['id']] = $link['mlid'];
-    }
-    return $map;
   }
 
 }

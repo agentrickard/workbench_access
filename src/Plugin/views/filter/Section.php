@@ -103,7 +103,7 @@ class Section extends ManyToOne {
     $form['section_filter']['show_hierarchy'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Show children'),
-      '#default_value' => !empty($this->options['section_filter']['show_hierarchy']),
+      '#default_value' => $this->options['section_filter']['show_hierarchy'],
       '#description' => $this->t('If checked, the filter will return the selected item and all its children.'),
     ];
   }
