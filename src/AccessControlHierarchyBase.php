@@ -117,7 +117,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
           '#title' => $this->t('Access control field'),
           '#options' => $options,
           '#default_value' => $this->fields('node', $type->id()),
-          '#description' => $this->t('Autocomplete fields are not supported.'),
         );
       }
       else {

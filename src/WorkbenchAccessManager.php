@@ -374,4 +374,18 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     // @TODO clear cache?
   }
 
+  public function flushFields() {
+    // Flush the field settings.
+    $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
+    $node_types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
+    foreach ($node_types as $id => $type) {
+      $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 0);
+      $type->save();
+      $fields['node'][$id] = '';
+    }
+    $config->set('fields', $fields);
+    $config->save();
+    drupal_set_message($this->t('Field settings reset.'));
+  }
+
 }

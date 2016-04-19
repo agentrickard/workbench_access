@@ -102,13 +102,13 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
       $form['scheme']['reset_scheme'] = array(
         '#type' => 'checkbox',
         '#default_value' => FALSE,
-        '#title' => $this->t('Reset assigned user and role sections'),
+        '#title' => $this->t('Reset assigned fields, user and role sections'),
         '#states' => array(
           'invisible' => array(
           ':input[name=scheme]' => array('value' => $config->get('scheme')),
           ),
         ),
-        '#description' => $this->t('When switching access schemes, flush current user and role permissions.'),
+        '#description' => $this->t('When switching access schemes, flush current field settings, user and role permissions. Recommended.'),
       );
       foreach ($schemes as $id => $label) {
         $scheme = $this->manager->getScheme($id);
@@ -196,6 +196,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
       // @TODO: Flush access data on scheme change.
       $this->manager->flushRoles();
       $this->manager->flushUsers();
+      $this->manager->flushFields();
     }
     drupal_set_message($this->t('Access scheme updated.'));
   }

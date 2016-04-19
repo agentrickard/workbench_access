@@ -98,5 +98,6 @@ function drush_workbench_access_flush() {
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
   $manager->flushRoles();
   $manager->flushUsers();
-  drush_print('User and role assignments cleared.');
+  $manager->flushFields();
+  drush_print('User and role assignments cleared. Field assigments reset.');
 }
