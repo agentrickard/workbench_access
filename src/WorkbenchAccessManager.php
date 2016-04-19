@@ -347,7 +347,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     // statement in a try/catch just in case it isn't portable.
     try {
       $database = \Drupal::getContainer()->get('database');
-      $database->delete('user__' . WORKBENCH_ACCESS_FIELD)->execute();
+      $database->truncate('user__' . WORKBENCH_ACCESS_FIELD)->execute();
     }
     catch (Exception $e) {
       drupal_set_message($this->t('Failed to delete user assignments.'));
