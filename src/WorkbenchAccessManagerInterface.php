@@ -49,7 +49,7 @@ interface WorkbenchAccessManagerInterface {
    *   - weight (int) -- The sort weight of the element.
    *   - description (text) -- An optional text description of the element.
    *
-   * @TODO: Convert this to a classes object.
+   * @TODO: Convert this to a classed object.
    */
   public function getActiveTree();
 
@@ -228,5 +228,13 @@ interface WorkbenchAccessManagerInterface {
    * let the administrator choose to run this.
    */
   public function flushUsers();
+
+  /**
+   * Resets the internal cache of the tree.
+   *
+   * Right now, this is a per-request cache until we figure out a long-term
+   * caching strategy.
+   */
+  public function resetTree();
 
 }

@@ -25,7 +25,7 @@ class WorkbenchAccessSections extends ControllerBase {
       $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
       $scheme = $this->manager->getScheme($scheme_id);
       $parents = $config->get('parents');
-      $tree = $scheme->getTree();
+      $tree = $this->manager->getActiveTree();
       $list = '';
       foreach ($parents as $id => $label) {
         // @TODO: Move to a theme function?

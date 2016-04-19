@@ -206,7 +206,7 @@ class Section extends ManyToOne {
    *   An array of section ids that this user may see.
    */
   protected function getChildren() {
-    $tree = $this->scheme->getTree();
+    $tree = $this->manager->getActiveTree();
     $children = [];
     foreach ($this->value as $id) {
       foreach ($tree as $key => $data) {
