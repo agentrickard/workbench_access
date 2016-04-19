@@ -336,6 +336,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     foreach ($roles as $rid => $role) {
       \Drupal::state()->delete('workbench_access_roles_' . $rid);
     }
+    // @TODO clear cache?
   }
 
   /**
@@ -352,6 +353,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     catch (Exception $e) {
       drupal_set_message($this->t('Failed to delete user assignments.'));
     }
+    // @TODO clear cache?
   }
 
 }
