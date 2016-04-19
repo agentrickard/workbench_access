@@ -198,7 +198,6 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
       $this->manager->flushUsers();
     }
     drupal_set_message($this->t('Access scheme updated.'));
-
   }
 
 }

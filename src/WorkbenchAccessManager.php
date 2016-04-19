@@ -342,7 +342,16 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * @inheritdoc
    */
   public function flushUsers() {
-    // @TODO
+    // We might want to use purgeFieldData() or similar for this, but the data
+    // is currently not revisioned, so a simple table flush will do. Wrap the
+    // statement in a try/catch just in case it isn't portable.
+    try {
+      $database = \Drupal::getContainer()->get('database');
+      $database->delete('user__' . WORKBENCH_ACCESS_FIELD)->execute();
+    }
+    catch (Exception $e) {
+      drupal_set_message($this->t('Failed to delete user assignments.'));
+    }
   }
 
 }
