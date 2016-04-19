@@ -17,6 +17,10 @@ function workbench_access_drush_command() {
     'description' => 'Install test configuration of Workbench Access.',
     'aliases' => array('wa-test'),
   );
+  $items['workbench-access-flush'] = array(
+    'description' => 'Flush section assignments for users and roles.',
+    'aliases' => array('wa-flush'),
+  );
 
   return $items;
 }
@@ -87,3 +91,12 @@ function drush_workbench_access_test() {
   workbench_access_confirm_fields('user', 'user');
 }
 
+/**
+ * Flushes assigned user permissions.
+ */
+function drush_workbench_access_flush() {
+  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+  $manager->flushRoles();
+  $manager->flushUsers();
+  drush_print('User and role assignments cleared.');
+}
