@@ -374,6 +374,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     // @TODO clear cache?
   }
 
+  /**
+   * @inheritdoc
+   */
   public function flushFields() {
     // Flush the field settings.
     $config = \Drupal::configFactory()->getEditable('workbench_access.settings');

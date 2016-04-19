@@ -230,6 +230,14 @@ interface WorkbenchAccessManagerInterface {
   public function flushUsers();
 
   /**
+   * Removes all field settings.
+   *
+   * This method should be triggered when changing access schemes. If possible,
+   * let the administrator choose to run this.
+   */
+  public function flushFields();
+
+  /**
    * Resets the internal cache of the tree.
    *
    * Right now, this is a per-request cache until we figure out a long-term
