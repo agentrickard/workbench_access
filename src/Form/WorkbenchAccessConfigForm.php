@@ -83,27 +83,38 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     if (empty($schemes)) {
       $form['error'] = array(
         '#type' => 'item',
-        '#title' => t('Error'),
-        '#markup' => t('There are no available access schemes to configure.'),
+        '#title' => $this->t('Error'),
+        '#markup' => $this->t('There are no available access schemes to configure.'),
       );
     }
     else {
       $form['scheme'] = array(
         '#type' => 'details',
-        '#title' => t('Active access scheme'),
+        '#title' => $this->t('Active access scheme'),
         '#open' => TRUE,
       );
       $form['scheme']['scheme'] = array(
         '#type' => 'radios',
-        '#title' => t('Active access scheme'),
+        '#title' => $this->t('Active access scheme'),
         '#options' => $schemes,
         '#default_value' => $config->get('scheme'),
+      );
+      $form['scheme']['reset_scheme'] = array(
+        '#type' => 'checkbox',
+        '#default_value' => FALSE,
+        '#title' => $this->t('Reset assigned user and role sections'),
+        '#states' => array(
+          'invisible' => array(
+          ':input[name=scheme]' => array('value' => $config->get('scheme')),
+          ),
+        ),
+        '#description' => $this->t('When switching access schemes, flush current user and role permissions.'),
       );
       foreach ($schemes as $id => $label) {
         $scheme = $this->manager->getScheme($id);
         $form['scheme']['parents'][$id] = array(
           '#type' => 'checkboxes',
-          '#title' => t('!label editorial access options', array('!label' => $label)),
+          '#title' => $this->t('!label editorial access options', array('!label' => $label)),
           '#options' => $scheme->options(),
           '#default_value' => $config->get('parents', array()),
           '#states' => array(
@@ -111,12 +122,12 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
             ':input[name=scheme]' => array('value' => $id),
             ),
           ),
-          '#description' => t('Select the !label options to be used for access control.', array('!label' => $label)),
+          '#description' => $this->t('Select the !label options to be used for access control.', array('!label' => $label)),
         );
       }
       $form['scheme']['set'] = array(
         '#type' => 'submit',
-        '#value' => t('Set active scheme'),
+        '#value' => $this->t('Set active scheme'),
         '#submit' => array('::submitActiveScheme'),
       );
     }
@@ -140,16 +151,16 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     $form['labels']['label'] = array(
       '#type' => 'textfield',
       '#size' => 32,
-      '#title' => t('Access group label'),
+      '#title' => $this->t('Access group label'),
       '#default_value' => $config->get('label', 'Section'),
-      '#description' => t('Label shown to define a Workbench Access control group.'),
+      '#description' => $this->t('Label shown to define a Workbench Access control group.'),
     );
     $form['labels']['plural_label'] = array(
       '#type' => 'textfield',
       '#size' => 32,
-      '#title' => t('Access group label (plural form)'),
+      '#title' => $this->t('Access group label (plural form)'),
       '#default_value' => $config->get('plural_label', 'Sections'),
-      '#description' => t('Label shown to define a set of Workbench Access control groups.'),
+      '#description' => $this->t('Label shown to define a set of Workbench Access control groups.'),
     );
 
     return parent::buildForm($form, $form_state);
@@ -179,7 +190,15 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     $config->set('scheme', $scheme)
       ->set('parents', array_filter($form_state->getValue($scheme)));
     $config->save();
-    // @TODO: Flush access data on scheme change.
+
+    $reset_scheme = $form_state->getValue('reset_scheme');
+    if (!empty($reset_scheme)) {
+      // @TODO: Flush access data on scheme change.
+      $this->manager->flushRoles();
+      $this->manager->flushUsers();
+    }
+    drupal_set_message($this->t('Access scheme updated.'));
+
   }
 
 }
