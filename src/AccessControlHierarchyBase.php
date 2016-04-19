@@ -219,12 +219,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * Returns the access control fields configured for use by the plugin.
-   *
-   * @param $entity_type
-   *   The type of entity access control is being tested for (e.g. 'node').
-   * @param $bundle
-   *   The entity bundle being tested (e.g. 'article').
+   * {inheritdoc}
    */
   public function fields($entity_type, $bundle) {
     $config = $this->config('workbench_access.settings');
@@ -233,10 +228,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * Returns the access control fields configured for use by the plugin.
-   *
-   * @param $entity_type
-   *   The type of entity access control is being tested for (e.g. 'node').
+   * {inheritdoc}
    */
   public function fieldsByEntityType($entity_type) {
     // User/users do not name the data table consistently.

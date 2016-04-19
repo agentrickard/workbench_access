@@ -224,4 +224,22 @@ interface AccessControlHierarchyInterface {
    */
   public function resetTree();
 
+  /**
+   * Returns the access control fields configured for use by the plugin.
+   *
+   * @param $entity_type
+   *   The type of entity access control is being tested for (e.g. 'node').
+   * @param $bundle
+   *   The entity bundle being tested (e.g. 'article').
+   */
+  public function fields($entity_type, $bundle);
+
+  /**
+   * Returns the access control fields configured for use by the plugin.
+   *
+   * @param $entity_type
+   *   The type of entity access control is being tested for (e.g. 'node').
+   */
+  public function fieldsByEntityType($entity_type);
+
 }
