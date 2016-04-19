@@ -213,4 +213,20 @@ interface WorkbenchAccessManagerInterface {
    */
   public function userInAll($uid = NULL);
 
+  /**
+   * Removes all role assignments.
+   *
+   * This method should be triggered when changing access schemes. If possible,
+   * let the administrator choose to run this.
+   */
+  public function flushRoles();
+
+  /**
+   * Removes all user assignments.
+   *
+   * This method should be triggered when changing access schemes. If possible,
+   * let the administrator choose to run this.
+   */
+  public function flushUsers();
+
 }

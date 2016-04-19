@@ -328,4 +328,32 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     return FALSE;
   }
 
+  /**
+   * @inheritdoc
+   */
+  public function flushRoles() {
+    $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
+    foreach ($roles as $rid => $role) {
+      \Drupal::state()->delete('workbench_access_roles_' . $rid);
+    }
+    // @TODO clear cache?
+  }
+
+  /**
+   * @inheritdoc
+   */
+  public function flushUsers() {
+    // We might want to use purgeFieldData() or similar for this, but the data
+    // is currently not revisioned, so a simple table flush will do. Wrap the
+    // statement in a try/catch just in case it isn't portable.
+    try {
+      $database = \Drupal::getContainer()->get('database');
+      $database->truncate('user__' . WORKBENCH_ACCESS_FIELD)->execute();
+    }
+    catch (Exception $e) {
+      drupal_set_message($this->t('Failed to delete user assignments.'));
+    }
+    // @TODO clear cache?
+  }
+
 }
