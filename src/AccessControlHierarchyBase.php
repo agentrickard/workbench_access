@@ -28,6 +28,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   use StringTranslationTrait;
 
   /**
+   * The access tree array.
+   *
+   * @var array
+   */
+  public $tree;
+
+  /**
    * {@inheritdoc}
    */
   public function id() {
@@ -69,6 +76,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public function getTree() {
     return array();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function resetTree() {
+    unset($this->tree);
   }
 
   /**

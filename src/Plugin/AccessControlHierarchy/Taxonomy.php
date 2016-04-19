@@ -27,28 +27,37 @@ use Drupal\taxonomy\Entity\Vocabulary;
 class Taxonomy extends AccessControlHierarchyBase {
 
   /**
+   * The access tree array.
+   *
+   * @var array
+   */
+  public $tree;
+
+  /**
    * @inheritdoc
    */
   public function getTree() {
-    $config = $this->config('workbench_access.settings');
-    $parents = $config->get('parents');
-    $tree = array();
-    foreach ($parents as $id => $label) {
-      if ($vocabulary = Vocabulary::load($id)) {
-        $tree[$id][$id] = array(
-          'label' => $vocabulary->label(),
-          'depth' => 0,
-          'parents' => [],
-          'weight' => 0,
-          'description' => $vocabulary->label(),
-        );
-        // @TODO: It is possible that this will return a filtered set, if
-        // term_access is applied to the query.
-        $data = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($id);
-        $tree = $this->buildTree($id, $data, $tree);
+    if (!isset($this->tree)) {
+      $config = $this->config('workbench_access.settings');
+      $parents = $config->get('parents');
+      $tree = array();
+      foreach ($parents as $id => $label) {
+        if ($vocabulary = Vocabulary::load($id)) {
+          $tree[$id][$id] = array(
+            'label' => $vocabulary->label(),
+            'depth' => 0,
+            'parents' => [],
+            'weight' => 0,
+            'description' => $vocabulary->label(),
+          );
+          // @TODO: It is possible that this will return a filtered set, if
+          // term_access is applied to the query.
+          $data = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($id);
+          $this->tree = $this->buildTree($id, $data, $tree);
+        }
       }
     }
-    return $tree;
+    return $this->tree;
   }
 
   /**

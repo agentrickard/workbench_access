@@ -36,28 +36,37 @@ use Drupal\Core\Menu\MenuTreeParameters;
 class Menu extends AccessControlHierarchyBase {
 
   /**
+   * The access tree array.
+   *
+   * @var array
+   */
+  public $tree;
+
+  /**
    * @inheritdoc
    */
   public function getTree() {
-    $config = $this->config('workbench_access.settings');
-    $parents = $config->get('parents');
-    $tree = array();
-    $this->menuTree = \Drupal::getContainer()->get('menu.link_tree');
-    foreach ($parents as $id => $label) {
-      if ($menu = MenuEntity::load($id)) {
-        $tree[$id][$id] = array(
-          'label' => $menu->label(),
-          'depth' => 0,
-          'parents' => [],
-          'weight' => 0,
-          'description' => $menu->label(),
-        );
-        $params = new MenuTreeParameters();
-        $data = $this->menuTree->load($id, $params);
-        $tree = $this->buildTree($id, $data, $tree);
+    if (!isset($this->tree)) {
+      $config = $this->config('workbench_access.settings');
+      $parents = $config->get('parents');
+      $tree = array();
+      $this->menuTree = \Drupal::getContainer()->get('menu.link_tree');
+      foreach ($parents as $id => $label) {
+        if ($menu = MenuEntity::load($id)) {
+          $tree[$id][$id] = array(
+            'label' => $menu->label(),
+            'depth' => 0,
+            'parents' => [],
+            'weight' => 0,
+            'description' => $menu->label(),
+          );
+          $params = new MenuTreeParameters();
+          $data = $this->menuTree->load($id, $params);
+          $this->tree = $this->buildTree($id, $data, $tree);
+        }
       }
     }
-    return $tree;
+    return $this->tree;
   }
 
   /**

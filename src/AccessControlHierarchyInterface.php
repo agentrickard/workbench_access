@@ -216,4 +216,12 @@ interface AccessControlHierarchyInterface {
    */
   public function addWhere(Section $filter, $values);
 
+  /**
+   * Resets the internal cache of the tree.
+   *
+   * Right now, this is a per-request cache until we figure out a long-term
+   * caching strategy.
+   */
+  public function resetTree();
+
 }

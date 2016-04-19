@@ -43,7 +43,7 @@ class UserSection extends Section {
     $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
     if ($scheme = $manager->getActiveScheme()) {
       $sections = $manager->getUserSections($uid);
-      $tree = $scheme->getTree();
+      $tree = $manager->getActiveTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
           if (isset($data[$id])) {

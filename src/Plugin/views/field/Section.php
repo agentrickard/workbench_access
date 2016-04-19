@@ -77,7 +77,7 @@ class Section extends FieldPluginBase {
       $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
       $fields = $scheme->fields('node', $node->bundle());
       $sections = $scheme->getEntityValues($node, $fields);
-      $tree = $scheme->getTree();
+      $tree = $manager->getActiveTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
           if (isset($data[$id])) {

@@ -21,6 +21,13 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   use StringTranslationTrait;
 
   /**
+   * The access tree array.
+   *
+   * @var array
+   */
+  public $tree;
+
+  /**
    * Constructs a new WorkbenchAccessManager.
    *
    * @param \Traversable $namespaces
@@ -78,7 +85,18 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    */
   public function getActiveTree() {
-    return $this->getActiveScheme()->getTree();
+    if (!isset($this->tree)) {
+      $this->tree = $this->getActiveScheme()->getTree();
+    }
+    return $this->tree;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function resetTree() {
+    unset($this->tree);
+    $this->getActiveScheme()->resetTree();
   }
 
   /**
