@@ -193,7 +193,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
 
     $reset_scheme = $form_state->getValue('reset_scheme');
     if (!empty($reset_scheme)) {
-      // @TODO: Flush access data on scheme change.
+      // Flush access data on scheme change.
       $this->manager->flushRoles();
       $this->manager->flushUsers();
       $this->manager->flushFields();
