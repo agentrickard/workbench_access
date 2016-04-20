@@ -7,7 +7,7 @@
 
 namespace Drupal\workbench_access\Tests;
 
-use Drupal\simpletest\WebTestBase;
+use Drupal\workbench_access\Tests\WorkbenchAccessTestBase;
 use Drupal\node\NodeTypeInterface;
 
 /**
@@ -15,7 +15,7 @@ use Drupal\node\NodeTypeInterface;
  *
  * @group workbench_access
  */
-class WorkbenchAccessNodeTypeFormTest extends WebTestBase {
+class WorkbenchAccessNodeTypeFormTest extends WorkbenchAccessTestBase {
 
   /**
    * An editor user.
@@ -24,17 +24,8 @@ class WorkbenchAccessNodeTypeFormTest extends WebTestBase {
    */
   protected $editor;
 
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = array('workbench_access', 'node', 'taxonomy', 'options');
-
   protected function setUp() {
     parent::setUp();
-
-    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
 
     $this->editor = $this->drupalCreateUser(array(
       'access administration pages',

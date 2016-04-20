@@ -14,7 +14,7 @@ use Drupal\simpletest\WebTestBase;
  *
  * @group workbench_access
  */
-class WorkbenchAccessTestBase extends WebTestBase {
+abstract class WorkbenchAccessTestBase extends WebTestBase {
 
   /**
    * Modules to enable.
@@ -29,11 +29,14 @@ class WorkbenchAccessTestBase extends WebTestBase {
     $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
 
     // Install our base taxonomy.
-    module_load_include('inc', 'workbench_access', 'drush');
+    $this->installTaxonomy();
+
+  }
+
+  public function installTaxonomy() {
+    $file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'workbench_access') . "/workbench_access.drush.inc";
+    require_once $file;
     drush_workbench_access_test();
-
-    // Install a test menu.
-
   }
 
 }
