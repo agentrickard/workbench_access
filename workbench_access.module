@@ -105,30 +105,36 @@ function workbench_access_form_node_type_form_builder($entity_type, NodeTypeInte
  *   The bundle being created.
  */
 function workbench_access_confirm_fields($entity_type, $bundle) {
-  $text = [
-    'user' => [
-      'type' => 'user',
-      'label' => 'Sections', // @TODO tie to config
-      'description' => 'Assign the editorial sections that this user belongs to.',
-    ]
-  ];
-  $id = $entity_type . '.' . $bundle . '.' . WORKBENCH_ACCESS_FIELD;
+  // We have reports that importing config causes this function to fail.
+  try {
+    $text = [
+      'user' => [
+        'type' => 'user',
+        'label' => 'Sections', // @TODO tie to config
+        'description' => 'Assign the editorial sections that this user belongs to.',
+      ]
+    ];
+    $id = $entity_type . '.' . $bundle . '.' . WORKBENCH_ACCESS_FIELD;
 
-  if (!$field = \Drupal::entityManager()->getStorage('field_config')->load($id)) {
-    $field = array(
-      'field_name' => WORKBENCH_ACCESS_FIELD,
-      'entity_type' => $entity_type,
-      'label' => $text[$entity_type]['label'],
-      'bundle' => $bundle,
-      'required' => FALSE,
-      'description' => $text[$entity_type]['description'],
-      'default_value_callback' => 'Drupal\workbench_access\WorkbenchAccessManager::getDefaultValue',
-    );
-    $field_config = \Drupal::entityManager()->getStorage('field_config')->create($field);
-    $field_config->save();
+    if (!$field = \Drupal::entityManager()->getStorage('field_config')->load($id)) {
+      $field = array(
+        'field_name' => WORKBENCH_ACCESS_FIELD,
+        'entity_type' => $entity_type,
+        'label' => $text[$entity_type]['label'],
+        'bundle' => $bundle,
+        'required' => FALSE,
+        'description' => $text[$entity_type]['description'],
+        'default_value_callback' => 'Drupal\workbench_access\WorkbenchAccessManager::getDefaultValue',
+      );
+      $field_config = \Drupal::entityManager()->getStorage('field_config')->create($field);
+      $field_config->save();
+    }
+    // Installing without setting form display leaves the field hidden, which is
+    // what we want right now. @TODO: UI for user form.
   }
-  // Installing without setting form display leaves the field hidden, which is
-  // what we want right now. @TODO: UI for user form.
+  catch (Exception $e) {
+    \Drupal::logger('workbench_access')->notice('Field installation failed.');
+  }
 }
 
 /**
