@@ -8,6 +8,9 @@ workbench_access.settings:
     parents:
       type: sequence
       label: 'Active access parents for a scheme.'
+      sequence:
+        type: string
+        label: 'Parent'
     label:
       type: text
       label: 'Label shown to define a Workbench Access control group.'
