@@ -88,7 +88,26 @@ function drush_workbench_access_test() {
   catch (Exception $e) {
     drush_print('The test vocabulary has already been created.');
   }
-  workbench_access_confirm_fields('user', 'user');
+  try {
+    workbench_access_confirm_fields('user', 'user');
+    $node_types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
+    _workbench_access_create_node_storage();
+    foreach ($node_types as $id => $type) {
+      if ($id != 'page') {
+        workbench_access_confirm_fields('node', $id);
+        $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 1);
+        $type->save();
+        $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
+        $fields['node'][$id] = WORKBENCH_ACCESS_FIELD;
+        _workbench_access_form_display('node', $id);
+      }
+    }
+    $config->set('fields', $fields);
+    $config->save();
+  }
+  catch (Exception $e) {
+    drush_print('Field creation failed.');
+  }
 }
 
 /**
@@ -100,4 +119,40 @@ function drush_workbench_access_flush() {
   $manager->flushUsers();
   $manager->flushFields();
   drush_print('User and role assignments cleared. Field assigments reset.');
+}
+
+/**
+ * Creates a node storage field for testing.
+ */
+function _workbench_access_create_node_storage() {
+  try {
+    $field_storage_values = [
+      'field_name' => WORKBENCH_ACCESS_FIELD,
+      'entity_type' => 'node',
+      'type' => 'entity_reference',
+      'translatable' => TRUE,
+      'settings' => ['target_type' => 'taxonomy_term'],
+      'cardinality' => 1,
+      'dependencies' => ['module' => ['node', 'taxonomy', 'workbench_access']],
+    ];
+    $manager = \Drupal::entityTypeManager();
+    $manager->getStorage('field_storage_config')->create($field_storage_values)->save();
+  }
+  catch (Exception $e) {
+    drush_print('Field storage creation failed.');
+  }
+
+}
+
+function _workbench_access_form_display($entity_type, $bundle) {
+  // Tell the form system how to behave. Default to radio buttons.
+  // @TODO: This function is deprecated, but using the OO syntax is causing
+  // test fails.
+  entity_get_form_display($entity_type, $bundle, 'default')
+    ->setComponent(WORKBENCH_ACCESS_FIELD, array(
+      'type' => 'options_select',
+      'weight' => 0,
+    ))
+    ->save();
+
 }

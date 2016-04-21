@@ -112,6 +112,11 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
         'type' => 'user',
         'label' => 'Sections', // @TODO tie to config
         'description' => 'Assign the editorial sections that this user belongs to.',
+      ],
+      'node' => [
+        'type' => $bundle,
+        'label' => 'Sections', // @TODO tie to config
+        'description' => 'The editorial section for this content.',
       ]
     ];
     $id = $entity_type . '.' . $bundle . '.' . WORKBENCH_ACCESS_FIELD;
@@ -126,6 +131,11 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
         'description' => $text[$entity_type]['description'],
         'default_value_callback' => 'Drupal\workbench_access\WorkbenchAccessManager::getDefaultValue',
       );
+      if ($entity_type == 'node') {
+        $field['settings']['handler_settings']['target_bundles'] = ['workbench_access' => 'workbench_access'];
+        $field['settings']['handler_settings']['auto_create'] = FALSE;
+        $field['settings']['handler_settings']['sort'] = ['field' => '_none'];
+      }
       $field_config = \Drupal::entityManager()->getStorage('field_config')->create($field);
       $field_config->save();
     }

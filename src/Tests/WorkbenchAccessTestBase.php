@@ -11,8 +11,6 @@ use Drupal\simpletest\WebTestBase;
 
 /**
  * Base test class for Workbench Access.
- *
- * @group workbench_access
  */
 abstract class WorkbenchAccessTestBase extends WebTestBase {
 
@@ -50,7 +48,7 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
   /**
    * Loads and installs the test taxonomy from drush.
    */
-  public function installTaxonomy() {
+  protected function installTaxonomy() {
     $file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'workbench_access') . "/workbench_access.drush.inc";
     require_once $file;
     drush_workbench_access_test();
@@ -59,9 +57,8 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
   /**
    * Loads and installs the test menu.
    */
-  public function installMenu() {
+  protected function installMenu() {
     // @TODO.
   }
-
 
 }
