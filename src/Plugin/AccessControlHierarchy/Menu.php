@@ -96,8 +96,8 @@ class Menu extends AccessControlHierarchyBase {
       );
       // Get the parents.
       if ($parent = $link->link->getParent()) {
-        $tree[$id][$link_id]['parents'] = array_merge($tree[$id][$link_id]['parents'], [$parent]);
-        $tree[$id][$link_id]['parents'] = array_merge($tree[$id][$link_id]['parents'], $tree[$id][$parent]['parents']);
+        $tree[$id][$link_id]['parents'] = array_unique(array_merge($tree[$id][$link_id]['parents'], [$parent]));
+        $tree[$id][$link_id]['parents'] = array_unique(array_merge($tree[$id][$link_id]['parents'], $tree[$id][$parent]['parents']));
       }
       else {
         $tree[$id][$link_id]['parents'] = [$id];

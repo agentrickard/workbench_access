@@ -87,7 +87,7 @@ class Taxonomy extends AccessControlHierarchyBase {
       );
       foreach ($tree[$id][$term->tid]['parents'] as $key) {
         if (!empty($tree[$id][$key]['parents'])) {
-          $tree[$id][$term->tid]['parents'] = array_merge($tree[$id][$key]['parents'], $tree[$id][$term->tid]['parents']);
+          $tree[$id][$term->tid]['parents'] = array_unique(array_merge($tree[$id][$key]['parents'], $tree[$id][$term->tid]['parents']));
         }
       }
     }

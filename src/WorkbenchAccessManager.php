@@ -334,11 +334,13 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
           return TRUE;
         }
         // Recursive check for parents.
-        $parents = array_flip($info[$section]['parents']);
-        // Check for parents.
-        foreach ($list as $uid => $data) {
-          if (isset($parents[$uid])) {
-            return TRUE;
+        if (!empty($info[$section]['parents'])) {
+          $parents = array_flip($info[$section]['parents']);
+          // Check for parents.
+          foreach ($list as $uid => $data) {
+            if (isset($parents[$uid])) {
+              return TRUE;
+            }
           }
         }
       }
