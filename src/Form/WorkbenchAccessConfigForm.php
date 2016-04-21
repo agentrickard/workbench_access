@@ -114,7 +114,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         $scheme = $this->manager->getScheme($id);
         $form['scheme']['parents'][$id] = array(
           '#type' => 'checkboxes',
-          '#title' => $this->t('!label editorial access options', array('!label' => $label)),
+          '#title' => $this->t('@label editorial access options', array('@label' => $label)),
           '#options' => $scheme->options(),
           '#default_value' => $config->get('parents', array()),
           '#states' => array(
@@ -122,7 +122,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
             ':input[name=scheme]' => array('value' => $id),
             ),
           ),
-          '#description' => $this->t('Select the !label options to be used for access control.', array('!label' => $label)),
+          '#description' => $this->t('Select the @label options to be used for access control.', array('@label' => $label)),
         );
       }
       $form['scheme']['set'] = array(
