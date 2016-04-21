@@ -27,6 +27,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
 
   use StringTranslationTrait;
 
+  /*
+   * A configuration factory object to store configuration.
+   *
+   * @var ConfigFactory
+   */
+  public $configFactory;
+
   /**
    * The access tree array.
    *
@@ -223,7 +230,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   public function fields($entity_type, $bundle) {
     $config = $this->config('workbench_access.settings');
     $fields = $config->get('fields');
-    return $fields[$entity_type][$bundle];
+    return isset($fields[$entity_type][$bundle]) ? $fields[$entity_type][$bundle] : array();
   }
 
   /**
