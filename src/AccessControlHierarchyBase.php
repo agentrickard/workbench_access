@@ -27,6 +27,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
 
   use StringTranslationTrait;
 
+  /*
+   * A configuration factory object to store configuration.
+   *
+   * @var ConfigFactory
+   */
+  public $configFactory;
+
   /**
    * The access tree array.
    *
