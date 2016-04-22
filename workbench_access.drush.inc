@@ -97,13 +97,15 @@ function drush_workbench_access_test() {
         workbench_access_confirm_fields('node', $id);
         $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 1);
         $type->save();
-        $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
         $fields['node'][$id] = WORKBENCH_ACCESS_FIELD;
         _workbench_access_form_display('node', $id);
       }
     }
-    $config->set('fields', $fields);
-    $config->save();
+    if (isset($fields)) {
+      $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
+      $config->set('fields', $fields);
+      $config->save();
+    }
   }
   catch (Exception $e) {
     drush_print('Field creation failed.');
