@@ -138,6 +138,24 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   /**
    * {@inheritdoc}
    */
+  public function getAllSections($root_only = FALSE) {
+    $sections = [];
+    foreach ($this->getActiveTree() as $root => $item) {
+      if ($root_only) {
+        $sections[] = $root;
+      }
+      else {
+        foreach ($item as $id => $data) {
+          $sections[] = $id;
+        }
+      }
+    }
+    return $sections;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function userInAll($uid = NULL) {
     $return = FALSE;
     // Get the information from the account.

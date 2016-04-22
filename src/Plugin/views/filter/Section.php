@@ -41,7 +41,13 @@ class Section extends ManyToOne {
     }
     $this->valueOptions = [];
     if (!empty($this->scheme)) {
-      foreach($this->manager->getUserSections() as $id) {
+      if ($this->manager->userInAll()) {
+        $list = $this->manager->getAllSections();
+      }
+      else {
+        $list = $this->manager->getUserSections();
+      }
+      foreach($list as $id) {
         if ($section = $this->manager->getElement($id)) {
           $this->valueOptions[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
         }

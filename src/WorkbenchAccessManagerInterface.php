@@ -200,6 +200,18 @@ interface WorkbenchAccessManagerInterface {
   public function getUserSections($uid = NULL, $add_roles = TRUE);
 
   /**
+   * Returns a flat array of all active section ids.
+   *
+   * Used to display assignments for admins.
+   *
+   * @param boolean $root_only
+   *   If TRUE, only show the root-level assignments.
+   *
+   * @return array
+   */
+  public function getAllSections($root_only = FALSE);
+
+  /**
    * Determines if a user is assigned to all sections.
    *
    * This method checks the permissions and assignments for a user. Someone set
