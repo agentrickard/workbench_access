@@ -60,8 +60,6 @@ before_script:
   - /usr/bin/env PHP_OPTIONS="-d sendmail_path=$(which true)" drush --yes --verbose site-install minimal --db-url=mysql://root:@127.0.0.1/wa
   # Install modules
   - drush --yes en simpletest workbench_access taxonomy
-  # Install test vocabulary.
-  - drush --yes wa-test
   - drush cr
 
   # Start a web server on port 8080 in the background.
