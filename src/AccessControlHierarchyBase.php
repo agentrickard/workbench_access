@@ -219,7 +219,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   public function getEntityValues(EntityInterface $entity, $field) {
     $values = array();
     foreach ($entity->get($field)->getValue() as $item) {
-      $values[] = $item['target_id'];
+      if (isset($item['target_id'])) {
+        $values[] = $item['target_id'];
+      }
     }
     return $values;
   }
@@ -275,7 +277,10 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {inheritdoc}
    */
   public function disallowedOptions($field) {
-    $options = array_diff_key(array_flip($field['widget']['#default_value']), $field['widget']['#options']);
+    $options = [];
+    if (isset($field['widget']['#default_value']) && isset($field['widget']['#options'])) {
+      $options = array_diff_key(array_flip($field['widget']['#default_value']), $field['widget']['#options']);
+    }
     return array_keys($options);
   }
 

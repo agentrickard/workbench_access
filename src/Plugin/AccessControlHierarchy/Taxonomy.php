@@ -160,7 +160,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     // @see \Drupal\workbench_access\Plugin\EntityReferenceSelection\TaxonomyHierarchySelection
     else {
       foreach ($element['widget'] as $key => $item) {
-        if (isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
+        if (is_array($item) && isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
           $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term';
         }
       }
