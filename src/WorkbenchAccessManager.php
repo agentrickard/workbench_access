@@ -129,7 +129,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     }
     // Merge in role data.
     if ($add_roles) {
-      $user_sections += $this->getRoleSections($user);
+      $user_sections = array_merge($user_sections, $this->getRoleSections($user));
     }
 
     return array_unique($user_sections);
