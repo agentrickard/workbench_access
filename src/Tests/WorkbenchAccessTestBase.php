@@ -26,7 +26,17 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
    *
    * @var Drupal\workbench_access\WorkbenchAccessManager
    */
-  protected $manager;
+  protected $pluginmanager;
+
+  /**
+   * The entity storage manager.
+   */
+  protected $storage;
+
+  /**
+   * An array of created nodes.
+   */
+  protected $nodes;
 
   protected function setUp() {
     parent::setUp();
@@ -37,18 +47,22 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
     // Install our base taxonomy.
     $this->installTaxonomy();
 
+    // Install our base nodes for testing.
+    $this->installNodes();
+
     // Install a base menu.
     $this->installMenu();
 
     // Instantiate the manager.
     $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-
+    $this->assertTrue(count($this->nodes) == 12, '12 nodes created');
   }
 
   /**
    * Loads and installs the test taxonomy from drush.
    */
   protected function installTaxonomy() {
+    // This creates 12 taxonomy terms.
     $file = DRUPAL_ROOT . '/' . drupal_get_path('module', 'workbench_access') . "/workbench_access.drush.inc";
     require_once $file;
     drush_workbench_access_test();
@@ -58,7 +72,25 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
    * Loads and installs the test menu.
    */
   protected function installMenu() {
+    // We have 12 nodes. They should mirror the taxonomy tree.
     // @TODO.
+  }
+
+  protected function installNodes() {
+    // Create nine nodes, each assigned to a taxonomy term.
+    // Terms 11 and 12 will have no assignees.
+    for ($i = 1; $i <= 10; $i++) {
+      $this->nodes[] = $this->drupalCreateNode(array(
+        'type' => 'article',
+        WORKBENCH_ACCESS_FIELD => array($i),
+      ));
+    }
+    // Create two page nodes for testing.
+    for ($i = 1; $i <= 2; $i++) {
+      $this->nodes[] = $this->drupalCreateNode(array(
+        'type' => 'page',
+      ));
+    }
   }
 
 }
