@@ -196,7 +196,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         $return = AccessResult::neutral();
       }
       else {
-        $user_sections = $manager->getUserSections($account->id);
+        $user_sections = $manager->getUserSections($account->id());
         if (empty($user_sections)) {
           $return = AccessResult::forbidden();
         }
