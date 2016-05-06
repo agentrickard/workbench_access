@@ -56,6 +56,8 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
     // Instantiate the manager.
     $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
     $this->assertTrue(count($this->nodes) == 12, '12 nodes created');
+    $tree = $this->manager->getActiveTree();
+    $this->assertTrue(count($tree['workbench_access']) == 13, 'Access tree has 13 items');
   }
 
   /**
@@ -92,5 +94,14 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
       ));
     }
   }
+
+  protected function setTaxonomyScheme() {
+    // @TODO: switch to taxonomy scheme.
+  }
+
+  protected function setMenuScheme() {
+    // @TODO: switch to menu scheme.
+  }
+
 
 }
