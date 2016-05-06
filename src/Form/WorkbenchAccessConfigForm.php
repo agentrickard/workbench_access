@@ -105,7 +105,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
         '#title' => $this->t('Reset assigned fields, user and role sections'),
         '#states' => array(
           'invisible' => array(
-          ':input[name=scheme]' => array('value' => $config->get('scheme')),
+            ':input[name=scheme]' => array('value' => $config->get('scheme')),
           ),
         ),
         '#description' => $this->t('When switching access schemes, flush current field settings, user and role permissions. Recommended.'),
@@ -119,7 +119,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
           '#default_value' => $config->get('parents', array()),
           '#states' => array(
             'visible' => array(
-            ':input[name=scheme]' => array('value' => $id),
+              ':input[name=scheme]' => array('value' => $id),
             ),
           ),
           '#description' => $this->t('Select the @label options to be used for access control.', array('@label' => $label)),
