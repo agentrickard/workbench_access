@@ -103,6 +103,8 @@ function drush_workbench_access_test() {
     }
     if (isset($fields)) {
       $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
+      $config->set('scheme', 'taxonomy');
+      $config->set('parents', ['workbench_access' => 'workbench_access']);
       $config->set('fields', $fields);
       $config->save();
     }
