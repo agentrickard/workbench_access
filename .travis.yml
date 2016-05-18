@@ -13,7 +13,6 @@ cache:
     - $HOME/.composer/cache/files
 
 env:
-  - DRUPAL=8.0.x
   - DRUPAL=8.1.x
   - DRUPAL=8.2.x
 
@@ -37,7 +36,7 @@ before_install:
 
 install:
   # Install Drush.
-  - composer global require drush/drush:dev-master
+  - composer global require drush/drush:8.*
   - phpenv rehash
 
   # Create database.
