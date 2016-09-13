@@ -48,6 +48,7 @@ class UserSection extends Section {
       else {
         $sections = $manager->getUserSections($uid);
       }
+      $output = [];
       $tree = $manager->getActiveTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
