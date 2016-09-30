@@ -65,7 +65,7 @@ class Section extends ManyToOne {
     $options['operator']['default'] = 'in';
     $options['value']['default'] = array('All');
     $options['expose']['contains']['reduce'] = array('default' => TRUE);
-    $options['section_filter']['show_hierarchy'] = TRUE;
+    $options['section_filter']['contains']['show_hierarchy'] = array('default' => TRUE);
 
     return $options;
   }
