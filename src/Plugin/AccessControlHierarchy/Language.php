@@ -42,18 +42,26 @@ class Language extends AccessControlHierarchyBase {
     if (!isset($this->tree)) {
       $config = $this->config('workbench_access.settings');
       $parents = $config->get('parents');
-      $tree = array();
-      $languages = $entities = entity_load_multiple('configurable_language');
-      foreach ($parents as $id => $label) {
-        if (isset($languages[$id])) {
-          $tree[$id][$id] = array(
-            'label' => $languages[$id]->getName(),
+      $tree = array(
+        'languages' => array(
+          'languages' => array(
+            'label' => 'All languages',
             'depth' => 0,
             'parents' => [],
             'weight' => 0,
-            'description' => $languages[$id]->getName(),
-          );
-        }
+            'description' => 'All languages',
+          ),
+        ),
+      );
+      $languages = $entities = entity_load_multiple('configurable_language');
+      foreach ($languages as $id => $language) {
+        $tree['languages'][$id] = array(
+          'label' => $language->getName(),
+          'depth' => 1,
+          'parents' => ['languages'],
+          'weight' => 0,
+          'description' => $language->getName(),
+        );
       }
     }
     $this->tree = $tree;
@@ -65,6 +73,10 @@ class Language extends AccessControlHierarchyBase {
    */
   public function getFields($entity_type, $bundle, $parents) {
     return ['language' => 'Language field'];
+  }
+
+  public function options() {
+    return ['languages' => 'Enabled languages'];
   }
 
   /**
