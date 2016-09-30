@@ -41,6 +41,7 @@ class UserSection extends Section {
   public function render(ResultRow $values) {
     $uid = $this->getValue($values, 'uid');
     $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+          kint('foo');
     if ($scheme = $manager->getActiveScheme()) {
       if ($manager->userInAll($uid)) {
         $sections = $manager->getAllSections(TRUE);

@@ -1,25 +1,20 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Tests\WorkbenchAccessTestBase
- */
+namespace Drupal\Tests\workbench_access\Functional;
 
-namespace Drupal\workbench_access\Tests;
-
-use Drupal\simpletest\WebTestBase;
+use Drupal\Tests\BrowserTestBase;
 
 /**
  * Base test class for Workbench Access.
  */
-abstract class WorkbenchAccessTestBase extends WebTestBase {
+abstract class WorkbenchAccessTestBase extends BrowserTestBase {
 
   /**
    * Modules to enable.
    *
    * @var array
    */
-  public static $modules = array('workbench_access', 'node', 'taxonomy', 'menu_ui', 'options');
+  public static $modules = ['workbench_access', 'node', 'taxonomy', 'menu_ui', 'options'];
 
   /**
    * The Workbench Access manager class.

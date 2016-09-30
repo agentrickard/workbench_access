@@ -1,13 +1,8 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Tests\WorkbenchAccessNodeTypeFormTest
- */
+namespace Drupal\Tests\workbench_access\Functional;
 
-namespace Drupal\workbench_access\Tests;
-
-use Drupal\workbench_access\Tests\WorkbenchAccessTestBase;
+use Drupal\Tests\workbench_access\FunctionalWorkbenchAccessTestBase;
 use Drupal\node\NodeTypeInterface;
 
 /**
