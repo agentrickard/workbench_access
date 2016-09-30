@@ -43,22 +43,20 @@ class Language extends AccessControlHierarchyBase {
       $config = $this->config('workbench_access.settings');
       $parents = $config->get('parents');
       $tree = array();
-      $this->menuTree = \Drupal::getContainer()->get('language.manager');
+      $languages = $entities = entity_load_multiple('configurable_language');
       foreach ($parents as $id => $label) {
-        if ($menu = MenuEntity::load($id)) {
+        if (isset($languages[$id])) {
           $tree[$id][$id] = array(
-            'label' => $menu->label(),
+            'label' => $languages[$id]->getName(),
             'depth' => 0,
             'parents' => [],
             'weight' => 0,
-            'description' => $menu->label(),
+            'description' => $languages[$id]->getName(),
           );
-          $params = new MenuTreeParameters();
-          $data = $this->menuTree->load($id, $params);
-          $this->tree = $this->buildTree($id, $data, $tree);
         }
       }
     }
+    $this->tree = $tree;
     return $this->tree;
   }
 
@@ -71,6 +69,8 @@ class Language extends AccessControlHierarchyBase {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO -- fix this
    */
   public function alterOptions($field, WorkbenchAccessManagerInterface $manager) {
     $element = $field;
@@ -110,15 +110,17 @@ class Language extends AccessControlHierarchyBase {
 
   /**
    * {inheritdoc}
+   * @TODO -- fix this
    */
   public function disallowedOptions($field) {
-    // On the menu form, we never remove an existing parent item, so there is
+    // On the language form, we never remove an existing parent item, so there is
     // no concept of a disallowed option.
     return array();
   }
 
   /**
    * {inheritdoc}
+   * @TODO -- fix this
    */
   public function getViewsJoin($table, $key, $alias = NULL) {
     if ($table == 'users') {
