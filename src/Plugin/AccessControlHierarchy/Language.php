@@ -63,8 +63,8 @@ class Language extends AccessControlHierarchyBase {
           'description' => $language->getName(),
         );
       }
+      $this->tree = $tree;
     }
-    $this->tree = $tree;
     return $this->tree;
   }
 
