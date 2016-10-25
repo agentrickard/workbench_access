@@ -42,7 +42,13 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
   if ($scheme = $manager->getActiveScheme()) {
     $node = $form_state->getFormObject()->getEntity();
+
+    // If no access field is set, we do nothing.
     $field = $scheme->fields('node', $node->bundle());
+    if (empty($field)) {
+      return;
+    }
+    // Load field data that can be edited.
     $account = \Drupal::currentUser();
     // If the user cannot access the form element or is a superuser, ignore.
     if (!empty($form[$field]['#access']) && !$account->hasPermission('bypass workbench access')) {
