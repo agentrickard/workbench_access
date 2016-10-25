@@ -178,6 +178,10 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity->bundle());
     $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
 
+    if (!$active) {
+      $return = AccessResult::neutral();
+    }
+
     // Get the field data.
     $scheme = $manager->getActiveScheme();
     $field = $scheme->fields('node', $type->id());
