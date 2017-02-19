@@ -12,9 +12,8 @@ interface WorkbenchAccessManagerInterface {
   /**
    * Returns an array of available access schemes.
    *
-   * @return array
-   *   An array of schemes as defined by
-   *   \Drupal\workbench_access\Annotation\AccessControlHierarchy.
+   * @return \Drupal\workbench_access\AccessControlHierarchyInterface[]
+   *   An array of schemes.
    */
   public function getSchemes();
 
@@ -26,14 +25,16 @@ interface WorkbenchAccessManagerInterface {
    * @param $id
    *   A string indicating the plugin name.
    *
-   * @return \Drupal\workbench_access\Annotation\AccessControlHierarchy
+   * @return \Drupal\workbench_access\AccessControlHierarchyInterface
+   *   The scheme identified by the id.
    */
   public function getScheme($id);
 
   /**
    * Gets the active access scheme, as set in module configuration.
    *
-   * @return \Drupal\workbench_access\Annotation\AccessControlHierarchy
+   * @return \Drupal\workbench_access\AccessControlHierarchyInterface
+   *   The active scheme.
    */
   public function getActiveScheme();
 
