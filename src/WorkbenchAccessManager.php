@@ -323,7 +323,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $sections = [];
     foreach ($account->getRoles() as $rid) {
       $settings = \Drupal::state()->get('workbench_access_roles_' . $rid, array());
-      $sections += array_keys($settings);
+      $sections = array_merge($sections, array_keys($settings));
     }
     return $sections;
   }
