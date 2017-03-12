@@ -13,8 +13,8 @@ cache:
     - $HOME/.composer/cache/files
 
 env:
-  - DRUPAL=8.1.x
   - DRUPAL=8.2.x
+  - DRUPAL=8.3.x
 
 mysql:
   database: wa
