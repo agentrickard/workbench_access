@@ -68,4 +68,4 @@ before_script:
   - until curl -s localhost:8080; do true; done > /dev/null
 
 script:
-  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --php `which php` --url http://localhost:8080 "workbench_access" | tee /tmp/wa-test-results.txt
+  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
