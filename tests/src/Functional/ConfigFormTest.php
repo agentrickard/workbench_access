@@ -45,7 +45,7 @@ class ConfigFormTest extends BrowserTestBase {
     $this->submitForm([], 'Save configuration');
     $assert->statusCodeEquals(200);
     $scheme = $this->container->get('plugin.manager.workbench_access.scheme')->getActiveScheme();
-    $this->assertEquals('menu', $scheme->getId());
+    $this->assertEquals('menu', $scheme->id());
   }
 
 }
