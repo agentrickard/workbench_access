@@ -36,13 +36,6 @@ use Drupal\Core\Menu\MenuTreeParameters;
 class Menu extends AccessControlHierarchyBase {
 
   /**
-   * The access tree array.
-   *
-   * @var array
-   */
-  public $tree;
-
-  /**
    * @inheritdoc
    */
   public function getTree() {
@@ -84,7 +77,7 @@ class Menu extends AccessControlHierarchyBase {
    * @return array $tree
    *   The compiled tree data.
    */
-  public function buildTree($id, $data, &$tree) {
+  protected function buildTree($id, $data, &$tree) {
     foreach ($data as $link_id => $link) {
       $tree[$id][$link_id] = array(
         'id' => $link_id,

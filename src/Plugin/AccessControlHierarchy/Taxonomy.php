@@ -27,13 +27,6 @@ use Drupal\taxonomy\Entity\Vocabulary;
 class Taxonomy extends AccessControlHierarchyBase {
 
   /**
-   * The access tree array.
-   *
-   * @var array
-   */
-  public $tree;
-
-  /**
    * @inheritdoc
    */
   public function getTree() {
@@ -75,7 +68,7 @@ class Taxonomy extends AccessControlHierarchyBase {
    * @return array $tree
    *   The compiled tree data.
    */
-  public function buildTree($id, $data, &$tree) {
+  protected function buildTree($id, $data, &$tree) {
     foreach ($data as $term) {
       $tree[$id][$term->tid] = array(
         'id' => $term->tid,
