@@ -53,9 +53,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $schemes = array();
     $definitions = $this->getDefinitions();
 
-    foreach ($definitions as $info) {
+    foreach ($definitions as $id => $info) {
       if ($this->moduleHandler->moduleExists($info['module'])) {
-        $schemes[$info['id']] = $info['label']->render();
+        $schemes[$id] = (string) $info['label'];
       }
     }
 
