@@ -32,14 +32,14 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    *
    * @var ConfigFactory
    */
-  public $configFactory;
+  protected $configFactory;
 
   /**
    * The access tree array.
    *
    * @var array
    */
-  public $tree;
+  protected $tree;
 
   /**
    * {@inheritdoc}
