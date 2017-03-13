@@ -6,6 +6,8 @@ use Drupal\Tests\BrowserTestBase;
 
 /**
  * Defines a class for testing the configuration form.
+ *
+ * @group workbench_access
  */
 class ConfigFormTest extends BrowserTestBase {
 
