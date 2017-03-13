@@ -1,0 +1,7 @@
+name: Workbench access test
+description: Test code for workbench access
+type: module
+core: 8.x
+hidden: true
+dependencies:
+  - workbench_access
