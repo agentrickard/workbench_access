@@ -116,7 +116,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
           '#type' => 'checkboxes',
           '#title' => $this->t('@label editorial access options', array('@label' => $label)),
           '#options' => $scheme->options(),
-          '#default_value' => $config->get('parents', array()),
+          '#default_value' => $config->get('parents'),
           '#states' => array(
             'visible' => array(
               ':input[name=scheme]' => array('value' => $id),
@@ -133,7 +133,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     }
     if ($id = $config->get('scheme')) {
       $scheme = $this->manager->getScheme($id);
-      $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents', array()));
+      $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents'));
     }
     if (!empty($custom)) {
       $form['custom'] = array(
@@ -152,14 +152,14 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
       '#type' => 'textfield',
       '#size' => 32,
       '#title' => $this->t('Access group label'),
-      '#default_value' => $config->get('label', 'Section'),
+      '#default_value' => $config->get('label'),
       '#description' => $this->t('Label shown to define a Workbench Access control group.'),
     );
     $form['labels']['plural_label'] = array(
       '#type' => 'textfield',
       '#size' => 32,
       '#title' => $this->t('Access group label (plural form)'),
-      '#default_value' => $config->get('plural_label', 'Sections'),
+      '#default_value' => $config->get('plural_label'),
       '#description' => $this->t('Label shown to define a set of Workbench Access control groups.'),
     );
 
@@ -177,6 +177,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     if ($config->get('scheme') !== $new_scheme) {
       $config->set('scheme', $new_scheme);
     }
+    $config->set('parents', array_filter($form_state->getValue($new_scheme)));
     $extra = $this->manager->getScheme($new_scheme)->configSubmit($form, $form_state);
     foreach ($extra as $key => $value) {
       $config->set($key, $value);
