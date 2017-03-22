@@ -7,14 +7,12 @@
 
 namespace Drupal\workbench_access;
 
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\DefaultPluginManager;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-use Drupal\Core\Config\Config;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\user\RoleInterface;
 use Drupal\Core\State\StateInterface;
 
 class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAccessManagerInterface {
@@ -28,6 +26,20 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public $tree;
 
   /**
+   * Entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * State service.
+   *
+   * @var \Drupal\Core\State\StateInterface
+   */
+  protected $state;
+
+  /**
    * Constructs a new WorkbenchAccessManager.
    *
    * @param \Traversable $namespaces
@@ -37,13 +49,20 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    *   Cache backend instance to use.
    * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
    *   The module handler.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   Entity type manager.
+   * @param \Drupal\Core\State\StateInterface $state
+   *   State service.
    */
-  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler) {
+  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, EntityTypeManagerInterface $entityTypeManager, StateInterface $state) {
     parent::__construct('Plugin/AccessControlHierarchy', $namespaces, $module_handler, 'Drupal\workbench_access\AccessControlHierarchyInterface', 'Drupal\workbench_access\Annotation\AccessControlHierarchy');
 
     $this->alterInfo('workbench_access_info');
     $this->setCacheBackend($cache_backend, 'workbench_access_plugins');
     $this->moduleHandler = $module_handler;
+    $this->namespaces = $namespaces;
+    $this->entityTypeManager = $entityTypeManager;
+    $this->state = $state;
   }
 
   /**
@@ -121,7 +140,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     if (is_null($uid)) {
       $uid = \Drupal::currentUser()->id();
     }
-    $user = \Drupal::entityTypeManager()->getStorage('user')->load($uid);
+    $user = $this->entityTypeManager->getStorage('user')->load($uid);
     $sections = $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue();
     foreach($sections as $data) {
       $user_sections[] = $data['value'];
@@ -193,11 +212,11 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    */
   public function addRole($role_id, $sections = array()) {
-    $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, array());
+    $settings = $this->loadRoleSections($role_id);
     foreach ($sections as $id) {
       $settings[$id] = 1;
     }
-    \Drupal::state()->set(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, $settings);
+    $this->saveRoleSections($role_id, $settings);
   }
 
   /**
@@ -225,13 +244,13 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    */
   public function removeRole($role_id, $sections = array()) {
-    $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, array());
+    $settings = $this->loadRoleSections($role_id);
     foreach ($sections as $id) {
       if (isset($settings[$id])) {
         unset($settings[$id]);
       }
     }
-    \Drupal::state()->set(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, $settings);
+    $this->saveRoleSections($role_id, $settings);
   }
 
   /**
@@ -295,7 +314,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $list = [];
     $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
     foreach ($roles as $rid => $role) {
-      $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid, array());
+      $settings = $this->loadRoleSections($rid);
       if (!empty($settings[$id])) {
         $list[$rid] = $role->label();
       }
@@ -321,7 +340,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public function getRoleSections(AccountInterface $account) {
     $sections = [];
     foreach ($account->getRoles() as $rid) {
-      $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid, array());
+      $settings = $this->loadRoleSections($rid);
       $sections = array_merge($sections, array_keys($settings));
     }
     return $sections;
@@ -364,7 +383,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public function flushRoles() {
     $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
     foreach ($roles as $rid => $role) {
-      \Drupal::state()->delete(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid);
+      $this->deleteRoleSections($rid);
     }
     // @TODO clear cache?
   }
@@ -401,6 +420,41 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $config->set('fields', $fields);
     $config->save();
     drupal_set_message($this->t('Field settings reset.'));
+  }
+
+  /**
+   * Loads the saved role sections for a given role ID.
+   *
+   * @param string $role_id
+   *   The role ID.
+   *
+   * @return array
+   *   Sections for role.
+   */
+  protected function loadRoleSections($role_id) {
+    return $this->state->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, []);
+  }
+
+  /**
+   * Saves the role sections for a given role ID.
+   *
+   * @param string $role_id
+   *   The role ID.
+   * @param array $settings
+   *   Sections for the role.
+   */
+  protected function saveRoleSections($role_id, array $settings = []) {
+    return $this->state->set(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, $settings);
+  }
+
+  /**
+   * Delete the saved sections for this role.
+   *
+   * @param string $rid
+   *   The role ID.
+   */
+  protected function deleteRoleSections($rid) {
+    return $this->state->delete(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid);
   }
 
 }
