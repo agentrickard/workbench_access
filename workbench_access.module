@@ -182,7 +182,7 @@ function workbench_access_node_create_access(AccountInterface $account, $context
   }
 
   // Check that access control applies to this content type.
-  $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity->bundle());
+  $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity_bundle);
   $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
   if (!$active) {
     return $return;
