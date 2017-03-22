@@ -4,6 +4,7 @@
  * @file
  * Install, update and uninstall functions for the Workbench Access module.
  */
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Implements hook_install().
@@ -26,7 +27,7 @@ function workbench_access_install() {
  */
 function workbench_access_uninstall() {
   foreach (array('user') as $type) {
-    $id = $type . '.' . WORKBENCH_ACCESS_FIELD;
+    $id = $type . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
     if ($field = \Drupal::entityManager()->getStorage('field_storage_config')->load($id)) {
       $field->delete();
     }
