@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Implements hook_drush_command().
@@ -97,7 +98,7 @@ function drush_workbench_access_test() {
         workbench_access_confirm_fields('node', $id);
         $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 1);
         $type->save();
-        $fields['node'][$id] = WORKBENCH_ACCESS_FIELD;
+        $fields['node'][$id] = WorkbenchAccessManagerInterface::FIELD_NAME;
         _workbench_access_form_display('node', $id);
       }
     }
@@ -131,7 +132,7 @@ function drush_workbench_access_flush() {
 function _workbench_access_create_node_storage() {
   try {
     $field_storage_values = [
-      'field_name' => WORKBENCH_ACCESS_FIELD,
+      'field_name' => WorkbenchAccessManagerInterface::FIELD_NAME,
       'entity_type' => 'node',
       'type' => 'entity_reference',
       'translatable' => TRUE,
@@ -153,7 +154,7 @@ function _workbench_access_form_display($entity_type, $bundle) {
   // @TODO: This function is deprecated, but using the OO syntax is causing
   // test fails.
   entity_get_form_display($entity_type, $bundle, 'default')
-    ->setComponent(WORKBENCH_ACCESS_FIELD, array(
+    ->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, array(
       'type' => 'options_select',
       'weight' => 0,
     ))

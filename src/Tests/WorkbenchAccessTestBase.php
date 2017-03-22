@@ -84,7 +84,7 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
     for ($i = 1; $i <= 10; $i++) {
       $this->nodes[] = $this->drupalCreateNode(array(
         'type' => 'article',
-        WORKBENCH_ACCESS_FIELD => array($i),
+        WorkbenchAccessManagerInterface::FIELD_NAME => array($i),
       ));
     }
     // Create two page nodes for testing.

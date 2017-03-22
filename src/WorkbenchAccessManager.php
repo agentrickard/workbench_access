@@ -122,7 +122,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
       $uid = \Drupal::currentUser()->id();
     }
     $user = \Drupal::entityTypeManager()->getStorage('user')->load($uid);
-    $sections = $user->get(WORKBENCH_ACCESS_FIELD)->getValue();
+    $sections = $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue();
     foreach($sections as $data) {
       $user_sections[] = $data['value'];
     }
@@ -185,7 +185,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $entity = \Drupal::entityManager()->getStorage('user')->load($user_id);
     $values = $this->getUserSections($user_id, FALSE);
     $new = array_merge($values, $sections);
-    $entity->set(WORKBENCH_ACCESS_FIELD, $new);
+    $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, $new);
     $entity->save();
   }
 
@@ -217,7 +217,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     foreach ($sections as $id) {
       unset($new[$id]);
     }
-    $entity->set(WORKBENCH_ACCESS_FIELD, array_keys($new));
+    $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_keys($new));
     $entity->save();
   }
 
@@ -246,7 +246,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function getEditors($id) {
     $users = \Drupal::entityQuery('user')
-      ->condition(WORKBENCH_ACCESS_FIELD, $id)
+      ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, $id)
       ->condition('status', 1)
       ->sort('name')
       ->execute();
@@ -262,8 +262,8 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     // an autocomplete form, then we may change back to the filtered query.
     /*
     $query->condition($query->orConditionGroup()
-        ->condition(WORKBENCH_ACCESS_FIELD, $id, '<>')
-        ->condition(WORKBENCH_ACCESS_FIELD, NULL, 'IS NULL'))
+        ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, $id, '<>')
+        ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, NULL, 'IS NULL'))
       ->condition('status', 1);
     $users = $query->execute();
     */
@@ -378,7 +378,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     // statement in a try/catch just in case it isn't portable.
     try {
       $database = \Drupal::getContainer()->get('database');
-      $database->truncate('user__' . WORKBENCH_ACCESS_FIELD)->execute();
+      $database->truncate('user__' . WorkbenchAccessManagerInterface::FIELD_NAME)->execute();
     }
     catch (Exception $e) {
       drupal_set_message($this->t('Failed to delete user assignments.'));
