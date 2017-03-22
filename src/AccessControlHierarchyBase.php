@@ -246,7 +246,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   public function fieldsByEntityType($entity_type) {
     // User/users do not name the data table consistently.
     if ($entity_type == 'user' || $entity_type == 'users') {
-      return ['user' => WORKBENCH_ACCESS_FIELD];
+      return ['user' => WorkbenchAccessManagerInterface::FIELD_NAME];
     }
     else {
       $config = $this->config('workbench_access.settings');
