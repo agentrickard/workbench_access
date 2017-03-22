@@ -193,11 +193,11 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    */
   public function addRole($role_id, $sections = array()) {
-    $settings = \Drupal::state()->get('workbench_access_roles_' . $role_id, array());
+    $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, array());
     foreach ($sections as $id) {
       $settings[$id] = 1;
     }
-    \Drupal::state()->set('workbench_access_roles_' . $role_id, $settings);
+    \Drupal::state()->set(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, $settings);
   }
 
   /**
@@ -225,13 +225,13 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    */
   public function removeRole($role_id, $sections = array()) {
-    $settings = \Drupal::state()->get('workbench_access_roles_' . $role_id, array());
+    $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, array());
     foreach ($sections as $id) {
       if (isset($settings[$id])) {
         unset($settings[$id]);
       }
     }
-    \Drupal::state()->set('workbench_access_roles_' . $role_id, $settings);
+    \Drupal::state()->set(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $role_id, $settings);
   }
 
   /**
@@ -295,7 +295,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     $list = [];
     $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
     foreach ($roles as $rid => $role) {
-      $settings = \Drupal::state()->get('workbench_access_roles_' . $rid, array());
+      $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid, array());
       if (!empty($settings[$id])) {
         $list[$rid] = $role->label();
       }
@@ -321,7 +321,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public function getRoleSections(AccountInterface $account) {
     $sections = [];
     foreach ($account->getRoles() as $rid) {
-      $settings = \Drupal::state()->get('workbench_access_roles_' . $rid, array());
+      $settings = \Drupal::state()->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid, array());
       $sections = array_merge($sections, array_keys($settings));
     }
     return $sections;
@@ -364,7 +364,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public function flushRoles() {
     $roles = \Drupal::entityManager()->getStorage('user_role')->loadMultiple();
     foreach ($roles as $rid => $role) {
-      \Drupal::state()->delete('workbench_access_roles_' . $rid);
+      \Drupal::state()->delete(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid);
     }
     // @TODO clear cache?
   }
