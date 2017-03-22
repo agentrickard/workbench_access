@@ -19,6 +19,13 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   use StringTranslationTrait;
 
   /**
+   * Static cache of user sections keyed by user ID.
+   *
+   * @var array
+   */
+  protected $userSectionCache = [];
+
+  /**
    * The access tree array.
    *
    * @var array
@@ -135,22 +142,26 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    */
   public function getUserSections($uid = NULL, $add_roles = TRUE) {
-    $user_sections = [];
     // Get the information from the account.
     if (is_null($uid)) {
       $uid = \Drupal::currentUser()->id();
     }
-    $user = $this->entityTypeManager->getStorage('user')->load($uid);
-    $sections = $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue();
-    foreach($sections as $data) {
-      $user_sections[] = $data['value'];
-    }
-    // Merge in role data.
-    if ($add_roles) {
-      $user_sections = array_merge($user_sections, $this->getRoleSections($user));
-    }
+    if (!isset($this->userSectionCache[$uid])) {
+      $user_sections = [];
+      $user = $this->entityTypeManager->getStorage('user')->load($uid);
+      $sections = $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue();
+      foreach ($sections as $data) {
+        $user_sections[] = $data['value'];
+      }
+      // Merge in role data.
+      if ($add_roles) {
+        $user_sections = array_merge($user_sections, $this->getRoleSections($user));
+      }
 
-    return array_unique($user_sections);
+      $this->userSectionCache[$uid] = array_unique($user_sections);
+    }
+    return $this->userSectionCache[$uid];
+
   }
 
   /**
