@@ -163,13 +163,13 @@ class Menu extends AccessControlHierarchyBase {
   public function getViewsJoin($table, $key, $alias = NULL) {
     if ($table == 'users') {
       $configuration['menu'] = [
-       'table' => 'user__' . WORKBENCH_ACCESS_FIELD,
+       'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
        'field' => 'entity_id',
        'left_table' => $table,
        'left_field' => $key,
        'operator' => '=',
-       'table_alias' => WORKBENCH_ACCESS_FIELD,
-       'real_field' => WORKBENCH_ACCESS_FIELD . '_value',
+       'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
+       'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
       ];
     }
     else {

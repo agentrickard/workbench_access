@@ -7,6 +7,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Contains helper classes for tests to set up various configuration.
@@ -50,7 +51,7 @@ trait WorkbenchAccessTestTrait {
   public function setUpTaxonomyField(NodeType $node_type, Vocabulary $vocab) {
     // Create workbench access storage for node.
     $field_storage = FieldStorageConfig::create([
-      'field_name' => WORKBENCH_ACCESS_FIELD,
+      'field_name' => WorkbenchAccessManagerInterface::FIELD_NAME,
       'entity_type' => 'node',
       'type' => 'entity_reference',
       'cardinality' => 1,
@@ -74,7 +75,7 @@ trait WorkbenchAccessTestTrait {
     ])->save();
     // Set the field to display as a dropdown on the form.
     $form_display = EntityFormDisplay::load('node.' . $node_type->id() . '.default');
-    $form_display->setComponent(WORKBENCH_ACCESS_FIELD, ['type' => 'options_select']);
+    $form_display->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, ['type' => 'options_select']);
     $form_display->save();
   }
 
@@ -108,7 +109,7 @@ trait WorkbenchAccessTestTrait {
     $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
     $config->set('scheme', 'taxonomy');
     $config->set('parents', [$vocab->id() => $vocab->id()]);
-    $fields['node'][$node_type->id()] = WORKBENCH_ACCESS_FIELD;
+    $fields['node'][$node_type->id()] = WorkbenchAccessManagerInterface::FIELD_NAME;
     $config->set('fields', $fields);
     $config->save();
   }

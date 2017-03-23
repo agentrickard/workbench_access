@@ -8,6 +8,8 @@
 namespace Drupal\workbench_access;
 
 interface WorkbenchAccessManagerInterface {
+  const WORKBENCH_ACCESS_ROLES_STATE_PREFIX = 'workbench_access_roles_';
+  const FIELD_NAME = 'field_workbench_access';
 
   /**
    * Returns an array of available access schemes.

@@ -11,9 +11,14 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines the name of the node access control field.
+ *
+ * @deprecated to be removed before 8.x.1.0 - use
+ *   \Drupal\workbench_access\WorkbenchAccessManagerInterface::FIELD_NAME
+ *   instead.
  */
 define('WORKBENCH_ACCESS_FIELD', 'field_workbench_access');
 
@@ -125,11 +130,11 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
         'description' => 'The editorial section for this content.',
       ]
     ];
-    $id = $entity_type . '.' . $bundle . '.' . WORKBENCH_ACCESS_FIELD;
+    $id = $entity_type . '.' . $bundle . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
 
     if (!$field = \Drupal::entityManager()->getStorage('field_config')->load($id)) {
       $field = array(
-        'field_name' => WORKBENCH_ACCESS_FIELD,
+        'field_name' => WorkbenchAccessManagerInterface::FIELD_NAME,
         'entity_type' => $entity_type,
         'label' => $text[$entity_type]['label'],
         'bundle' => $bundle,
