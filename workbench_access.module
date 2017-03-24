@@ -5,6 +5,7 @@
  * Contains workbench_access.module.
  */
 
+use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\node\NodeTypeInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Core\Access\AccessResult;
@@ -177,29 +178,35 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
  */
 function workbench_access_views_data_alter(array &$data) {
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-  if ($scheme = $manager->getActiveScheme()) {
-    $data['node']['workbench_access_section'] = array(
-      'title' => t('Workbench Section'),
-      'help' => t('The sections to which this content belongs.'),
-      'field' => array(
-        'id' => 'workbench_access_section',
-      ),
-      'filter' => array(
-        'field' => 'nid',
-        'id' => 'workbench_access_section',
-      ),
-    );
-    $data['users']['workbench_access_section'] = array(
-      'title' => t('Workbench Section'),
-      'help' => t('The sections to which this user belongs.'),
-      'field' => array(
-        'id' => 'workbench_access_user_section',
-      ),
-      'filter' => array(
-        'field' => 'uid',
-        'id' => 'workbench_access_section',
-      ),
-    );
+  try {
+    if ($scheme = $manager->getActiveScheme()) {
+      $data['node']['workbench_access_section'] = array(
+        'title' => t('Workbench Section'),
+        'help' => t('The sections to which this content belongs.'),
+        'field' => array(
+          'id' => 'workbench_access_section',
+        ),
+        'filter' => array(
+          'field' => 'nid',
+          'id' => 'workbench_access_section',
+        ),
+      );
+      $data['users']['workbench_access_section'] = array(
+        'title' => t('Workbench Section'),
+        'help' => t('The sections to which this user belongs.'),
+        'field' => array(
+          'id' => 'workbench_access_user_section',
+        ),
+        'filter' => array(
+          'field' => 'uid',
+          'id' => 'workbench_access_section',
+        ),
+      );
+    }
+  }
+  catch (PluginNotFoundException $e) {
+    // This can occur when a config sync is running that enables the module
+    // that provides the active scheme. No action required.
   }
 }
 
