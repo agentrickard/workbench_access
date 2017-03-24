@@ -52,6 +52,13 @@ class NodeFormTest extends BrowserTestBase {
       'name' => 'Super staff',
     ]);
     $super_staff_term->save();
+    $base_term = Term::create([
+      'vid' => $vocab->id(),
+      'name' => 'Editor',
+    ]);
+    $base_term->save();
+    $editor->{WORKBENCH_ACCESS_FIELD} = $base_term->id();
+    $editor->save();
 
     $staff_rid = $this->createRole([], 'staff');
     $super_staff_rid = $this->createRole([], 'super_staff');

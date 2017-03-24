@@ -173,6 +173,32 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
 }
 
 /**
+ * Implements hook_node_create_access().
+ *
+ * @link https://www.drupal.org/node/2348203
+ */
+function workbench_access_node_create_access(AccountInterface $account, $context, $entity_bundle) {
+  $return = AccessResult::neutral();
+  // Check that our access control is configured.
+  $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+  if (!$manager->getActiveScheme()) {
+    return $return;
+  }
+
+  // Check that access control applies to this content type.
+  $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity_bundle);
+  if (!$type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0)) {
+    return $return;
+  }
+
+  // Check that the user is able to assign content to a section.
+  if (!$manager->getUserSections($account->id())) {
+    $return = AccessResult::forbidden();
+  }
+  return $return;
+}
+
+/**
  * Implements hook_views_data_alter().
  */
 function workbench_access_views_data_alter(array &$data) {
