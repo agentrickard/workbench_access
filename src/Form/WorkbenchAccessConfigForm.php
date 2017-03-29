@@ -133,7 +133,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     }
     if ($id = $config->get('scheme')) {
       $scheme = $this->manager->getScheme($id);
-      $custom = $this->manager->getActiveScheme()->configForm($scheme, $config->get('parents', array()));
+      $custom = $this->manager->getActiveScheme()->configForm($config->get('parents', array()));
     }
     if (!empty($custom)) {
       $form['custom'] = array(

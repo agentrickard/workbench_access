@@ -5,7 +5,6 @@
  * Contains workbench_access.module.
  */
 
-use Drupal\Component\Plugin\Exception\PluginNotFoundException;
 use Drupal\node\NodeTypeInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Core\Access\AccessResult;
@@ -58,13 +57,14 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
     $account = \Drupal::currentUser();
     // If the user cannot access the form element or is a superuser, ignore.
     if (!empty($form[$field]['#access']) && !$account->hasPermission('bypass workbench access')) {
-      $form[$field] = $scheme->alterOptions($form[$field], $manager);
+      $form[$field] = $scheme->alterOptions($form[$field], $manager, \Drupal::service('workbench_access.user_section_storage')->getUserSections($account->id()));
       // Add the options hidden from the user silently to the form.
       $options_diff = $scheme->disallowedOptions($form[$field]);
       if (!empty($options_diff)) {
         // @TODO: Potentially show this information to users with permission.
         $form['workbench_access_disallowed'] = workbench_access_hidden_field($options_diff, $scheme);
         // Call our submitEntity() method to merge in values.
+        // @todo Add tests for this.
         $class = '\\' . get_class($scheme) . '::submitEntity';
         // Account for all the submit buttons on the node form.
         $buttons = ['submit', 'publish', 'unpublish'];
@@ -168,9 +168,7 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
   if ($scheme = $manager->getActiveScheme()) {
     return $scheme->checkEntityAccess($node, $op, $account, $manager);
   }
-  else {
-    return AccessResult::neutral();
-  }
+  return AccessResult::neutral();
 }
 
 /**
@@ -193,8 +191,9 @@ function workbench_access_node_create_access(AccountInterface $account, $context
   }
 
   // Check that the user is able to assign content to a section.
-  if (!$manager->getUserSections($account->id())) {
-    $return = AccessResult::forbidden();
+  $user_section_storage = \Drupal::service('workbench_access.user_section_storage');
+  if (!$user_section_storage->getUserSections($account->id())) {
+    return AccessResult::forbidden();
   }
   return $return;
 }
@@ -204,35 +203,29 @@ function workbench_access_node_create_access(AccountInterface $account, $context
  */
 function workbench_access_views_data_alter(array &$data) {
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-  try {
-    if ($scheme = $manager->getActiveScheme()) {
-      $data['node']['workbench_access_section'] = array(
-        'title' => t('Workbench Section'),
-        'help' => t('The sections to which this content belongs.'),
-        'field' => array(
-          'id' => 'workbench_access_section',
-        ),
-        'filter' => array(
-          'field' => 'nid',
-          'id' => 'workbench_access_section',
-        ),
-      );
-      $data['users']['workbench_access_section'] = array(
-        'title' => t('Workbench Section'),
-        'help' => t('The sections to which this user belongs.'),
-        'field' => array(
-          'id' => 'workbench_access_user_section',
-        ),
-        'filter' => array(
-          'field' => 'uid',
-          'id' => 'workbench_access_section',
-        ),
-      );
-    }
-  }
-  catch (PluginNotFoundException $e) {
-    // This can occur when a config sync is running that enables the module
-    // that provides the active scheme. No action required.
+  if ($scheme = $manager->getActiveScheme()) {
+    $data['node']['workbench_access_section'] = array(
+      'title' => t('Workbench Section'),
+      'help' => t('The sections to which this content belongs.'),
+      'field' => array(
+        'id' => 'workbench_access_section',
+      ),
+      'filter' => array(
+        'field' => 'nid',
+        'id' => 'workbench_access_section',
+      ),
+    );
+    $data['users']['workbench_access_section'] = array(
+      'title' => t('Workbench Section'),
+      'help' => t('The sections to which this user belongs.'),
+      'field' => array(
+        'id' => 'workbench_access_user_section',
+      ),
+      'filter' => array(
+        'field' => 'uid',
+        'id' => 'workbench_access_section',
+      ),
+    );
   }
 }
 

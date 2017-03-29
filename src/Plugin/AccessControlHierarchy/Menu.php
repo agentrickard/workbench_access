@@ -40,8 +40,7 @@ class Menu extends AccessControlHierarchyBase {
    */
   public function getTree() {
     if (!isset($this->tree)) {
-      $config = $this->config('workbench_access.settings');
-      $parents = $config->get('parents');
+      $parents = $this->config->get('parents');
       $tree = array();
       $this->menuTree = \Drupal::getContainer()->get('menu.link_tree');
       foreach ($parents as $id => $label) {
@@ -112,9 +111,8 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager) {
+  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []) {
     $element = $field;
-    $user_sections = $manager->getUserSections();
     $menu_check = [];
     foreach ($element['link']['menu_parent']['#options'] as $id => $data) {
       // The menu value here prepends the menu name. Remove that.

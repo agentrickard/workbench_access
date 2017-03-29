@@ -8,6 +8,7 @@
 namespace Drupal\workbench_access\Tests;
 
 use Drupal\simpletest\WebTestBase;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Base test class for Workbench Access.
@@ -24,7 +25,7 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
   /**
    * The Workbench Access manager class.
    *
-   * @var Drupal\workbench_access\WorkbenchAccessManager
+   * @var \Drupal\workbench_access\WorkbenchAccessManager
    */
   protected $pluginmanager;
 
