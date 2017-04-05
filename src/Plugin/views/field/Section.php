@@ -85,7 +85,9 @@ class Section extends FieldPluginBase {
           }
         }
       }
-      return trim(implode($this->options['separator'], $output), $this->options['separator']);
+      if (isset($output)) {
+        return trim(implode($this->options['separator'], $output), $this->options['separator']);
+      }
     }
     return '';
   }
