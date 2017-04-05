@@ -7,23 +7,22 @@
 
 namespace Drupal\workbench_access;
 
-use Drupal\workbench_access\AccessControlHierarchyInterface;
-use Drupal\workbench_access\WorkbenchAccessManager;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
-use Drupal\node\NodeTypeInterface;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
-
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines a base hierarchy class that others may extend.
  */
-abstract class AccessControlHierarchyBase extends PluginBase implements AccessControlHierarchyInterface {
+abstract class AccessControlHierarchyBase extends PluginBase implements AccessControlHierarchyInterface, ContainerFactoryPluginInterface {
 
   use StringTranslationTrait;
 
@@ -40,6 +39,58 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * @var array
    */
   protected $tree;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
+   */
+  protected $userSectionStorage;
+
+  /**
+   * Config for module.
+   *
+   * @var \Drupal\Core\Config\ImmutableConfig
+   */
+  protected $config;
+  /**
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Constructs a new AccessControlHierarchyBase object.
+   *
+   * @param array $configuration
+   *   Configuration.
+   * @param string $plugin_id
+   *   Plugin ID.
+   * @param mixed $plugin_definition
+   *   Plugin definition.
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   *   User section storage.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   Config factory.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   Entity type manager.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, UserSectionStorageInterface $userSectionStorage, ConfigFactoryInterface $configFactory, EntityTypeManagerInterface $entityTypeManager) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition);
+    $this->config = $configFactory->get('workbench_access.settings');
+    $this->userSectionStorage = $userSectionStorage;
+    $this->entityTypeManager = $entityTypeManager;
+  }
+
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('workbench_access.user_section_storage'),
+      $container->get('config.factory'),
+      $container->get('entity_type.manager')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -59,30 +110,26 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function status() {
-    $config = $this->config('workbench_access.settings');
-    $scheme = $config->get('scheme');
-    return $scheme == $this->id();
+    return $this->config->get('scheme') === $this->id();
   }
 
   /**
    * @inheritdoc
    */
   public function options() {
-    $options = array();
     if ($entity_type = $this->pluginDefinition['base_entity']) {
-      $entities = entity_load_multiple($entity_type);
-      foreach ($entities as $key => $entity) {
-        $options[$key] = $entity->label();
-      }
+      return array_map(function (EntityInterface $entity) {
+        return $entity->label();
+      }, $this->entityTypeManager->getStorage($entity_type)->loadMultiple());
     }
-    return $options;
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
   public function getTree() {
-    return array();
+    return [];
   }
 
   /**
@@ -107,9 +154,10 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function configForm($scheme, $parents = array()) {
-    $node_types = \Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple();
+  public function configForm($parents = array()) {
+    $node_types = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
     $form = [];
+    /** @var \Drupal\node\NodeTypeInterface $type */
     foreach ($node_types as $id => $type) {
       $form['workbench_access_status_' . $id] = array(
         '#type' => 'checkbox',
@@ -118,7 +166,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
       );
       $options = ['' => $this->t('No field set')];
-      $options += $scheme->getFields('node', $type->id(), $parents);
+      $options += $this->getFields('node', $type->id(), $parents);
       if (!empty($options)) {
         $form['field_' . $id] = array(
           '#type' => 'select',
@@ -141,17 +189,17 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function configValidate(array &$form, FormStateInterface $form_state) {
-    // No default implementation.
+    // Default implementation is empty.
   }
 
   /**
    * {@inheritdoc}
    */
   public function configSubmit(array &$form, FormStateInterface $form_state) {
-    $config = $this->config('workbench_access.settings');
-    $fields = $config->get('fields');
+    $fields = $this->config->get('fields');
 
-    $node_types = \Drupal::entityManager()->getStorage('node_type')->loadMultiple();
+    $node_types = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
+    /** @var \Drupal\node\NodeTypeInterface $type */
     foreach ($node_types as $id => $type) {
       $field = $form_state->getValue('field_' . $id);
       if (!empty($field)) {
@@ -171,51 +219,45 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
-    // Deny is our default response.
-    $return = AccessResult::forbidden();
-
     // Check that the content type is configured.
     // @TODO: Right now this only handles nodes.
-    $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity->bundle());
+    /** @var \Drupal\node\NodeTypeInterface $type */
+    $type = $this->entityTypeManager->getStorage('node_type')->load($entity->bundle());
     $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
 
     if (!$active) {
-      $return = AccessResult::neutral();
+      return AccessResult::neutral();
     }
 
     // Get the field data.
-    $scheme = $manager->getActiveScheme();
-    $field = $scheme->fields('node', $type->id());
+    $field = $this->fields('node', $type->id());
 
     // @TODO: Check for super-admin?
     // We don't care about the View operation right now.
     if ($op == 'view' || $account->hasPermission('bypass workbench access')) {
-      $return = AccessResult::neutral();
+      return AccessResult::neutral();
     }
-    elseif ($active && !empty($scheme) && !empty($field)) {
+    elseif ($active && !empty($field)) {
       // Discover the field and check status.
       $entity_sections = $this->getEntityValues($entity, $field);
       // If no value is set on the entity, ignore.
       // @TODO: Is this the correct logic? It is helpful for new installs.
       if (empty($entity_sections)) {
-        $return = AccessResult::neutral();
+        return AccessResult::neutral();
       }
-      else {
-        $user_sections = $manager->getUserSections($account->id());
-        if (empty($user_sections)) {
-          $return = AccessResult::forbidden();
-        }
-        // Check the tree status of the $entity against the $user.
-        // Return neutral if in tree, forbidden if not.
-        if ($manager->checkTree($entity_sections, $user_sections)) {
-          $return = AccessResult::neutral();
-        }
-        else {
-          $return = AccessResult::forbidden();
-        }
+      $user_sections = $this->userSectionStorage->getUserSections($account->id());
+      if (empty($user_sections)) {
+        return AccessResult::forbidden();
       }
+      // Check the tree status of the $entity against the $user.
+      // Return neutral if in tree, forbidden if not.
+      if ($manager->checkTree($entity_sections, $user_sections)) {
+        return AccessResult::neutral();
+      }
+      return AccessResult::forbidden();
     }
-    return $return;
+    // Deny is our default response.
+    return AccessResult::forbidden();
   }
 
   /**
@@ -235,8 +277,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {inheritdoc}
    */
   public function fields($entity_type, $bundle) {
-    $config = $this->config('workbench_access.settings');
-    $fields = $config->get('fields');
+    $fields = $this->config->get('fields');
     return isset($fields[$entity_type][$bundle]) ? $fields[$entity_type][$bundle] : array();
   }
 
@@ -249,33 +290,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       return ['user' => WorkbenchAccessManagerInterface::FIELD_NAME];
     }
     else {
-      $config = $this->config('workbench_access.settings');
-      $fields = $config->get('fields');
+      $fields = $this->config->get('fields');
       return $fields[$entity_type];
     }
-  }
-
-  /**
-   * Retrieves a configuration object.
-   *
-   * This is the main entry point to the configuration API. Calling
-   * @code $this->config('book.admin') @endcode will return a configuration
-   * object in which the book module can store its administrative settings.
-   *
-   * @param string $name
-   *   The name of the configuration object to retrieve. The name corresponds to
-   *   a configuration file. For @code \Drupal::config('book.admin') @endcode,
-   *   the config object returned will contain the contents of book.admin
-   *   configuration file.
-   *
-   * @return \Drupal\Core\Config\Config
-   *   A configuration object.
-   */
-  protected function config($name) {
-    if (!$this->configFactory) {
-      $this->configFactory = \Drupal::getContainer()->get('config.factory');
-    }
-    return $this->configFactory->get($name);
   }
 
   /**
@@ -292,12 +309,11 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {inheritdoc}
    */
-  public function submitEntity(array &$form, FormStateInterface $form_state) {
+  public static function submitEntity(array &$form, FormStateInterface $form_state) {
     $values = $form_state->getValue('workbench_access_disallowed');
     if (!empty($values)) {
       $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
       if ($scheme = $manager->getActiveScheme()) {
-        $info = $form_state->getBuildInfo();
         $node = $form_state->getFormObject()->getEntity();
         $field = $scheme->fields('node', $node->bundle());
         $entity_values = $form_state->getValue($field);

@@ -28,7 +28,7 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager) {
+  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []) {
     return $field;
   }
 

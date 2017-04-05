@@ -102,13 +102,11 @@ interface AccessControlHierarchyInterface {
   /**
    * Provides configuration options.
    *
-   * @param $scheme
-   *   The id of an access control scheme.
    * @param $parents
    *   The selected parent roots of the hierarchy. e.g. a taxonomy vocabulary.
    *   The array contains the ids of the root items (e.g. a vocabulary id).
    */
-  public function configForm($scheme, $parents = array());
+  public function configForm($parents = array());
 
   /**
    * Validates configuration options.
@@ -157,11 +155,13 @@ interface AccessControlHierarchyInterface {
    *   The field element from a node form.
    * @param WorkbenchAccessManagerInterface $manager
    *   The access manager.
+   * @param array $user_sections
+   *   The user sections.
    *
    * @return $element
    *   The field element, after restricting selection options.
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager);
+  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []);
 
   /**
    * Gets any options that are set but cannot be changed by the editor.
@@ -189,7 +189,7 @@ interface AccessControlHierarchyInterface {
    * @param FormStateInterface $form_state
    *   The form_state object.
    */
-  public function submitEntity(array &$form, FormStateInterface $form_state);
+  public static function submitEntity(array &$form, FormStateInterface $form_state);
 
   /**
    * Returns information about how to join this section data to a base view table.

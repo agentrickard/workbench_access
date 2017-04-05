@@ -8,6 +8,7 @@ use Drupal\simpletest\NodeCreationTrait;
 use Drupal\simpletest\UserCreationTrait;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Tests workbench_access integration with node access APIs.
@@ -83,7 +84,7 @@ class NodeAccessTest extends KernelTestBase {
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WORKBENCH_ACCESS_FIELD} = $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $access_handler = $this->container->get('entity_type.manager')->getAccessControlHandler('node');
