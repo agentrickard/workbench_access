@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Plugin\views\filter\Section.
- */
-
 namespace Drupal\workbench_access\Plugin\views\filter;
 
 use Drupal\Core\Form\FormStateInterface;

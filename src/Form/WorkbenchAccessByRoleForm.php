@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Form\WorkbenchAccessByRoleForm.
- */
-
 namespace Drupal\workbench_access\Form;
 
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;

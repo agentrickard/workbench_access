@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Plugin\AccessControlHierarchy\Menu.
- */
-
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\workbench_access\AccessControlHierarchyBase;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Plugin\views\field\UserSection.
- */
-
 namespace Drupal\workbench_access\Plugin\views\field;
 
 use Drupal\workbench_access\Plugin\views\field\Section;

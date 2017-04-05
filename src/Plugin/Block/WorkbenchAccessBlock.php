@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Plugin\Block\WorkbenchAccessBlock.
- */
-
 namespace Drupal\workbench_access\Plugin\Block;
 
 use Drupal\Core\Access\AccessResult;

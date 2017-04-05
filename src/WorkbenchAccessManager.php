@@ -11,6 +11,9 @@ use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Session\AccountInterface;
 
+/**
+ * Defines a class for interacting with content and fields.
+ */
 class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAccessManagerInterface {
   use StringTranslationTrait;
 

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Plugin\views\field\Section.
- */
-
 namespace Drupal\workbench_access\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;

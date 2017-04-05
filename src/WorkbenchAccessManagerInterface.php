@@ -1,12 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\WorkbenchAccessManagerInterface.
- */
-
 namespace Drupal\workbench_access;
 
+/**
+ * Defines an interface handling Workbench Access configuration.
+ */
 interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, RoleSectionStorageInterface {
   const FIELD_NAME = 'field_workbench_access';
 

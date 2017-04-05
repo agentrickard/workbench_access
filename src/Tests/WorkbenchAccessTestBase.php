@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Tests\WorkbenchAccessTestBase
- */
-
 namespace Drupal\workbench_access\Tests;
 
 use Drupal\simpletest\WebTestBase;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Annotation\AccessControlHierarchy.
- */
-
 namespace Drupal\workbench_access\Annotation;
 
 use Drupal\Component\Annotation\Plugin;

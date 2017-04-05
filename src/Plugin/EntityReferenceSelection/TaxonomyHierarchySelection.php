@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Plugin\EntityReferenceSelection\TaxonomyHierarchySelection.
- */
-
 namespace Drupal\workbench_access\Plugin\EntityReferenceSelection;
 
 use Drupal\Component\Utility\Html;

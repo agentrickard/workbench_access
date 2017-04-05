@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Tests\WorkbenchAccessNodeTypeFormTest
- */
-
 namespace Drupal\workbench_access\Tests;
 
 use Drupal\workbench_access\Tests\WorkbenchAccessTestBase;

@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\Controller\WorkbenchAccessSections.
- */
-
 namespace Drupal\workbench_access\Controller;
 
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;

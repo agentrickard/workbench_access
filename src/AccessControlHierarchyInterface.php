@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\workbench_access\AccessControlHierarchyInterface.
- */
-
 namespace Drupal\workbench_access;
 
 use Drupal\workbench_access\WorkbenchAccessManager;
