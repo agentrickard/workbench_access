@@ -2,11 +2,10 @@
 
 namespace Drupal\workbench_access\Form;
 
+use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\State\StateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -22,13 +21,23 @@ class WorkbenchAccessByUserForm extends FormBase {
   protected $manager;
 
   /**
+   * The user section storage service.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
+   */
+  protected $userSectionStorage;
+
+  /**
    * Constructs a new WorkbenchAccessConfigForm.
    *
-   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface
+   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface $manager
    *   The Workbench Access hierarchy manager.
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
+   *   The user section storage service.
    */
-  public function __construct(WorkbenchAccessManagerInterface $manager) {
+  public function __construct(WorkbenchAccessManagerInterface $manager, UserSectionStorageInterface $user_section_storage) {
     $this->manager = $manager;
+    $this->userSectionStorage = $user_section_storage;
   }
 
   /**
@@ -36,7 +45,8 @@ class WorkbenchAccessByUserForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('plugin.manager.workbench_access.scheme')
+      $container->get('plugin.manager.workbench_access.scheme'),
+      $container->get('workbench_access.user_section_storage')
     );
   }
 
@@ -52,8 +62,8 @@ class WorkbenchAccessByUserForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
     $element = $this->manager->getElement($id);
-    $existing_editors = $this->manager->getEditors($id);
-    $potential_editors = $this->manager->getPotentialEditors($id);
+    $existing_editors = $this->userSectionStorage->getEditors($id);
+    $potential_editors = $this->userSectionStorage->getPotentialEditors($id);
 
     $form['existing_editors'] = ['#type' => 'value', '#value' => $existing_editors];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
@@ -95,11 +105,11 @@ class WorkbenchAccessByUserForm extends FormBase {
     foreach ($editors as $user_id => $value) {
       // Add user to section.
       if ($value && !isset($existing_editors[$user_id])) {
-        $this->manager->addUser($user_id, array($id));
+        $this->userSectionStorage->addUser($user_id, array($id));
       }
       // Remove user from section.
       if (!$value && isset($existing_editors[$user_id])) {
-        $this->manager->removeUser($user_id, array($id));
+        $this->userSectionStorage->removeUser($user_id, array($id));
       }
     }
   }
@@ -107,7 +117,7 @@ class WorkbenchAccessByUserForm extends FormBase {
   /**
    * Returns a dynamic page title for the route.
    *
-   * @param $id
+   * @param string $id
    *   The section id.
    *
    * @return string
