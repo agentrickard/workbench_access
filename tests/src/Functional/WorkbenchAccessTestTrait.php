@@ -93,8 +93,36 @@ trait WorkbenchAccessTestTrait {
       'delete any page content',
     ], 'editor');
 
+    return $this->createUserWithRole($editor_rid);
+  }
+
+  /**
+   * Sets up a user with an editor role that has access to content.
+   *
+   * @return \Drupal\user\Entity\User
+   *   The user entity.
+   */
+  protected function setUpAdminUser() {
+    $admin_rid = $this->createRole([
+      'access administration pages',
+      'assign workbench access',
+    ], 'admin');
+
+    return $this->createUserWithRole($admin_rid);
+  }
+
+  /**
+   * Sets up a user with a given role and saves it.
+   *
+   * @param string $rid
+   *    The role id.
+   *
+   * @return \Drupal\user\Entity\User
+   *   The user entity.
+   */
+  protected function createUserWithRole($rid) {
     $user = $this->createUser();
-    $user->addRole($editor_rid);
+    $user->addRole($rid);
     $user->save();
     return $user;
   }

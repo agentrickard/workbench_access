@@ -2,13 +2,11 @@
 
 namespace Drupal\workbench_access\Form;
 
+use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\State\StateInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 
 /**
  * Configure Workbench Access per role.
@@ -23,23 +21,23 @@ class WorkbenchAccessByRoleForm extends FormBase {
   protected $manager;
 
   /**
-   * The state keyvalue collection.
+   * The role section storage service.
    *
-   * @var \Drupal\Core\State\StateInterface
+   * @var \Drupal\workbench_access\RoleSectionStorageInterface
    */
-  protected $state;
+  protected $roleSectionStorage;
 
   /**
    * Constructs a new WorkbenchAccessConfigForm.
    *
-   * @param \Drupal\Core\State\StateInterface $state
-   *   The state keyvalue collection to use.
-   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface
+   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface $manager
    *   The Workbench Access hierarchy manager.
+   * @param \Drupal\workbench_access\RoleSectionStorageInterface $role_section_storage
+   *   The role section storage service.
    */
-  public function __construct(StateInterface $state, WorkbenchAccessManagerInterface $manager) {
-    $this->state = $state;
+  public function __construct(WorkbenchAccessManagerInterface $manager, RoleSectionStorageInterface $role_section_storage) {
     $this->manager = $manager;
+    $this->roleSectionStorage = $role_section_storage;
   }
 
   /**
@@ -47,8 +45,8 @@ class WorkbenchAccessByRoleForm extends FormBase {
    */
   public static function create(ContainerInterface $container) {
     return new static(
-      $container->get('state'),
-      $container->get('plugin.manager.workbench_access.scheme')
+      $container->get('plugin.manager.workbench_access.scheme'),
+      $container->get('workbench_access.role_section_storage')
     );
   }
 
@@ -64,8 +62,8 @@ class WorkbenchAccessByRoleForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
     $element = $this->manager->getElement($id);
-    $existing_roles = $this->manager->getRoles($id);
-    $potential_roles = $this->manager->getPotentialRoles($id);
+    $existing_roles = $this->roleSectionStorage->getRoles($id);
+    $potential_roles = $this->roleSectionStorage->getPotentialRoles($id);
 
     $form['existing_roles'] = ['#type' => 'value', '#value' => $existing_roles];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
@@ -107,11 +105,11 @@ class WorkbenchAccessByRoleForm extends FormBase {
     foreach ($roles as $role_id => $value) {
       // Add user to section.
       if ($value && !isset($existing_roles[$role_id])) {
-        $this->manager->addRole($role_id, array($id));
+        $this->roleSectionStorage->addRole($role_id, array($id));
       }
       // Remove user from section.
       if (!$value && isset($existing_roles[$role_id])) {
-        $this->manager->removeRole($role_id, array($id));
+        $this->roleSectionStorage->removeRole($role_id, array($id));
       }
     }
   }
@@ -119,7 +117,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
   /**
    * Returns a dynamic page title for the route.
    *
-   * @param $id
+   * @param string $id
    *   The section id.
    *
    * @return string

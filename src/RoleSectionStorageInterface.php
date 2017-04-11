@@ -35,9 +35,20 @@ interface RoleSectionStorageInterface {
   public function removeRole($role_id, $sections = array());
 
   /**
+   * Gets a list of potential roles.
+   *
+   * @param string $id
+   *   The section id.
+   *
+   * @return array
+   *   An array of roles keyed by rid with name values.
+   */
+  public function getPotentialRoles($id);
+
+  /**
    * Gets a list of roles assigned to a section.
    *
-   * @param $id
+   * @param string $id
    *   The section id.
    *
    * @return array

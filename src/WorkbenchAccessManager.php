@@ -314,7 +314,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function getEditors($id) {
     trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\UserSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
-    $this->userSectionStorage->getEditors($id);
+    return $this->userSectionStorage->getEditors($id);
   }
 
   /**
@@ -325,7 +325,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function getPotentialEditors($id) {
     trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\UserSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
-    $this->userSectionStorage->getPotentialEditors($id);
+    return $this->userSectionStorage->getPotentialEditors($id);
   }
 
   /**
@@ -336,7 +336,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function getUserSections($uid = NULL, $add_roles = TRUE) {
     trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\UserSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
-    $this->userSectionStorage->getUserSections($uid, $add_roles);
+    return $this->userSectionStorage->getUserSections($uid, $add_roles);
   }
 
   /**
@@ -400,7 +400,18 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    */
   public function getRoleSections(AccountInterface $account) {
     trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\RoleSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
-    $this->roleSectionStorage->getRoleSections($account);
+    return $this->roleSectionStorage->getRoleSections($account);
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @deprecated To be removed before 8.x-1.0 - use
+   *   \Drupal\workbench_access\RoleSectionStorage::getPotentialRoles() instead
+   */
+  public function getPotentialRoles($id) {
+    trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\RoleSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
+    return $this->roleSectionStorage->getPotentialRoles($id);
   }
 
 }
