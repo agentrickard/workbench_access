@@ -8,7 +8,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 
 /**
- * Defines a hierarchy based on a Vocaulary.
+ * Defines a hierarchy based on a Vocabulary.
  *
  * @AccessControlHierarchy(
  *   id = "taxonomy",

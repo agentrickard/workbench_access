@@ -88,7 +88,7 @@ class WorkbenchAccessByUserForm extends FormBase {
     else {
       $form['message'] = array(
         '#type' => 'markup',
-        '#markup' => '<p>' . $this->t('There are no addtional users that can be added to the %label section', array('%label' => $element['label'])) . '</p>',
+        '#markup' => '<p>' . $this->t('There are no additional users that can be added to the %label section', array('%label' => $element['label'])) . '</p>',
       );
     }
 
