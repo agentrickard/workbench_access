@@ -110,7 +110,7 @@ class Taxonomy extends AccessControlHierarchyBase {
       ->condition('field_type', 'entity_reference')
       ->sort('label')
       ->execute();
-    $fields = \Drupal::entityManager()->getStorage('field_config')->loadMultiple(array_keys($query));
+    $fields = \Drupal::entityTypeManager()->getStorage('field_config')->loadMultiple(array_keys($query));
     foreach ($fields as $id => $field) {
       $handler = $field->getSetting('handler');
       $settings = $field->getSetting('handler_settings');
