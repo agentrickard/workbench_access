@@ -156,8 +156,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     foreach ($node_types as $id => $type) {
       $form['workbench_access_status_' . $id] = array(
         '#type' => 'checkbox',
-        '#title' => t('Enable Workbench Access control for @type content.', array('@type' => $type->label())),
-        '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
+        '#title' => $this->t('Enable Workbench Access control for @type content.', array('@type' => $type->label())),
+        '#description' => $this->t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
         '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
       );
       $options = ['' => $this->t('No field set')];

@@ -88,7 +88,7 @@ class WorkbenchAccessSections extends ControllerBase implements ContainerInjecti
       }
       $build = [
         '#type' => 'table',
-        '#header' => [$config->get('plural_label'), t('Editors'), t('Roles')],
+        '#header' => [$config->get('plural_label'), $this->t('Editors'), $this->t('Roles')],
         '#rows' => $rows,
       ];
     }
