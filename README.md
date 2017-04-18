@@ -82,6 +82,8 @@ Access controls are controlled by the `WorkbenchAccessManager` class but the ind
 ### Data storage
 Access is granted either at the `user` or `role` level. User-level access is stored in the field `user.field_workbench_access`, which installs with the module. Role-level access is stored in the `state` system. We use the state system instead of config because access control hierarchies are typically content entities, which cannot be exported via config.
 
+*This storage is now a service, and swappable. In the future, we will likely replace the current storage with an entity-based system.*
+
 This means that base configuration of Workbench Access is config-exportable, but the actual access control assignments are not. This is a limitation of Drupal 8's design.
 
 Content-level data is stored on individual fields, which must be created and assigned via the Workbench Access configuration page at `admin/config/workflow/workbench_access`.
