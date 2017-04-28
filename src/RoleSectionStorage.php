@@ -37,7 +37,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function addRole($role_id, $sections = array()) {
+  public function addRole($role_id, $sections = []) {
     $settings = $this->loadRoleSections($role_id);
     foreach ($sections as $id) {
       $settings[$id] = 1;
@@ -48,7 +48,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function removeRole($role_id, $sections = array()) {
+  public function removeRole($role_id, $sections = []) {
     $settings = $this->loadRoleSections($role_id);
     foreach ($sections as $id) {
       if (isset($settings[$id])) {

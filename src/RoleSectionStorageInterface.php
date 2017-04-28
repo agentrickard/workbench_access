@@ -22,7 +22,7 @@ interface RoleSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this role.
    */
-  public function addRole($role_id, $sections = array());
+  public function addRole($role_id, $sections = []);
 
   /**
    * Reomves a set of sections to a role.
@@ -32,7 +32,7 @@ interface RoleSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this role.
    */
-  public function removeRole($role_id, $sections = array());
+  public function removeRole($role_id, $sections = []);
 
   /**
    * Gets a list of potential roles.

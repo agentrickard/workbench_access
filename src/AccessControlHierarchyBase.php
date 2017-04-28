@@ -149,32 +149,32 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function configForm($parents = array()) {
+  public function configForm($parents = []) {
     $node_types = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
     $form = [];
     /** @var \Drupal\node\NodeTypeInterface $type */
     foreach ($node_types as $id => $type) {
-      $form['workbench_access_status_' . $id] = array(
+      $form['workbench_access_status_' . $id] = [
         '#type' => 'checkbox',
-        '#title' => $this->t('Enable Workbench Access control for @type content.', array('@type' => $type->label())),
-        '#description' => $this->t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
+        '#title' => $this->t('Enable Workbench Access control for @type content.', ['@type' => $type->label()]),
+        '#description' => $this->t('If selected, all @type content will be subject to editorial access restrictions.', ['@type' => $type->label()]),
         '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
-      );
+      ];
       $options = ['' => $this->t('No field set')];
       $options += $this->getFields('node', $type->id(), $parents);
       if (!empty($options)) {
-        $form['field_' . $id] = array(
+        $form['field_' . $id] = [
           '#type' => 'select',
           '#title' => $this->t('Access control field'),
           '#options' => $options,
           '#default_value' => $this->fields('node', $type->id()),
-        );
+        ];
       }
       else {
-        $form['field_' . $id] = array(
+        $form['field_' . $id] = [
           '#type' => 'markup',
           '#markup' => $this->t('There are no eligible fields on this content type.'),
-        );
+        ];
       }
     }
     return $form;
@@ -259,7 +259,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function getEntityValues(EntityInterface $entity, $field) {
-    $values = array();
+    $values = [];
     foreach ($entity->get($field)->getValue() as $item) {
       if (isset($item['target_id'])) {
         $values[] = $item['target_id'];
@@ -273,7 +273,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public function fields($entity_type, $bundle) {
     $fields = $this->config->get('fields');
-    return isset($fields[$entity_type][$bundle]) ? $fields[$entity_type][$bundle] : array();
+    return isset($fields[$entity_type][$bundle]) ? $fields[$entity_type][$bundle] : [];
   }
 
   /**

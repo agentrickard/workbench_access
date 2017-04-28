@@ -84,7 +84,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function addUser($user_id, $sections = array()) {
+  public function addUser($user_id, $sections = []) {
     $entity = $this->userStorage->load($user_id);
     $values = $this->getUserSections($user_id, FALSE);
     $new = array_merge($values, $sections);
@@ -95,7 +95,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function removeUser($user_id, $sections = array()) {
+  public function removeUser($user_id, $sections = []) {
     $entity = $this->userStorage->load($user_id);
     $values = $this->getUserSections($user_id, FALSE);
     $new = array_flip($values);
@@ -160,7 +160,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  protected function filterByPermission($users = array()) {
+  protected function filterByPermission($users = []) {
     $list = [];
     $entities = $this->userStorage->loadMultiple($users);
     foreach ($entities as $account) {

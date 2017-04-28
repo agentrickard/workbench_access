@@ -15,7 +15,7 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
    *
    * @var array
    */
-  public static $modules = array('workbench_access', 'node', 'taxonomy', 'menu_ui', 'options');
+  public static $modules = ['workbench_access', 'node', 'taxonomy', 'menu_ui', 'options'];
 
   /**
    * The Workbench Access manager class.
@@ -37,8 +37,8 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
-    $this->drupalCreateContentType(array('type' => 'page', 'name' => 'Basic page'));
+    $this->drupalCreateContentType(['type' => 'article', 'name' => 'Article']);
+    $this->drupalCreateContentType(['type' => 'page', 'name' => 'Basic page']);
 
     // Install our base taxonomy.
     $this->installTaxonomy();
@@ -78,16 +78,16 @@ abstract class WorkbenchAccessTestBase extends WebTestBase {
     // Create nine nodes, each assigned to a taxonomy term.
     // Terms 11 and 12 will have no assignees.
     for ($i = 1; $i <= 10; $i++) {
-      $this->nodes[] = $this->drupalCreateNode(array(
+      $this->nodes[] = $this->drupalCreateNode([
         'type' => 'article',
-        WorkbenchAccessManagerInterface::FIELD_NAME => array($i),
-      ));
+        WorkbenchAccessManagerInterface::FIELD_NAME => [$i],
+      ]);
     }
     // Create two page nodes for testing.
     for ($i = 1; $i <= 2; $i++) {
-      $this->nodes[] = $this->drupalCreateNode(array(
+      $this->nodes[] = $this->drupalCreateNode([
         'type' => 'page',
-      ));
+      ]);
     }
   }
 

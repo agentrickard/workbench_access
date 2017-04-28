@@ -58,9 +58,9 @@ class Section extends ManyToOne {
     $options = parent::defineOptions();
 
     $options['operator']['default'] = 'in';
-    $options['value']['default'] = array('All');
-    $options['expose']['contains']['reduce'] = array('default' => TRUE);
-    $options['section_filter']['contains']['show_hierarchy'] = array('default' => TRUE);
+    $options['value']['default'] = ['All'];
+    $options['expose']['contains']['reduce'] = ['default' => TRUE];
+    $options['section_filter']['contains']['show_hierarchy'] = ['default' => TRUE];
 
     return $options;
   }
@@ -77,22 +77,22 @@ class Section extends ManyToOne {
    * {@inheritdoc}
    */
   function operators() {
-    $operators = array(
-      'in' => array(
+    $operators = [
+      'in' => [
         'title' => $this->t('Is one of'),
         'short' => $this->t('in'),
         'short_single' => $this->t('='),
         'method' => 'opSimple',
         'values' => 1,
-      ),
-      'not in' => array(
+      ],
+      'not in' => [
         'title' => $this->t('Is not one of'),
         'short' => $this->t('not in'),
         'short_single' => $this->t('<>'),
         'method' => 'opSimple',
         'values' => 1,
-      ),
-    );
+      ],
+    ];
     return $operators;
   }
 
@@ -142,7 +142,7 @@ class Section extends ManyToOne {
       if (isset($value)) {
         $this->value = $value;
         if (empty($this->alwaysMultiple) && empty($this->options['expose']['multiple']) && !is_array($value)) {
-          $this->value = array($value);
+          $this->value = [$value];
         }
       }
       else {

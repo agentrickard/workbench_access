@@ -27,16 +27,16 @@ class Taxonomy extends AccessControlHierarchyBase {
   public function getTree() {
     if (!isset($this->tree)) {
       $parents = $this->config->get('parents');
-      $tree = array();
+      $tree = [];
       foreach ($parents as $id => $label) {
         if ($vocabulary = Vocabulary::load($id)) {
-          $tree[$id][$id] = array(
+          $tree[$id][$id] = [
             'label' => $vocabulary->label(),
             'depth' => 0,
             'parents' => [],
             'weight' => 0,
             'description' => $vocabulary->label(),
-          );
+          ];
           // @TODO: It is possible that this will return a filtered set, if
           // term_access is applied to the query.
           $data = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($id);
@@ -64,14 +64,14 @@ class Taxonomy extends AccessControlHierarchyBase {
    */
   protected function buildTree($id, $data, &$tree) {
     foreach ($data as $term) {
-      $tree[$id][$term->tid] = array(
+      $tree[$id][$term->tid] = [
         'id' => $term->tid,
         'label' => $term->name,
         'depth' => $term->depth + 1,
         'parents' => $this->convertParents($term, $id), // @TODO: This doesn't return what we want.
         'weight' => $term->weight,
         'description' => $term->description__value, // @TODO: security
-      );
+      ];
       foreach ($tree[$id][$term->tid]['parents'] as $key) {
         if (!empty($tree[$id][$key]['parents'])) {
           $tree[$id][$term->tid]['parents'] = array_unique(array_merge($tree[$id][$key]['parents'], $tree[$id][$term->tid]['parents']));

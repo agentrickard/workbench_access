@@ -68,28 +68,28 @@ class WorkbenchAccessByRoleForm extends FormBase {
     $form['existing_roles'] = ['#type' => 'value', '#value' => $existing_roles];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
     if (!$existing_roles) {
-      $text = $this->t('There are no roles assigned to the %label section.', array('%label' => $element['label']));
-      $form['help'] = array(
+      $text = $this->t('There are no roles assigned to the %label section.', ['%label' => $element['label']]);
+      $form['help'] = [
         '#type' => 'markup',
         '#markup' => '<p>' . $text . '</p>',
-      );
+      ];
     }
 
     if ($potential_roles) {
-      $form['roles'] = array(
-        '#title' => $this->t('Roles for the %label section.', array('%label' => $element['label'])),
+      $form['roles'] = [
+        '#title' => $this->t('Roles for the %label section.', ['%label' => $element['label']]),
         '#type' => 'checkboxes',
         '#options' => $potential_roles,
         '#default_value' => array_keys($existing_roles),
-      );
-      $form['actions'] = array('#type' => 'actions');
-      $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Submit'));
+      ];
+      $form['actions'] = ['#type' => 'actions'];
+      $form['actions']['submit'] = ['#type' => 'submit', '#value' => $this->t('Submit')];
     }
     else {
-      $form['message'] = array(
+      $form['message'] = [
         '#type' => 'markup',
-        '#markup' => '<p>' . $this->t('There are no addtional users that can be added to the %label section', array('%label' => $element['label'])) . '</p>',
-      );
+        '#markup' => '<p>' . $this->t('There are no addtional users that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
+      ];
     }
 
     return $form;
@@ -105,11 +105,11 @@ class WorkbenchAccessByRoleForm extends FormBase {
     foreach ($roles as $role_id => $value) {
       // Add user to section.
       if ($value && !isset($existing_roles[$role_id])) {
-        $this->roleSectionStorage->addRole($role_id, array($id));
+        $this->roleSectionStorage->addRole($role_id, [$id]);
       }
       // Remove user from section.
       if (!$value && isset($existing_roles[$role_id])) {
-        $this->roleSectionStorage->removeRole($role_id, array($id));
+        $this->roleSectionStorage->removeRole($role_id, [$id]);
       }
     }
   }
@@ -125,7 +125,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
    */
   public function pageTitle($id) {
     $element = $this->manager->getElement($id);
-    return $this->t('Roles assigned to %label', array('%label' => $element['label']));
+    return $this->t('Roles assigned to %label', ['%label' => $element['label']]);
   }
 
 }

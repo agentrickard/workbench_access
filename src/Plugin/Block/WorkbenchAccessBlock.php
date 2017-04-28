@@ -22,7 +22,7 @@ class WorkbenchAccessBlock extends BlockBase {
    * {@inheritdoc}
    */
   public function build() {
-    $build = array();
+    $build = [];
     if ($node = \Drupal::routeMatch()->getParameter('node')) {
       $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
       if ($scheme = $manager->getActiveScheme()) {
@@ -47,7 +47,7 @@ class WorkbenchAccessBlock extends BlockBase {
    * {@inheritdoc}
    */
   protected function blockAccess(AccountInterface $account) {
-    return AccessResult::allowedIfHasPermissions($account, array('administer workbench access', 'view workbench access information'), 'OR');
+    return AccessResult::allowedIfHasPermissions($account, ['administer workbench access', 'view workbench access information'], 'OR');
   }
 
   /**

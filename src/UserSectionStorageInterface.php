@@ -15,7 +15,7 @@ interface UserSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this user.
    */
-  public function addUser($user_id, $sections = array());
+  public function addUser($user_id, $sections = []);
 
   /**
    * Removes a set of sections to a user.
@@ -25,7 +25,7 @@ interface UserSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this user.
    */
-  public function removeUser($user_id, $sections = array());
+  public function removeUser($user_id, $sections = []);
 
   /**
    * Gets a list of editors assigned to a section.

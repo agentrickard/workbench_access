@@ -22,13 +22,13 @@ class WorkbenchAccessNodeTypeFormTest extends WorkbenchAccessTestBase {
   protected function setUp() {
     parent::setUp();
 
-    $this->editor = $this->drupalCreateUser(array(
+    $this->editor = $this->drupalCreateUser([
       'access administration pages',
       'administer content types',
       'create page content',
       'edit any page content',
       'delete any page content',
-    ));
+    ]);
     $this->drupalLogin($this->editor);
   }
 
@@ -48,7 +48,7 @@ class WorkbenchAccessNodeTypeFormTest extends WorkbenchAccessTestBase {
     $this->assertNoText($string);
 
     // Set permission to 'administer workbench access'.
-    user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, array('administer workbench access'));
+    user_role_grant_permissions(DRUPAL_AUTHENTICATED_RID, ['administer workbench access']);
 
     // Workbench Access should be visible.
     $this->drupalGet('admin/structure/types/manage/page');

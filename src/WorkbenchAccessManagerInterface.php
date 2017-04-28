@@ -83,7 +83,7 @@ interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, R
    * @param array $sections
    *   An array of section ids to assign to this entity.
    */
-  public function addEntity($entity_id, $entity_type, $sections = array());
+  public function addEntity($entity_id, $entity_type, $sections = []);
 
   /**
    * Removes a set of sections to an entity.
@@ -95,7 +95,7 @@ interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, R
    * @param array $sections
    *   An array of section ids to assign to this entity.
    */
-  public function removeEntity($entity_id, $entity_type, $sections = array());
+  public function removeEntity($entity_id, $entity_type, $sections = []);
 
   /**
    * Checks that an entity belongs to a user section or its children.

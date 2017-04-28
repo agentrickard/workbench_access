@@ -36,17 +36,17 @@ class Menu extends AccessControlHierarchyBase {
   public function getTree() {
     if (!isset($this->tree)) {
       $parents = $this->config->get('parents');
-      $tree = array();
+      $tree = [];
       $this->menuTree = \Drupal::getContainer()->get('menu.link_tree');
       foreach ($parents as $id => $label) {
         if ($menu = MenuEntity::load($id)) {
-          $tree[$id][$id] = array(
+          $tree[$id][$id] = [
             'label' => $menu->label(),
             'depth' => 0,
             'parents' => [],
             'weight' => 0,
             'description' => $menu->label(),
-          );
+          ];
           $params = new MenuTreeParameters();
           $data = $this->menuTree->load($id, $params);
           $this->tree = $this->buildTree($id, $data, $tree);
@@ -73,14 +73,14 @@ class Menu extends AccessControlHierarchyBase {
    */
   protected function buildTree($id, $data, &$tree) {
     foreach ($data as $link_id => $link) {
-      $tree[$id][$link_id] = array(
+      $tree[$id][$link_id] = [
         'id' => $link_id,
         'label' => $link->link->getTitle(),
         'depth' => $link->depth,
         'parents' => [],
         'weight' => $link->link->getWeight(),
         'description' => $link->link->getDescription(),
-      );
+      ];
       // Get the parents.
       if ($parent = $link->link->getParent()) {
         $tree[$id][$link_id]['parents'] = array_unique(array_merge($tree[$id][$link_id]['parents'], [$parent]));
@@ -133,7 +133,7 @@ class Menu extends AccessControlHierarchyBase {
    * {@inheritdoc}
    */
   public function getEntityValues(EntityInterface $entity, $field) {
-    $values = array();
+    $values = [];
     $defaults = menu_ui_get_menu_link_defaults($entity);
     if (!empty($defaults['id'])) {
       $values = [$defaults['id']];
@@ -147,7 +147,7 @@ class Menu extends AccessControlHierarchyBase {
   public function disallowedOptions($field) {
     // On the menu form, we never remove an existing parent item, so there is
     // no concept of a disallowed option.
-    return array();
+    return [];
   }
 
   /**

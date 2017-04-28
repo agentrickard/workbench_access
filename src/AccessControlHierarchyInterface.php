@@ -101,7 +101,7 @@ interface AccessControlHierarchyInterface {
    *   The selected parent roots of the hierarchy. e.g. a taxonomy vocabulary.
    *   The array contains the ids of the root items (e.g. a vocabulary id).
    */
-  public function configForm($parents = array());
+  public function configForm($parents = []);
 
   /**
    * Validates configuration options.

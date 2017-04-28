@@ -68,28 +68,28 @@ class WorkbenchAccessByUserForm extends FormBase {
     $form['existing_editors'] = ['#type' => 'value', '#value' => $existing_editors];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
     if (!$existing_editors) {
-      $text = $this->t('There are no editors assigned to the %label section.', array('%label' => $element['label']));
-      $form['help'] = array(
+      $text = $this->t('There are no editors assigned to the %label section.', ['%label' => $element['label']]);
+      $form['help'] = [
         '#type' => 'markup',
         '#markup' => '<p>' . $text . '</p>',
-      );
+      ];
     }
 
     if ($potential_editors) {
-      $form['editors'] = array(
-        '#title' => $this->t('Editors for the %label section.', array('%label' => $element['label'])),
+      $form['editors'] = [
+        '#title' => $this->t('Editors for the %label section.', ['%label' => $element['label']]),
         '#type' => 'checkboxes',
         '#options' => $potential_editors,
         '#default_value' => array_keys($existing_editors),
-      );
-      $form['actions'] = array('#type' => 'actions');
-      $form['actions']['submit'] = array('#type' => 'submit', '#value' => $this->t('Submit'));
+      ];
+      $form['actions'] = ['#type' => 'actions'];
+      $form['actions']['submit'] = ['#type' => 'submit', '#value' => $this->t('Submit')];
     }
     else {
-      $form['message'] = array(
+      $form['message'] = [
         '#type' => 'markup',
-        '#markup' => '<p>' . $this->t('There are no additional users that can be added to the %label section', array('%label' => $element['label'])) . '</p>',
-      );
+        '#markup' => '<p>' . $this->t('There are no additional users that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
+      ];
     }
 
     return $form;
@@ -105,11 +105,11 @@ class WorkbenchAccessByUserForm extends FormBase {
     foreach ($editors as $user_id => $value) {
       // Add user to section.
       if ($value && !isset($existing_editors[$user_id])) {
-        $this->userSectionStorage->addUser($user_id, array($id));
+        $this->userSectionStorage->addUser($user_id, [$id]);
       }
       // Remove user from section.
       if (!$value && isset($existing_editors[$user_id])) {
-        $this->userSectionStorage->removeUser($user_id, array($id));
+        $this->userSectionStorage->removeUser($user_id, [$id]);
       }
     }
   }
@@ -125,7 +125,7 @@ class WorkbenchAccessByUserForm extends FormBase {
    */
   public function pageTitle($id) {
     $element = $this->manager->getElement($id);
-    return $this->t('Editors assigned to %label', array('%label' => $element['label']));
+    return $this->t('Editors assigned to %label', ['%label' => $element['label']]);
   }
 
 }

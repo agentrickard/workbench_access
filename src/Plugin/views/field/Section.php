@@ -34,11 +34,11 @@ class Section extends FieldPluginBase {
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
-    $form['separator'] = array(
+    $form['separator'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Separator'),
       '#default_value' => $this->options['separator'],
-    );
+    ];
     return $form;
   }
 
@@ -47,9 +47,9 @@ class Section extends FieldPluginBase {
    */
   protected function defineOptions() {
     $options = parent::defineOptions();
-    $options['separator'] = array(
+    $options['separator'] = [
       'default' => ', '
-    );
+    ];
 
     return $options;
   }

@@ -81,8 +81,8 @@ class WorkbenchAccessSections extends ControllerBase implements ContainerInjecti
           $role_count = count($this->roleSectionStorage->getRoles($iid));
           $row = [];
           $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
-          $row[] = Link::fromTextAndUrl($this->t('@count editors', ['@count' => $editor_count]), Url::fromRoute('workbench_access.by_user', array('id' => $iid)));
-          $row[] = Link::fromTextAndUrl($this->t('@count roles', ['@count' => $role_count]), Url::fromRoute('workbench_access.by_role', array('id' => $iid)));
+          $row[] = Link::fromTextAndUrl($this->t('@count editors', ['@count' => $editor_count]), Url::fromRoute('workbench_access.by_user', ['id' => $iid]));
+          $row[] = Link::fromTextAndUrl($this->t('@count roles', ['@count' => $role_count]), Url::fromRoute('workbench_access.by_role', ['id' => $iid]));
           $rows[] = $row;
         }
       }
