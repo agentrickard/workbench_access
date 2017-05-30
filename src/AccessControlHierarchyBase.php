@@ -214,25 +214,27 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
+    // @TODO: Check for super-admin?
+    // We don't care about the View operation right now.
+    if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
+      // Return early.
+      return AccessResult::neutral();
+    }
+
     // Check that the content type is configured.
     // @TODO: Right now this only handles nodes.
     /** @var \Drupal\node\NodeTypeInterface $type */
-    $type = $this->entityTypeManager->getStorage('node_type')->load($entity->bundle());
-    $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
+    $active = FALSE;
+    if ($type = $this->entityTypeManager->getStorage('node_type')->load($entity->bundle())) {
+      $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
+    }
 
     if (!$active) {
+      // No such node-type or not-active.
       return AccessResult::neutral();
     }
 
-    // Get the field data.
-    $field = $this->fields('node', $type->id());
-
-    // @TODO: Check for super-admin?
-    // We don't care about the View operation right now.
-    if ($op == 'view' || $account->hasPermission('bypass workbench access')) {
-      return AccessResult::neutral();
-    }
-    elseif ($active && !empty($field)) {
+    if ($field = $this->fields('node', $type->id())) {
       // Discover the field and check status.
       $entity_sections = $this->getEntityValues($entity, $field);
       // If no value is set on the entity, ignore.

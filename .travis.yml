@@ -36,8 +36,9 @@ before_install:
   - composer self-update
 
 install:
-  # Install Drush.
-  - composer global require drush/drush:8.*
+  # Install Drush. We need to pin this to 8.1.5 because there are compatability
+  # issues with symfony/console 2.8/3.0 in later versions.
+  - composer global require drush/drush:8.1.5
   - phpenv rehash
 
   # Create database.
