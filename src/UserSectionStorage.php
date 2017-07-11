@@ -90,6 +90,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     $new = array_merge($values, $sections);
     $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, $new);
     $entity->save();
+    $this->userSectionCache[$user_id] = $new;
   }
 
   /**
@@ -104,6 +105,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     }
     $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_keys($new));
     $entity->save();
+    $this->userSectionCache[$user_id] = array_keys($new);
   }
 
   /**
