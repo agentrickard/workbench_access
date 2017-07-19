@@ -33,3 +33,14 @@ function workbench_access_uninstall() {
     }
   }
 }
+
+/**
+ * Add the setting to deny access to unassigned content.
+ */
+function workbench_access_update_8001() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('workbench_access.settings');
+  $config->set('deny_on_empty', 0);
+  $config->save(TRUE);
+}
+
