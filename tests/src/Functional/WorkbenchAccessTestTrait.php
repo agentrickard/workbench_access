@@ -65,7 +65,7 @@ trait WorkbenchAccessTestTrait {
       'field_storage' => $field_storage,
       'bundle' => $node_type->id(),
       'settings' => [
-        'handler' => 'default:taxonomy_term',
+        'handler' => 'workbench_access:taxonomy_term',
         'handler_settings' => [
           'target_bundles' => [
             $vocab->id() => $vocab->id(),
