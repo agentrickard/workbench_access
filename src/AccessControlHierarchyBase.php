@@ -48,6 +48,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * @var \Drupal\Core\Config\ImmutableConfig
    */
   protected $config;
+
   /**
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
@@ -239,7 +240,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $entity_sections = $this->getEntityValues($entity, $field);
       // If no value is set on the entity, ignore.
       // @TODO: Is this the correct logic? It is helpful for new installs.
-      if (empty($entity_sections)) {
+      $deny_on_empty = $this->config->get('deny_on_empty');
+
+      if (!$deny_on_empty && empty($entity_sections)) {
         return AccessResult::neutral();
       }
       $user_sections = $this->userSectionStorage->getUserSections($account->id());
