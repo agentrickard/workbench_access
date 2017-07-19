@@ -41,7 +41,8 @@ class UserSection extends Section {
         $sections = $manager->getAllSections(TRUE);
       }
       else {
-        $sections = $manager->getUserSections($uid);
+        $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
+        $sections = $user_section_storage->getUserSections($uid);
       }
       $output = [];
       $tree = $manager->getActiveTree();

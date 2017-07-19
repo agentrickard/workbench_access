@@ -63,17 +63,17 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    *   Plugin ID.
    * @param mixed $plugin_definition
    *   Plugin definition.
-   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
    *   User section storage.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Config factory.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity type manager.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, UserSectionStorageInterface $userSectionStorage, ConfigFactoryInterface $configFactory, EntityTypeManagerInterface $entityTypeManager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, UserSectionStorageInterface $user_section_storage, ConfigFactoryInterface $configFactory, EntityTypeManagerInterface $entityTypeManager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->config = $configFactory->get('workbench_access.settings');
-    $this->userSectionStorage = $userSectionStorage;
+    $this->userSectionStorage = $user_section_storage;
     $this->entityTypeManager = $entityTypeManager;
   }
 

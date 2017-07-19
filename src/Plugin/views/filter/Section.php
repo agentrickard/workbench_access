@@ -24,6 +24,7 @@ class Section extends ManyToOne {
   public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
     parent::init($view, $display, $options);
     $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+    $this->userSectionStorage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
     $this->scheme = $this->manager->getActiveScheme();
   }
 
@@ -40,7 +41,7 @@ class Section extends ManyToOne {
         $list = $this->manager->getAllSections();
       }
       else {
-        $list = $this->manager->getUserSections();
+        $list = $this->userSectionStorage->getUserSections();
       }
       foreach($list as $id) {
         if ($section = $this->manager->getElement($id)) {
@@ -165,7 +166,7 @@ class Section extends ManyToOne {
       }
       else {
         // This method will get all user sections and children.
-        $values = $this->manager->getUserSections();
+        $values = $this->userSectionStorage->getUserSections();
       }
     }
     if (!empty($this->table)) {
