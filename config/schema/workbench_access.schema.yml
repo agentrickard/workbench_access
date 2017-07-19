@@ -11,6 +11,9 @@ workbench_access.settings:
       sequence:
         type: string
         label: 'Parent'
+    deny_on_empty:
+      type: boolean
+      label: 'Deny access to unassigned content'
     label:
       type: text
       label: 'Label shown to define a Workbench Access control group.'
