@@ -78,27 +78,27 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    *   The module handler.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity type manager.
-   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
    *   User section storage.
-   * @param \Drupal\workbench_access\RoleSectionStorageInterface $roleSectionStorage
+   * @param \Drupal\workbench_access\RoleSectionStorageInterface $role_section_storage
    *   Role section storage.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Config factory.
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   Current user.
    */
-  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, EntityTypeManagerInterface $entityTypeManager, UserSectionStorageInterface $userSectionStorage, RoleSectionStorageInterface $roleSectionStorage, ConfigFactoryInterface $configFactory, AccountInterface $currentUser) {
+  public function __construct(\Traversable $namespaces, CacheBackendInterface $cache_backend, ModuleHandlerInterface $module_handler, EntityTypeManagerInterface $entityTypeManager, UserSectionStorageInterface $user_section_storage, RoleSectionStorageInterface $role_section_storage, ConfigFactoryInterface $configFactory, AccountInterface $currentUser) {
     parent::__construct('Plugin/AccessControlHierarchy', $namespaces, $module_handler, 'Drupal\workbench_access\AccessControlHierarchyInterface', 'Drupal\workbench_access\Annotation\AccessControlHierarchy');
 
     $this->alterInfo('workbench_access_info');
     $this->setCacheBackend($cache_backend, 'workbench_access_plugins');
     $this->moduleHandler = $module_handler;
     $this->namespaces = $namespaces;
-    $this->userSectionStorage = $userSectionStorage;
+    $this->userSectionStorage = $user_section_storage;
     $this->configFactory = $configFactory;
     $this->currentUser = $currentUser;
     $this->entityTypeManager = $entityTypeManager;
-    $this->roleSectionStorage = $roleSectionStorage;
+    $this->roleSectionStorage = $role_section_storage;
   }
 
   /**

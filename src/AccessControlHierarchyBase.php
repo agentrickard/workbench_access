@@ -48,6 +48,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * @var \Drupal\Core\Config\ImmutableConfig
    */
   protected $config;
+
   /**
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
@@ -62,17 +63,17 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    *   Plugin ID.
    * @param mixed $plugin_definition
    *   Plugin definition.
-   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
    *   User section storage.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
    *   Config factory.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity type manager.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, UserSectionStorageInterface $userSectionStorage, ConfigFactoryInterface $configFactory, EntityTypeManagerInterface $entityTypeManager) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, UserSectionStorageInterface $user_section_storage, ConfigFactoryInterface $configFactory, EntityTypeManagerInterface $entityTypeManager) {
     parent::__construct($configuration, $plugin_id, $plugin_definition);
     $this->config = $configFactory->get('workbench_access.settings');
-    $this->userSectionStorage = $userSectionStorage;
+    $this->userSectionStorage = $user_section_storage;
     $this->entityTypeManager = $entityTypeManager;
   }
 
@@ -239,7 +240,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $entity_sections = $this->getEntityValues($entity, $field);
       // If no value is set on the entity, ignore.
       // @TODO: Is this the correct logic? It is helpful for new installs.
-      if (empty($entity_sections)) {
+      $deny_on_empty = $this->config->get('deny_on_empty');
+
+      if (!$deny_on_empty && empty($entity_sections)) {
         return AccessResult::neutral();
       }
       $user_sections = $this->userSectionStorage->getUserSections($account->id());

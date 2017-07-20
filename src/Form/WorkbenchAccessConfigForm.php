@@ -3,6 +3,8 @@
 namespace Drupal\workbench_access\Form;
 
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\workbench_access\RoleSectionStorageInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -29,6 +31,20 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
   protected $state;
 
   /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
+   */
+  protected $userSectionStorage;
+
+  /**
+   * Role section storage.
+   *
+   * @var \Drupal\workbench_access\RoleSectionStorageInterface
+   */
+  protected $roleSectionStorage;
+
+  /**
    * Constructs a new WorkbenchAccessConfigForm.
    *
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
@@ -37,11 +53,17 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
    *   The state keyvalue collection to use.
    * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface
    *   The Workbench Access hierarchy manager.
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
+   *   User section storage.
+   * @param \Drupal\workbench_access\RoleSectionStorageInterface $role_section_storage
+   *   Role section storage.
    */
-  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, WorkbenchAccessManagerInterface $manager) {
+  public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, WorkbenchAccessManagerInterface $manager, UserSectionStorageInterface $user_section_storage, RoleSectionStorageInterface $role_section_storage) {
     parent::__construct($config_factory);
     $this->state = $state;
     $this->manager = $manager;
+    $this->userSectionStorage = $user_section_storage;
+    $this->roleSectionStorage = $role_section_storage;
   }
 
   /**
@@ -51,7 +73,9 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     return new static(
       $container->get('config.factory'),
       $container->get('state'),
-      $container->get('plugin.manager.workbench_access.scheme')
+      $container->get('plugin.manager.workbench_access.scheme'),
+      $container->get('workbench_access.user_section_storage'),
+      $container->get('workbench_access.role_section_storage')
     );
   }
 
@@ -139,6 +163,16 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
       ];
       $form['custom'] += $custom;
     }
+    $form['behavior'] = [
+      '#type' => 'details',
+      '#title' => $this->t('Advanced behaviors'),
+    ];
+    $form['behavior']['deny_on_empty'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Deny access to unassigned content'),
+      '#default_value' => $config->get('deny_on_empty', 0),
+      '#description' => $this->t('For content under access control, deny access for any content not assigned to a section. This setting is off by default so that installing the module does not break existing site behavior.'),
+    ];
     $form['labels'] = [
       '#type' => 'details',
       '#title' => $this->t('Labels'),
@@ -166,7 +200,8 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('workbench_access.settings');
-    $config->set('label', $form_state->getValue('label'))
+    $config->set('deny_on_empty', $form_state->getValue('deny_on_empty'))
+      ->set('label', $form_state->getValue('label'))
       ->set('plural_label', $form_state->getValue('plural_label'));
     $new_scheme = $form_state->getValue('scheme');
     if ($config->get('scheme') !== $new_scheme) {
@@ -193,8 +228,8 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     $reset_scheme = $form_state->getValue('reset_scheme');
     if (!empty($reset_scheme)) {
       // Flush access data on scheme change.
-      $this->manager->flushRoles();
-      $this->manager->flushUsers();
+      $this->roleSectionStorage->flushRoles();
+      $this->userSectionStorage->flushUsers();
       $this->manager->flushFields();
     }
     drupal_set_message($this->t('Access scheme updated.'));

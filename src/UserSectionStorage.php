@@ -45,13 +45,13 @@ class UserSectionStorage implements UserSectionStorageInterface {
    *   Entity type manager.
    * @param \Drupal\Core\Session\AccountInterface $currentUser
    *   Current user.
-   * @param \Drupal\workbench_access\RoleSectionStorageInterface $roleSectionStorage
+   * @param \Drupal\workbench_access\RoleSectionStorageInterface $role_section_storage
    *   Role section storage.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, AccountInterface $currentUser, RoleSectionStorageInterface $roleSectionStorage) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, AccountInterface $currentUser, RoleSectionStorageInterface $role_section_storage) {
     $this->userStorage = $entityTypeManager->getStorage('user');
     $this->currentUser = $currentUser;
-    $this->roleSectionStorage = $roleSectionStorage;
+    $this->roleSectionStorage = $role_section_storage;
   }
 
   /**

@@ -120,8 +120,10 @@ function drush_workbench_access_test() {
  */
 function drush_workbench_access_flush() {
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-  $manager->flushRoles();
-  $manager->flushUsers();
+  $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
+  $role_section_storage = \Drupal::getContainer()->get('workbench_access.role_section_storage');
+  $role_section_storage->flushRoles();
+  $user_section_storage->flushUsers();
   $manager->flushFields();
   drush_print('User and role assignments cleared. Field assigments reset.');
 }
