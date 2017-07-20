@@ -51,6 +51,9 @@ Note that user sections are currently stored as a field on the user account. How
 they are not intended to be edited from the account page. These fields should be hidden
 by the module's installation process.
 
+You can check this configuration by going to `/admin/config/people/accounts/form-display`
+and ensuring that the Workbench Access 'Section' fields are disabled.
+
 The user storage will likely change before the stable release to remediate this issue.
 
 ## Contributing
