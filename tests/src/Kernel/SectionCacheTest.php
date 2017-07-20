@@ -105,6 +105,5 @@ class SectionCacheTest extends KernelTestBase {
     $sections = $this->userSectionStorage->getUserSections($editor->id());
     $this->assertTrue(count($sections) == 1);
 
-
   }
 }
