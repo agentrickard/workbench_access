@@ -45,6 +45,14 @@ Note that when granting access, the hierarchy is enforced such that if you have 
 ```
 
 A user or role assigned to `Alumni` will also have access to `Events` and `Giving` and does not need to be assigned to all three.
+
+### User Sections
+Note that user sections are currently stored as a field on the user account. However,
+they are not intended to be edited from the account page. These fields should be hidden
+by the module's installation process.
+
+The user storage will likely change before the stable release to remediate this issue.
+
 ## Contributing
 
 If you'd like to contribute, please do. Github forks and pull requests are preferable. If you prefer a patch-based workflow, you can attach patches to GitHub issues or Drupal.org
