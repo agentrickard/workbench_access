@@ -52,7 +52,7 @@ they are not intended to be edited from the account page. These fields should be
 by the module's installation process.
 
 You can check this configuration by going to `/admin/config/people/accounts/form-display`
-and ensuring that the Workbench Access 'Section' fields are disabled.
+and ensuring that the Workbench Access 'Section' field is disabled.
 
 The user storage will likely change before the stable release to remediate this issue.
 
