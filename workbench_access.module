@@ -8,6 +8,8 @@
 use Drupal\node\NodeTypeInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -196,6 +198,29 @@ function workbench_access_node_create_access(AccountInterface $account, $context
     return AccessResult::forbidden();
   }
   return $return;
+}
+
+/**
+ * Implements hook_entity_view_alter().
+ *
+ * Allow or deny access to the moderation entity form displayed on content view.
+ */
+function workbench_access_entity_view_alter(&$build, EntityInterface $entity, EntityViewDisplayInterface $display) {
+  // Only applies to nodes and when enabled.
+  $restriction_enabled = \Drupal::config('workbench_access.settings')->get('apply_to_moderation');
+  if (!$restriction_enabled || $entity->getEntityTypeId() != 'node') {
+    return;
+  }
+  // Supports both content_moderation and workbench_moderation, which use similar code.
+  foreach (['content_moderation_control', 'workbench_moderation_control'] as $element) {
+    if (isset($build[$element])) {
+      $account = \Drupal::currentUser();
+      $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+      if ($scheme = $manager->getActiveScheme()) {
+        $build[$element]['#access'] = $scheme->checkModerationAccess($entity, $account, $manager);
+      }
+    }
+  }
 }
 
 /**

@@ -263,6 +263,26 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
+  public function checkModerationAccess(EntityInterface $entity, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
+    /** @var \Drupal\node\NodeTypeInterface $type */
+    $active = FALSE;
+    if ($type = $this->entityTypeManager->getStorage('node_type')->load($entity->bundle())) {
+      $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
+    }
+    if (!$active) {
+      return TRUE;
+    }
+    // Check that the user can update the entity.
+    $accessResult = $this->checkEntityAccess($entity, 'update', $account, $manager);
+    // Our access check only returns Neutral or Forbidden, so we return the reverse of
+    // isForbidden() since we are setting #access to true or false on the element.
+    // See workbench_access_entity_view_alter().
+    return !$accessResult->isForbidden();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getEntityValues(EntityInterface $entity, $field) {
     $values = [];
     foreach ($entity->get($field)->getValue() as $item) {

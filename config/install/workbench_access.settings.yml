@@ -4,3 +4,4 @@ label: Section
 plural_label: Sections
 fields: {}
 deny_on_empty: false
+apply_to_moderation: false
