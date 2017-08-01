@@ -262,10 +262,14 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: find a better way to deal with the $manager.
+   * @TODO: write tests.
    */
   public function checkModerationAccess(EntityInterface $entity, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
-    /** @var \Drupal\node\NodeTypeInterface $type */
+    // @TODO: Move this duplicate code to a method.
     $active = FALSE;
+    /** @var \Drupal\node\NodeTypeInterface $type */
     if ($type = $this->entityTypeManager->getStorage('node_type')->load($entity->bundle())) {
       $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
     }
