@@ -131,6 +131,8 @@ interface AccessControlHierarchyInterface {
    *
    * @param EntityInterface $entity
    *   The node being checked. In future this may handle other entity types.
+   * @param $op
+   *   The operation being performed.
    * @param AccountInterface $account
    *   The user requesting access to the node.
    * @param WorkbenchAccessManagerInterface $manager
@@ -142,6 +144,22 @@ interface AccessControlHierarchyInterface {
    * @see workbench_access_node_access()
    */
   public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
+
+  /**
+   * Responds to request for node moderation.
+   *
+   * @param EntityInterface $entity
+   *   The node being checked. In future this may handle other entity types.
+   * @param AccountInterface $account
+   *   The user requesting access to the node.
+   * @param WorkbenchAccessManagerInterface $manager
+   *   The access control manager.
+   *
+   * @return boolean
+   *
+   * @see workbench_access_entity_view_alter()
+   */
+  public function checkModerationAccess(EntityInterface $entity, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
 
   /**
    * Alters the selection options provided for an access control field.

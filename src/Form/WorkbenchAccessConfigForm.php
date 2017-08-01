@@ -173,6 +173,12 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
       '#default_value' => $config->get('deny_on_empty', 0),
       '#description' => $this->t('For content under access control, deny access for any content not assigned to a section. This setting is off by default so that installing the module does not break existing site behavior.'),
     ];
+    $form['behavior']['apply_to_moderation'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Apply to content moderation'),
+      '#default_value' => $config->get('apply_to_moderation', 0),
+      '#description' => $this->t('Apply access rules to moderation forms for content under access control.'),
+    ];
     $form['labels'] = [
       '#type' => 'details',
       '#title' => $this->t('Labels'),
@@ -201,6 +207,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $config = $this->config('workbench_access.settings');
     $config->set('deny_on_empty', $form_state->getValue('deny_on_empty'))
+      ->set('apply_to_moderation', $form_state->getValue('apply_to_moderation'))
       ->set('label', $form_state->getValue('label'))
       ->set('plural_label', $form_state->getValue('plural_label'));
     $new_scheme = $form_state->getValue('scheme');

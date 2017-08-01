@@ -44,3 +44,12 @@ function workbench_access_update_8001() {
   $config->save(TRUE);
 }
 
+/**
+ * Add the setting to enable access on moderation forms.
+ */
+function workbench_access_update_8002() {
+  $config_factory = \Drupal::configFactory();
+  $config = $config_factory->getEditable('workbench_access.settings');
+  $config->set('apply_to_moderation', 0);
+  $config->save(TRUE);
+}
