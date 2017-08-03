@@ -90,7 +90,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
     $roles = $this->roleStorage->loadMultiple();
     foreach ($roles as $rid => $role) {
       if ($role->hasPermission('use workbench access')) {
-        $list[$rid] = $rid;
+        $list[$rid] = $role->label();
       }
     }
     return $list;

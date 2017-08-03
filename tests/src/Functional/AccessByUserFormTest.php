@@ -58,10 +58,6 @@ class AccessByUserFormTest extends BrowserTestBase {
     $this->drupalLogin($this->setUpAdminUser());
     $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/sections/%s/users', $staff_term->id()));
 
-    // Add a non staff user, should bring an error.
-    $page->fillField('edit-editors-add', $user1->label() . ' (' . $user1->id() . ')');
-    $page->pressButton('add');
-
     // Add a user from staff with autocomplete.
     $page->fillField('edit-editors-add', $user2->label() . ' (' . $user2->id() . ')');
     $page->pressButton('add');
