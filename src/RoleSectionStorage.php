@@ -85,6 +85,20 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
+  public function getPotentialRolesFiltered($id) {
+    $list = [];
+    $roles = $this->roleStorage->loadMultiple();
+    foreach ($roles as $rid => $role) {
+      if ($role->hasPermission('use workbench access')) {
+        $list[$rid] = $rid;
+      }
+    }
+    return $list;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getRoles($id) {
     $list = [];
     $roles = $this->roleStorage->loadMultiple();

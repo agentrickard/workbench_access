@@ -125,18 +125,20 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   public function getPotentialEditors($id) {
     $query = $this->userStorage->getQuery();
+    // For right now, we just show all possible users. If we switch to using
+    // an autocomplete form, then we may change back to the filtered query.
+    /*
+    $query->condition($query->orConditionGroup()
+        ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, $id, '<>')
+        ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, NULL, 'IS NULL'))
+      ->condition('status', 1);
+    $users = $query->execute();
+    */
     $users = $query
       ->condition('status', 1)
       ->sort('name')
       ->execute();
     return $this->filterByPermission($users);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getPotentialEditorsRoles($id) {
-    return $this->roleSectionStorage->getPotentialRolesFiltered($id);
   }
 
   /**

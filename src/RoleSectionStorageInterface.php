@@ -46,6 +46,17 @@ interface RoleSectionStorageInterface {
   public function getPotentialRoles($id);
 
   /**
+   * Gets a list of potential roles for assigning users.
+   *
+   * @param string $id
+   *   The section id.
+   *
+   * @return array
+   *   An array of roles keyed by rid with rid values.
+   */
+  public function getPotentialRolesFiltered($id);
+
+  /**
    * Gets a list of roles assigned to a section.
    *
    * @param string $id

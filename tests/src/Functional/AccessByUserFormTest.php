@@ -49,23 +49,59 @@ class AccessByUserFormTest extends BrowserTestBase {
 
     $non_staff_rid = $this->createRole([], 'non_staff');
     $staff_rid = $this->createRole(['use workbench access'], 'staff');
-    $super_staff_rid = $this->createRole(['use workbench access'], 'super_staff');
 
     $user1 = $this->createUserWithRole($non_staff_rid);
     $user2 = $this->createUserWithRole($staff_rid);
-    $user3 = $this->createUserWithRole($super_staff_rid);
+    $user3 = $this->createUserWithRole($staff_rid);
+    $user4 = $this->createUserWithRole($staff_rid);
+
     $this->drupalLogin($this->setUpAdminUser());
     $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/sections/%s/users', $staff_term->id()));
 
-    $editors = $page->findField('edit-editors');
-    $web_assert->fieldNotExists($user1->label(), $editors);
-    $web_assert->fieldExists($user2->label(), $editors);
-    $web_assert->fieldExists($user3->label(), $editors);
+    // Add a non staff user, should bring an error.
+    $page->fillField('edit-editors-add', $user1->label() . ' (' . $user1->id() . ')');
+    $page->pressButton('add');
 
-    $page->checkField($user2->label());
-    $page->pressButton('Submit');
+    // Add a user from staff with autocomplete.
+    $page->fillField('edit-editors-add', $user2->label() . ' (' . $user2->id() . ')');
+    $page->pressButton('add');
+
+    // Check remove editors list.
+    $editors = $page->findField('editors_remove');
+    $web_assert->fieldNotExists('editors_remove[' . $user1->id() . ']', $editors);
+    $web_assert->fieldExists('editors_remove[' . $user2->id() . ']', $editors);
+
+    // Test remove the user.
+    $page->checkField('editors_remove[' . $user2->id() . ']');
+    $page->pressButton('remove');
+
+    // Check user has been removed to the section.
+    $editors = $page->findField('editors_remove');
+    $web_assert->fieldNotExists('editors_remove[' . $user2->id() . ']', $editors);
+
+    // Test adding users with the textarea, mixed username and uid.
+    $page->fillField('edit-editors-add-mass', $user3->label() . ', ' . $user4->id());
+    $page->pressButton('add');
+
+    $editors = $page->findField('editors_remove');
+    $web_assert->fieldExists('editors_remove[' . $user3->id() . ']', $editors);
+    $web_assert->fieldExists('editors_remove[' . $user4->id() . ']', $editors);
+
+    // Check user is not or removed to the section.
+    $user = User::load($user1->id());
+    $expected = [['value' => $staff_term->id()]];
+    $this->assertNotEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
 
     $user = User::load($user2->id());
+    $expected = [['value' => $staff_term->id()]];
+    $this->assertNotEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
+
+    // Check user has been added to the section.
+    $user = User::load($user3->id());
+    $expected = [['value' => $staff_term->id()]];
+    $this->assertEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
+
+    $user = User::load($user4->id());
     $expected = [['value' => $staff_term->id()]];
     $this->assertEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
   }

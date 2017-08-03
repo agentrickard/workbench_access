@@ -332,6 +332,17 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    * {@inheritdoc}
    *
    * @deprecated To be removed before 8.x-1.0 - use
+   *   \Drupal\workbench_access\UserSectionStorage::getPotentialEditorsRoles() instead
+   */
+  public function getPotentialEditorsRoles($id) {
+    trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\UserSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
+    return $this->userSectionStorage->getPotentialEditorsRoles($id);
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @deprecated To be removed before 8.x-1.0 - use
    *   \Drupal\workbench_access\UserSectionStorage::getUserSections() instead
    */
   public function getUserSections($uid = NULL, $add_roles = TRUE) {
@@ -412,6 +423,17 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   public function getPotentialRoles($id) {
     trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\RoleSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
     return $this->roleSectionStorage->getPotentialRoles($id);
+  }
+
+  /**
+   * {@inheritdoc}
+   *
+   * @deprecated To be removed before 8.x-1.0 - use
+   *   \Drupal\workbench_access\RoleSectionStorage::getPotentialRolesFiltered() instead
+   */
+  public function getPotentialRolesFiltered($id) {
+    trigger_error(__CLASS__ . '::' . __METHOD__ . ' is deprecated, please use \Drupal\workbench_access\RoleSectionStorage::' . __METHOD__ . ' instead', E_USER_DEPRECATED);
+    return $this->roleSectionStorage->getPotentialRolesFiltered($id);
   }
 
 }
