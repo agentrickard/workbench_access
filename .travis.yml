@@ -13,7 +13,6 @@ cache:
     - $HOME/.composer/cache/files
 
 env:
-  - DRUPAL=8.2.x
   - DRUPAL=8.3.x
   - DRUPAL=8.4.x
 
@@ -70,4 +69,7 @@ before_script:
   - until curl -s localhost:8080; do true; done > /dev/null
 
 script:
+  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --types "Simpletest" --php `which php` --url http://localhost:8080 "workbench_access"
   - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
+  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --types "PHPUnit-Kernel" --php `which php` --url http://localhost:8080 "workbench_access"
+  - php core/scripts/run-tests.sh --verbose --color --concurrency 4 --types "PHPUnit-Unit" --php `which php` --url http://localhost:8080 "workbench_access"
