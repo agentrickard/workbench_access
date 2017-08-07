@@ -63,7 +63,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
     $element = $this->manager->getElement($id);
     $existing_roles = $this->roleSectionStorage->getRoles($id);
-    $potential_roles = $this->roleSectionStorage->getPotentialRoles($id);
+    $potential_roles = $this->roleSectionStorage->getPotentialRolesFiltered($id);
 
     $form['existing_roles'] = ['#type' => 'value', '#value' => $existing_roles];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
@@ -85,10 +85,10 @@ class WorkbenchAccessByRoleForm extends FormBase {
       $form['actions'] = ['#type' => 'actions'];
       $form['actions']['submit'] = ['#type' => 'submit', '#value' => $this->t('Submit')];
     }
-    else {
+    if (array_keys($potential_roles) == array_keys($existing_roles)) {
       $form['message'] = [
         '#type' => 'markup',
-        '#markup' => '<p>' . $this->t('There are no addtional users that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
+        '#markup' => '<p>' . $this->t('There are no addtional roles that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
       ];
     }
 

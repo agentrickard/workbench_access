@@ -49,14 +49,14 @@ class AccessByRoleFormTest extends BrowserTestBase {
     $staff_term->save();
 
     $this->createRole([], 'non_staff', 'Non staff');
-    $this->createRole([], 'staff', 'Staff');
-    $this->createRole([], 'super_staff', 'Super staff');
+    $this->createRole(['use workbench access'], 'staff', 'Staff');
+    $this->createRole(['use workbench access'], 'super_staff', 'Super staff');
 
     $this->drupalLogin($this->setUpAdminUser());
     $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/sections/%s/roles', $staff_term->id()));
 
     $editors = $page->findField('edit-editors');
-    $web_assert->fieldExists('Non staff', $editors);
+    $web_assert->fieldNotExists('Non staff', $editors);
     $web_assert->fieldExists('Staff', $editors);
     $web_assert->fieldExists('Super staff', $editors);
 

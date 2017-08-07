@@ -6,7 +6,9 @@ use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\user\Entity\User;
 
 /**
  * Configure Workbench Access per user.
@@ -67,31 +69,83 @@ class WorkbenchAccessByUserForm extends FormBase {
 
     $form['existing_editors'] = ['#type' => 'value', '#value' => $existing_editors];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
-    if (!$existing_editors) {
-      $text = $this->t('There are no editors assigned to the %label section.', ['%label' => $element['label']]);
-      $form['help'] = [
-        '#type' => 'markup',
-        '#markup' => '<p>' . $text . '</p>',
-      ];
-    }
 
+    $form['add'] = [
+      '#type' => 'container',
+    ];
     if ($potential_editors) {
-      $form['editors'] = [
-        '#title' => $this->t('Editors for the %label section.', ['%label' => $element['label']]),
-        '#type' => 'checkboxes',
-        '#options' => $potential_editors,
-        '#default_value' => array_keys($existing_editors),
+      $toggle = '<br>' . $this->t('<a class="switch" href="#">Switch between textarea/autocomplete</a>');
+      $form['add']['editors_add'] = [
+        '#type' => 'entity_autocomplete',
+        '#target_type' => 'user',
+        '#selection_handler' => 'workbench_access:user',
+        '#selection_settings' => [
+          'include_anonymous' => FALSE,
+          'match_operator' => 'STARTS_WITH',
+          'filter' => ['section_id' => $id],
+        ],
+        '#title' => $this->t('Add editors to the %label section.', ['%label' => $element['label']]),
+        '#description' => $this->t('Search editors to add to this section, separate with comma to add multiple editors.<br>Only users in roles with permission to be assigned can be referenced.') . $toggle,
+        '#tags' => TRUE,
       ];
-      $form['actions'] = ['#type' => 'actions'];
-      $form['actions']['submit'] = ['#type' => 'submit', '#value' => $this->t('Submit')];
+      // The authenticated user role is not stored in the database, so we cannot query for
+      // it. If 'authenticated user' is present, do not filter on roles at all.
+      $potential_editors_roles = $this->userSectionStorage->getPotentialEditorsRoles($id);
+      if (!isset($potential_editors_roles[AccountInterface::AUTHENTICATED_ROLE])) {
+        // Add the role filter, which uses the role id stored as array_keys().
+        $form['add']['editors_add']['#selection_settings']['filter'] = ['role' => array_keys($potential_editors_roles), 'section_id' => $id];
+      }
+      $form['add']['editors_add_mass'] = [
+        '#type' => 'textarea',
+        '#title' => $this->t('Add editors to the %label section.', ['%label' => $element['label']]),
+        '#description' => $this->t('Add a list of user ids or usernames separated with comma or new line. Invalid or existing users will be ignored.') . $toggle,
+      ];
+      $form['add']['actions'] = [
+        '#type' => 'actions',
+        'submit' => [
+          '#type' => 'submit',
+          '#name' => 'add',
+          '#value' => $this->t('Add'),
+        ],
+      ];
     }
     else {
-      $form['message'] = [
-        '#type' => 'markup',
+      $form['add']['message'] = ['#type' => 'markup',
         '#markup' => '<p>' . $this->t('There are no additional users that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
       ];
     }
 
+    $form['remove'] = [
+      '#type' => 'details',
+      '#open' => TRUE,
+      '#title' => $this->t('Existing editors in the %label section.', array('%label' => $element['label'])),
+      '#description' => $this->t('Current editors list. Use the checkboxes to remove editors from this section.'),
+    ];
+    // Prepare editors list for tableselect.
+    $editors_data = [];
+    if ($existing_editors) {
+      foreach ($existing_editors as $uid => $username) {
+        $editors_data[$uid] = [$username];
+      }
+      asort($editors_data);
+    }
+    $form['remove']['editors_remove'] = [
+      '#type' => 'tableselect',
+      '#header' => [$this->t('Username')],
+      '#options' => $editors_data,
+      '#empty' => $this->t('There are no editors assigned to the %label section.', ['%label' => $element['label']]),
+    ];
+    if ($existing_editors) {
+      $form['remove']['actions'] = [
+        '#type' => 'actions',
+        'submit' => [
+          '#type' => 'submit',
+          '#name' => 'remove',
+          '#value' => $this->t('Remove'),
+        ],
+      ];
+    }
+    $form['#attached']['library'][] = 'workbench_access/admin';
     return $form;
   }
 
@@ -99,17 +153,55 @@ class WorkbenchAccessByUserForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $editors = $form_state->getValue('editors');
+    $trigger = $form_state->getTriggeringElement();
     $existing_editors = $form_state->getValue('existing_editors');
-    $id = $form_state->getValue('section_id');
-    foreach ($editors as $user_id => $value) {
-      // Add user to section.
-      if ($value && !isset($existing_editors[$user_id])) {
-        $this->userSectionStorage->addUser($user_id, [$id]);
+    $section_id = $form_state->getValue('section_id');
+
+    // Add new editors.
+    if ($trigger['#name'] == 'add') {
+      $uids_added = [];
+      if ($add_editors = $form_state->getValue('editors_add')) {
+        foreach ($add_editors as $target_entity) {
+          $user_id = $target_entity['target_id'];
+          if (!isset($existing_editors[$user_id])) {
+            $uids_added[] = $user_id;
+          }
+        }
       }
-      // Remove user from section.
-      if (!$value && isset($existing_editors[$user_id])) {
-        $this->userSectionStorage->removeUser($user_id, [$id]);
+      elseif ($add_editors = $form_state->getValue('editors_add_mass')) {
+        $add_editors = preg_split('/[\ \n\,]+/', $add_editors);
+        foreach ($add_editors as $uid_or_username) {
+          // This is a uid.
+          if ((int)$uid_or_username > 0) {
+            if (!isset($existing_editors[(int)$uid_or_username])) {
+              $uids_added[] = $uid_or_username;
+            }
+          }
+          elseif (strlen($uid_or_username) > 1) {
+            $user = user_load_by_name(trim($uid_or_username));
+            if ($user) {
+              if (!isset($existing_editors[$user->id()])) {
+                $uids_added[] = $user->id();
+              }
+            }
+          }
+        }
+      }
+      if (count($uids_added)) {
+        $this->addEditors($uids_added, $section_id, $existing_editors);
+      }
+      else {
+        drupal_set_message($this->t('No valid users were selected to add'), 'warning');
+      }
+    }
+
+    // Remove unwanted editors.
+    if ($trigger['#name'] == 'remove') {
+      if ($remove_editors = array_filter($form_state->getValue('editors_remove'))) {
+        $this->removeEditors($remove_editors, $section_id, $existing_editors);
+      }
+      else {
+        drupal_set_message($this->t('No users were selected to remove.'), 'warning');
       }
     }
   }
@@ -126,6 +218,68 @@ class WorkbenchAccessByUserForm extends FormBase {
   public function pageTitle($id) {
     $element = $this->manager->getElement($id);
     return $this->t('Editors assigned to %label', ['%label' => $element['label']]);
+  }
+
+  /**
+   * Add editors to the section.
+   *
+   * @param array $uids
+   *   User ids to add.
+   *
+   * @param integer $section_id
+   *   Workbench access section id.
+   *
+   * @param array $existing_editors
+   *   Existing editors uids.
+   */
+  protected function addEditors($uids, $section_id, $existing_editors = []) {
+    $users = User::loadMultiple($uids);
+    $editors_added = [];
+    foreach ($users as $uid => $user) {
+      // Add user to section.
+      if (!isset($existing_editors[$uid])) {
+        $this->userSectionStorage->addUser($uid, [$section_id]);
+        $editors_added[] = $user->getDisplayName();
+      }
+    }
+    if (count($editors_added)) {
+      $text = $this->formatPlural(count($editors_added),
+        'User @user added.',
+        'Users added: @user',
+        ['@user' => implode(', ', $editors_added)]
+      )->__toString();
+      drupal_set_message($text);
+    }
+  }
+
+  /**
+   * Remove editors to the section.
+   *
+   * @param array $uids
+   *   User ids to add.
+   *
+   * @param integer $section_id
+   *   Workbench access section id.
+   *
+   * @param array $existing_editors
+   *   Existing editors uids.
+   */
+  protected function removeEditors($uids, $section_id, $existing_editors = []) {
+    $editors_removed = [];
+    foreach ($uids as $user_id) {
+      if (isset($existing_editors[$user_id])) {
+        $this->userSectionStorage->removeUser($user_id, [$section_id]);
+        $editors_removed[] = $existing_editors[$user_id];
+      }
+    }
+    if (count($editors_removed)) {
+      $text = $this->formatPlural(count($editors_removed),
+        'User @user removed.',
+        'Users removed: @user',
+        ['@user' => implode(', ', $editors_removed)]
+      )->__toString();
+      drupal_set_message($text);
+    }
   }
 
 }

@@ -54,6 +54,17 @@ interface UserSectionStorageInterface {
   public function getPotentialEditors($id);
 
   /**
+   * Gets a list of editors roles who may be assigned to a section.
+   *
+   * @param $id
+   *   The section id.
+   *
+   * @return array
+   *   An array of role ids.
+   */
+  public function getPotentialEditorsRoles($id);
+
+  /**
    * Gets the editorial sections assigned to a user.
    *
    * @param $uid
