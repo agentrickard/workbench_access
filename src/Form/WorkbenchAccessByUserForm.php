@@ -92,7 +92,8 @@ class WorkbenchAccessByUserForm extends FormBase {
       // it. If 'authenticated user' is present, do not filter on roles at all.
       $potential_editors_roles = $this->userSectionStorage->getPotentialEditorsRoles($id);
       if (!isset($potential_editors_roles[AccountInterface::AUTHENTICATED_ROLE])) {
-        $form['add']['editors_add']['#selection_settings']['filter'] = ['role' => $potential_editors_roles, 'section_id' => $id];
+        // Add the role filter, which uses the role id stored as array_keys().
+        $form['add']['editors_add']['#selection_settings']['filter'] = ['role' => array_keys($potential_editors_roles), 'section_id' => $id];
       }
       $form['add']['editors_add_mass'] = [
         '#type' => 'textarea',
