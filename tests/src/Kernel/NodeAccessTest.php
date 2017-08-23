@@ -97,8 +97,12 @@ class NodeAccessTest extends KernelTestBase {
     $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
+    $permissions[] = 'bypass workbench access';
+    $editor_with_bypass_access = $this->createUser($permissions);
+
     $this->assertTrue($this->accessHandler->createAccess('page', $allowed_editor));
     $this->assertFalse($this->accessHandler->createAccess('page', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->createAccess('page', $editor_with_bypass_access));
   }
 
   /**
