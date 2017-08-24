@@ -37,3 +37,10 @@ node.type.*.third_party.workbench_access:
     workbench_access_status:
       type: boolean
       label: 'Workbench Access status'
+
+entity_reference_selection.workbench_access:
+  type: entity_reference_selection.default
+  label: 'Default selection handler settings'
+
+entity_reference_selection.workbench_access:*:
+  type: entity_reference_selection.default
