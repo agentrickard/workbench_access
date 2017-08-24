@@ -178,6 +178,11 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
  */
 function workbench_access_node_create_access(AccountInterface $account, $context, $entity_bundle) {
   $return = AccessResult::neutral();
+  // User can bypass.
+  if ($account->hasPermission('bypass workbench access')) {
+    return $return;
+  }
+
   // Check that our access control is configured.
   $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
   if (!$manager->getActiveScheme()) {
