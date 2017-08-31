@@ -139,7 +139,6 @@ class Section extends ManyToOne {
       }
 
       // We removed two clauses here that cause the filter to be ignored.
-
       if (isset($value)) {
         $this->value = $value;
         if (empty($this->alwaysMultiple) && empty($this->options['expose']['multiple']) && !is_array($value)) {
@@ -172,7 +171,7 @@ class Section extends ManyToOne {
     if (!empty($this->table)) {
       $alias = $this->query->ensureTable($this->table);
       foreach ($this->scheme->getViewsJoin($this->table, $this->realField, $alias) as $configuration) {
-        // Allow subquery JOINs, which Menu users.
+        // Allow subquery JOINs, which Menu uses.
         $type = 'standard';
         if (isset($configuration['left_query'])) {
           $type = 'subquery';
