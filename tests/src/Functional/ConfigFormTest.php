@@ -48,6 +48,10 @@ class ConfigFormTest extends BrowserTestBase {
     $assert->statusCodeEquals(200);
     $scheme = $this->container->get('plugin.manager.workbench_access.scheme')->getActiveScheme();
     $this->assertEquals('menu', $scheme->id());
+    // Set some parents
+    $page->checkField('menu[admin]');
+    $this->submitForm([], 'Save configuration');
+    $assert->checkboxChecked('menu[admin]');
   }
 
 }
