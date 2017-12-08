@@ -48,34 +48,61 @@ trait WorkbenchAccessTestTrait {
    * @param \Drupal\taxonomy\Entity\Vocabulary $vocab
    *   The vocab to create the field against.
    */
-  public function setUpTaxonomyField(NodeType $node_type, Vocabulary $vocab) {
-    // Create workbench access storage for node.
-    $field_storage = FieldStorageConfig::create([
-      'field_name' => WorkbenchAccessManagerInterface::FIELD_NAME,
-      'entity_type' => 'node',
-      'type' => 'entity_reference',
-      'cardinality' => 1,
-      'settings' => [
-        'target_type' => 'taxonomy_term',
-      ],
-    ]);
+  protected function setUpTaxonomyField(NodeType $node_type, Vocabulary $vocab) {
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
+  }
+
+  /**
+   * Sets up a taxonomy field on a given entity type and bundle.
+   *
+   * @param string $entity_type_id
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle ID.
+   * @param string $vocabulary_id
+   *   Vocabulary ID.
+   * @param string $field_name
+   *   Field name.
+   */
+  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME) {
+    if (!$field_storage = FieldStorageConfig::load("$entity_type_id.$field_name")) {
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => $field_name,
+        'entity_type' => $entity_type_id,
+        'type' => 'entity_reference',
+        'cardinality' => 1,
+        'settings' => [
+          'target_type' => 'taxonomy_term',
+        ],
+      ]);
     $field_storage->save();
-    // Create an instance of the access field on the content type.
-    FieldConfig::create([
-      'field_storage' => $field_storage,
-      'bundle' => $node_type->id(),
-      'settings' => [
-        'handler' => 'workbench_access:taxonomy_term',
-        'handler_settings' => [
-          'target_bundles' => [
-            $vocab->id() => $vocab->id(),
+    }
+    if (!$field = FieldConfig::load("$entity_type_id.$bundle.$field_name")) {
+      // Create an instance of the access field on the bundle.
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => $bundle,
+        'settings' => [
+          'handler' => 'workbench_access:taxonomy_term',
+          'handler_settings' => [
+            'target_bundles' => [
+              $vocabulary_id => $vocabulary_id,
+            ],
           ],
         ],
-      ],
-    ])->save();
+      ]);
+      $field->save();
+    }
     // Set the field to display as a dropdown on the form.
-    $form_display = EntityFormDisplay::load('node.' . $node_type->id() . '.default');
-    $form_display->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, ['type' => 'options_select']);
+    if (!$form_display = EntityFormDisplay::load("$entity_type_id.$bundle.default")) {
+      $form_display = EntityFormDisplay::create([
+        'targetEntityType' => $entity_type_id,
+        'bundle' => $bundle,
+        'mode' => 'default',
+        'status' => TRUE,
+      ]);
+    }
+    $form_display->setComponent($field_name, ['type' => 'options_select']);
     $form_display->save();
   }
 
