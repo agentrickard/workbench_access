@@ -195,8 +195,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   /**
    * {@inheritdoc}
    */
-  public function checkTree($entity_sections, $user_sections) {
-    $tree = $this->getActiveTree();
+  public static function checkTree($entity_sections, $user_sections, array $tree) {
     $list = array_flip($user_sections);
     foreach ($entity_sections as $section) {
       // Simple check first: is there an exact match?

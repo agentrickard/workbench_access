@@ -190,8 +190,7 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
  * Implements hook_views_data_alter().
  */
 function workbench_access_views_data_alter(array &$data) {
-  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-  if ($scheme = $manager->getActiveScheme()) {
+  if (\Drupal::entityTypeManager()->getStorage('access_scheme')->getQuery()->count()->execute()) {
     $data['node']['workbench_access_section'] = array(
       'title' => t('Workbench Section'),
       'help' => t('The sections to which this content belongs.'),

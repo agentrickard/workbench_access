@@ -8,6 +8,8 @@ use Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\taxonomy\Plugin\EntityReferenceSelection\TermSelection;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\WorkbenchAccessManager;
 
 /**
  * Provides specific access control for the taxonomy_term entity type.
@@ -20,6 +22,8 @@ use Drupal\taxonomy\Plugin\EntityReferenceSelection\TermSelection;
  *   weight = 1,
  *   base_plugin_label = @Translation("Workbench Access: Restricted term selection")
  * )
+ * @todo move this to derivative based so we have access to the schema
+ * @todo this should happen in the widget settings, not in an alter hook.
  */
 class TaxonomyHierarchySelection extends TermSelection {
 
@@ -58,13 +62,20 @@ class TaxonomyHierarchySelection extends TermSelection {
     $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
     $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
     $user_sections = $user_section_storage->getUserSections($account->id());
+    $tree = array_reduce($this->entityManager->getStorage('access_scheme')->loadMultiple(), function (array $items = [], AccessSchemeInterface $scheme) {
+      if ($scheme->getAccessScheme()->id() === 'taxonomy') {
+        return $items;
+      };
+      return array_unique(array_merge($items, $scheme->getAccessScheme()->getTree()));
+    });
+
     foreach ($options as $key => $values) {
-      if ($manager->checkTree([$key], $user_sections)) {
+      if (WorkbenchAccessManager::checkTree([$key], $user_sections, $tree)) {
         continue;
       }
       else {
         foreach ($values as $id => $value) {
-          if (!$manager->checkTree([$id], $user_sections)) {
+          if (!WorkbenchAccessManager::checkTree([$id], $user_sections, $tree)) {
             unset($options[$key][$id]);
           }
         }

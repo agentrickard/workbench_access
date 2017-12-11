@@ -30,14 +30,14 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []) {
+  public function alterOptions($field, array $user_sections = []) {
     return $field;
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function applies(EntityInterface $entity, $op, AccountInterface $account) {
+  public function applies($entity_type_id, $bundle) {
     return TRUE;
   }
 

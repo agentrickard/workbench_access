@@ -6,6 +6,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
@@ -146,12 +147,12 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []) {
+  public function alterOptions($field, array $user_sections = []) {
     $element = $field;
     if (isset($element['widget']['#options'])) {
       foreach ($element['widget']['#options'] as $id => $data) {
         $sections = [$id];
-        if (empty($manager->checkTree($sections, $user_sections))) {
+        if (empty(WorkbenchAccessManager::checkTree($sections, $user_sections, $this->getTree()))) {
           unset($element['widget']['#options'][$id]);
         }
       }

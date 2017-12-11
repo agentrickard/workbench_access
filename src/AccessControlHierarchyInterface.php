@@ -126,15 +126,13 @@ interface AccessControlHierarchyInterface {
    *
    * @param $field
    *   The field element from a node form.
-   * @param WorkbenchAccessManagerInterface $manager
-   *   The access manager.
    * @param array $user_sections
    *   The user sections.
    *
    * @return $element
    *   The field element, after restricting selection options.
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []);
+  public function alterOptions($field, array $user_sections = []);
 
   /**
    * Gets any options that are set but cannot be changed by the editor.
