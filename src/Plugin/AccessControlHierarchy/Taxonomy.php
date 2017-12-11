@@ -4,8 +4,10 @@ namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\taxonomy\Entity\Term;
@@ -122,6 +124,7 @@ class Taxonomy extends AccessControlHierarchyBase {
    */
   protected function getFields($entity_type, $bundle, array $parents) {
     $list = [];
+    // @todo use the entity field manager.
     $query = \Drupal::entityQuery('field_config')
       ->condition('status', 1)
       ->condition('entity_type', $entity_type)
@@ -208,6 +211,43 @@ class Taxonomy extends AccessControlHierarchyBase {
       ];
       return $field['entity_type'] === $entity_type && $field['bundle'] === $bundle;
     });
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function viewsData(&$data, AccessSchemeInterface $scheme) {
+    foreach (array_column($this->configuration['fields'], 'entity_type') as $entity_type_id) {
+      $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
+      if ($base_table = $entity_type->getBaseTable()) {
+        $data[$base_table]['workbench_access_section'] = [
+          'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
+          'help' => t('The sections to which this content belongs in the @name scheme.', [
+            '@name' => $scheme->label(),
+          ]),
+          'field' => [
+            'id' => 'workbench_access_section:' . $scheme->id(),
+          ],
+          'filter' => [
+            'field' => 'nid',
+            'id' => 'workbench_access_section:' . $scheme->id(),
+          ],
+        ];
+      }
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values) {
+    foreach ($this->fields($entity->getEntityTypeId(), $entity->bundle()) as $field_name) {
+      $values = $form_state->getValue($field_name);
+      foreach ($hidden_values as $value) {
+        $values[]['target_id'] = $value;
+      }
+      $form_state->setValue($field_name, $values);
+    }
   }
 
 }

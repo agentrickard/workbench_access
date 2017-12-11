@@ -2,6 +2,8 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
@@ -207,5 +209,27 @@ interface AccessControlHierarchyInterface {
    *   TRUE if this access scheme applies to the entity.
    */
   public function applies($entity_type_id, $bundle);
+
+  /**
+   * Adds views data for the plugin.
+   *
+   * @param array $data
+   *   Views data.
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme that wraps this plugin.
+   */
+  public function viewsData(&$data, AccessSchemeInterface $scheme);
+
+  /**
+   * Massage form values as appropriate.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   Entity being edited
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Form state.
+   * @param array $hidden_values
+   *   Hidden values.
+   */
+  public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values);
 
 }

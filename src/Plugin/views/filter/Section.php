@@ -8,24 +8,89 @@ use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\Views;
 use Drupal\views\ViewExecutable;
 use Drupal\views\ManyToOneHelper;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\WorkbenchAccessManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Filter by assigned section.
  *
  * @ingroup views_filter_handlers
  *
- * @ViewsFilter("workbench_access_section")
+ * @ViewsFilter(
+ *   id = "workbench_access_section",
+ *   deriver = "\Drupal\workbench_access\Plugin\Deriver\SectionViewsPluginDeriver",
+ * )
  */
 class Section extends ManyToOne {
 
   /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * Manager.
+   *
+   * @var \Drupal\workbench_access\WorkbenchAccessManagerInterface
+   */
+  protected $manager;
+
+  /**
+   * User storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
+   */
+  protected $userSectionStorage;
+
+  /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
-    parent::init($view, $display, $options);
-    $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-    $this->userSectionStorage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
-    $this->scheme = $this->manager->getActiveScheme();
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    return $instance->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($plugin_definition['scheme']));
+  }
+
+  /**
+   * Sets manager.
+   *
+   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface $manager
+   *   Manager.
+   *
+   * @return $this
+   */
+  public function setManager($manager) {
+    $this->manager = $manager;
+    return $this;
+  }
+
+  /**
+   * Sets user section storage.
+   *
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   *   User section storage.
+   *
+   * @return $tjos
+   */
+  public function setUserSectionStorage($userSectionStorage) {
+    $this->userSectionStorage = $userSectionStorage;
+    return $this;
+  }
+
+  /**
+   * Sets access scheme.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   *
+   * @return $this
+   */
+  public function setScheme(AccessSchemeInterface $scheme) {
+    $this->scheme = $scheme;
+    return $this;
   }
 
   /**
@@ -37,14 +102,16 @@ class Section extends ManyToOne {
     }
     $this->valueOptions = [];
     if (!empty($this->scheme)) {
-      if ($this->manager->userInAll()) {
-        $list = $this->manager->getAllSections();
+      $scheme = $this->scheme->getAccessScheme();
+      $tree = $scheme->getTree();
+      if ($this->manager->userInAll($tree)) {
+        $list = WorkbenchAccessManager::getAllSections(FALSE, $tree);
       }
       else {
         $list = $this->userSectionStorage->getUserSections();
       }
       foreach($list as $id) {
-        if ($section = $this->manager->getElement($id)) {
+        if ($section = $scheme->load($id)) {
           $this->valueOptions[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
         }
       }

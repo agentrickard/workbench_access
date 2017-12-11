@@ -15,6 +15,7 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
@@ -58,9 +59,11 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
   if (!$entity instanceof ContentEntityInterface) {
     return;
   }
+  $callback = FALSE;
   /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
   foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
     // If no access field is set, we do nothing.
+    $callback = TRUE;
     $scheme = $access_scheme->getAccessScheme();
     $field = $scheme->applies($entity->getEntityTypeId(), $entity->bundle());
     if (empty($field)) {
@@ -70,24 +73,27 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
     $account = \Drupal::currentUser();
     // If the user cannot access the form element or is a superuser, ignore.
     if (!empty($form[$field]['#access']) && !$account->hasPermission('bypass workbench access')) {
-      $form[$field] = $scheme->alterOptions($form[$field], $manager, \Drupal::service('workbench_access.user_section_storage')->getUserSections($account->id()));
+      $form[$field] = $scheme->alterOptions($form[$field], \Drupal::service('workbench_access.user_section_storage')->getUserSections($account->id()));
       // Add the options hidden from the user silently to the form.
       $options_diff = $scheme->disallowedOptions($form[$field]);
       if (!empty($options_diff)) {
         // @TODO: Potentially show this information to users with permission.
-        $form['workbench_access_disallowed'] = workbench_access_hidden_field($options_diff, $scheme);
-        // Call our submitEntity() method to merge in values.
-        // @todo Add tests for this.
-        // @todo this should only happen once and shouldn't be static so each
-        //   instance can do its own thing.
-        $class = '\\' . get_class($scheme) . '::submitEntity';
-        // Account for all the submit buttons on the node form.
-        $buttons = ['submit', 'publish', 'unpublish'];
-        foreach ($buttons as $button) {
-          if (isset($form['actions'][$button]['#submit'])) {
-            array_unshift($form['actions'][$button]['#submit'], $class);
-          }
-        }
+        $form['workbench_access_disallowed'] += [
+          '#tree' => TRUE,
+          $access_scheme->id() => workbench_access_hidden_field($options_diff, $scheme),
+        ];
+      }
+    }
+  }
+  if ($callback) {
+    // Call our submitEntity() method to merge in values.
+    // @todo Add tests for this.
+    $class = AccessControlHierarchyBase::class . '::submitEntity';
+    // Account for all the submit buttons on the node form.
+    $buttons = ['submit', 'publish', 'unpublish'];
+    foreach ($buttons as $button) {
+      if (isset($form['actions'][$button]['#submit'])) {
+        array_unshift($form['actions'][$button]['#submit'], $class);
       }
     }
   }
@@ -190,31 +196,22 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
  * Implements hook_views_data_alter().
  */
 function workbench_access_views_data_alter(array &$data) {
-  if (\Drupal::entityTypeManager()->getStorage('access_scheme')->getQuery()->count()->execute()) {
-    // @todo this needs to join each relevant base table - so should be deferred
-    //    to the schemes and be derivative based.
-    $data['node']['workbench_access_section'] = array(
-      'title' => t('Workbench Section'),
-      'help' => t('The sections to which this content belongs.'),
-      'field' => array(
-        'id' => 'workbench_access_section',
-      ),
-      'filter' => array(
-        'field' => 'nid',
-        'id' => 'workbench_access_section',
-      ),
-    );
-    $data['users']['workbench_access_section'] = array(
+  if ($schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple()) {
+    /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
+    foreach ($schemes as $id => $scheme) {
+      $scheme->getAccessScheme()->viewsData($data, $scheme);
+    }
+    $data['users']['workbench_access_section'] = [
       'title' => t('Workbench Section'),
       'help' => t('The sections to which this user belongs.'),
-      'field' => array(
+      'field' => [
         'id' => 'workbench_access_user_section',
-      ),
-      'filter' => array(
+      ],
+      'filter' => [
         'field' => 'uid',
         'id' => 'workbench_access_section',
-      ),
-    );
+      ],
+    ];
   }
 }
 

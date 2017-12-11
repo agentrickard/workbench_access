@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Access\AccessResult;
@@ -329,19 +330,15 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {inheritdoc}
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state) {
-    $values = $form_state->getValue('workbench_access_disallowed');
-    if (!empty($values)) {
-      $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-      // @todo this needs to die
-      if ($scheme = $manager->getActiveScheme()) {
-        $node = $form_state->getFormObject()->getEntity();
-        $field = $scheme->fields('node', $node->bundle());
-        $entity_values = $form_state->getValue($field);
+    /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
+    foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
+      $scheme = $access_scheme->getAccessScheme();
+      $hidden_values = $form_state->getValue(['workbench_access_disallowed', $access_scheme->id()]);
+      if (!empty($values)) {
+
+        $entity = $form_state->getFormObject()->getEntity();
+        $scheme->massageFormValues($entity, $form_state, $hidden_values);
       }
-      foreach ($values as $value) {
-        $entity_values[]['target_id'] = $value;
-      }
-      $form_state->setValue($field, $entity_values);
     }
   }
 
@@ -389,6 +386,32 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       }
       $filter->query->addWhere($filter->options['group'], $or);
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function viewsData(&$data, AccessSchemeInterface $scheme) {
+    $data['node']['workbench_access_section'] = [
+      'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
+      'help' => t('The sections to which this content belongs in the @name scheme.', [
+        '@name' => $scheme->label(),
+      ]),
+      'field' => [
+        'id' => 'workbench_access_section:' . $scheme->id(),
+      ],
+      'filter' => [
+        'field' => 'nid',
+        'id' => 'workbench_access_section:' . $scheme->id(),
+      ],
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values) {
+    // Null op.
   }
 
 }

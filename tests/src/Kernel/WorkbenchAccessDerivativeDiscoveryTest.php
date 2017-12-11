@@ -35,7 +35,7 @@ class WorkbenchAccessDerivativeDiscoveryTest extends KernelTestBase {
    */
   public function testDerivativeDiscovery() {
     $manager = $this->container->get('plugin.manager.workbench_access.scheme');
-    foreach ($manager->getSchemes() as $id => $name) {
+    foreach ($manager->getDefinitions() as $id => $name) {
       $this->assertNotNull($manager->createInstance($id));
     }
   }

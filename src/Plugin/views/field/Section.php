@@ -7,6 +7,8 @@ use Drupal\views\Plugin\views\field\FieldPluginBase;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Field handler to present the section assigned to the node.
@@ -16,9 +18,41 @@ use Drupal\views\ViewExecutable;
  *
  * @ingroup views_field_handlers
  *
- * @ViewsField("workbench_access_section")
+ * @ViewsField(
+ *   id = "workbench_access_section",
+ *   deriver = "\Drupal\workbench_access\Plugin\Deriver\SectionViewsPluginDeriver"
+ * )
  */
 class Section extends FieldPluginBase {
+
+  /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    return $instance->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($plugin_definition['scheme']));
+  }
+
+  /**
+   * Sets access scheme.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   *
+   * @return $this
+   */
+  public function setScheme(AccessSchemeInterface $scheme) {
+    $this->scheme = $scheme;
+    return $this;
+  }
 
   /**
    * {@inheritdoc}
@@ -66,14 +100,10 @@ class Section extends FieldPluginBase {
    * {@inheritdoc}
    */
   public function render(ResultRow $values) {
-    $nid = $this->getValue($values, 'nid');
-    $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-    if ($scheme = $manager->getActiveScheme()) {
-      $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
-      $sections = $scheme->getEntityValues($node);
-      // @todo this should be given to the plugins to handle which can be done
-      //   once they become derivative based.
-      $tree = $manager->getActiveTree();
+    if ($entity = $this->getEntity($values)) {
+      $scheme = $this->scheme->getAccessScheme();
+      $sections = $scheme->getEntityValues($entity);
+      $tree = $scheme->getTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
           if (isset($data[$id])) {
