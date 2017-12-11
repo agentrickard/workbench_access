@@ -278,7 +278,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function getEntityValues(EntityInterface $entity, $field) {
+  public function getEntityValues(EntityInterface $entity) {
+    $field = $this->fields($entity->getEntityTypeId(), $entity->bundle());
     if (!$entity instanceof ContentEntityInterface) {
       return [];
     }
@@ -294,7 +295,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {inheritdoc}
    */
-  public function fields($entity_type, $bundle) {
+  protected function fields($entity_type, $bundle) {
     $fields = $this->config->get('fields');
     return isset($fields[$entity_type][$bundle]) ? $fields[$entity_type][$bundle] : [];
   }
@@ -302,7 +303,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {inheritdoc}
    */
-  public function fieldsByEntityType($entity_type) {
+  protected function fieldsByEntityType($entity_type) {
     // User/users do not name the data table consistently.
     if ($entity_type == 'user' || $entity_type == 'users') {
       return ['user' => WorkbenchAccessManagerInterface::FIELD_NAME];
@@ -331,6 +332,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     $values = $form_state->getValue('workbench_access_disallowed');
     if (!empty($values)) {
       $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
+      // @todo this needs to die
       if ($scheme = $manager->getActiveScheme()) {
         $node = $form_state->getFormObject()->getEntity();
         $field = $scheme->fields('node', $node->bundle());
@@ -388,20 +390,5 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $filter->query->addWhere($filter->options['group'], $or);
     }
   }
-
-  /**
-   * Check if this access scheme applies to the given entity.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   Entity to check access on.
-   * @param string $op
-   *   Operation.
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   The account requesting access.
-   *
-   * @return bool
-   *   TRUE if this access scheme applies to the entity.
-   */
-  abstract protected function applies(EntityInterface $entity, $op, AccountInterface $account);
 
 }

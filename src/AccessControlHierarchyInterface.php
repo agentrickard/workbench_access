@@ -55,13 +55,11 @@ interface AccessControlHierarchyInterface {
    *
    * @param EntityInterface $entity
    *   A Drupal entity, typically a node or a user.
-   * @param $field
-   *   The field holding the access control data.
    *
    * @return array
    *   An array of field data from the entity.
    */
-  public function getEntityValues(EntityInterface $entity, $field);
+  public function getEntityValues(EntityInterface $entity);
 
   /**
    * Loads a hierarchy definition for a single item in the tree.
@@ -184,7 +182,7 @@ interface AccessControlHierarchyInterface {
   /**
    * Adds a where clause to a view when using a section filter.
    *
-   * @param Drupal\workbench_access\Plugin\views\filter\Section $filter
+   * @param \Drupal\workbench_access\Plugin\views\filter\Section $filter
    *   The views filter object provided by Workbench Access.
    * @param $values
    *   An array of values for the current view.
@@ -200,21 +198,16 @@ interface AccessControlHierarchyInterface {
   public function resetTree();
 
   /**
-   * Returns the access control fields configured for use by the plugin.
+   * Check if this access scheme applies to the given entity.
    *
-   * @param $entity_type
-   *   The type of entity access control is being tested for (e.g. 'node').
+   * @param string $entity_type_id
+   *   Entity type ID.
    * @param $bundle
-   *   The entity bundle being tested (e.g. 'article').
-   */
-  public function fields($entity_type, $bundle);
-
-  /**
-   * Returns the access control fields configured for use by the plugin.
+   *   Bundle ID.
    *
-   * @param $entity_type
-   *   The type of entity access control is being tested for (e.g. 'node').
+   * @return bool
+   *   TRUE if this access scheme applies to the entity.
    */
-  public function fieldsByEntityType($entity_type);
+  public function applies($entity_type_id, $bundle);
 
 }

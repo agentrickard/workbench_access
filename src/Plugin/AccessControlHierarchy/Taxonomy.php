@@ -176,17 +176,14 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  protected function applies(EntityInterface $entity, $op, AccountInterface $account) {
-    if (!$entity instanceof ContentEntityInterface) {
-      return FALSE;
-    }
-    return (bool) $this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle());
+  public function applies($entity_type_id, $bundle) {
+    return (bool) $this->getApplicableFields($entity_type_id, $bundle);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function fields($entity_type, $bundle) {
+  protected function fields($entity_type, $bundle) {
     return array_column($this->getApplicableFields($entity_type, $bundle), 'field');
   }
 

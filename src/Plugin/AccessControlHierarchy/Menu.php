@@ -147,7 +147,7 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function getEntityValues(EntityInterface $entity, $field) {
+  public function getEntityValues(EntityInterface $entity) {
     $values = [];
     $defaults = menu_ui_get_menu_link_defaults($entity);
     if (!empty($defaults['id'])) {
@@ -198,9 +198,9 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  protected function applies(EntityInterface $entity, $op, AccountInterface $account) {
-    // @todo configuration changes for this.
-    return $entity->getEntityTypeId() === 'node' && in_array($entity->bundle(), $this->configuration['bundles']);
+  public function applies($entity_type_id, $bundle) {
+    // @todo change configuration
+    return $entity_type_id === 'node' && in_array($bundle, $this->configuration['bundles']);
   }
 
 }

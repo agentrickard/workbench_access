@@ -6,6 +6,8 @@
  */
 
 use Drupal\Core\Access\AccessResultInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\node\NodeInterface;
@@ -42,17 +44,25 @@ function workbench_access_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_alter().
  *
  * Restricts selection options for the node form.
  */
-function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_state) {
+function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-  if ($scheme = $manager->getActiveScheme()) {
-    $node = $form_state->getFormObject()->getEntity();
-
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof EntityForm) {
+    return;
+  }
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof ContentEntityInterface) {
+    return;
+  }
+  /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
+  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
     // If no access field is set, we do nothing.
-    $field = $scheme->fields('node', $node->bundle());
+    $scheme = $access_scheme->getAccessScheme();
+    $field = $scheme->applies($entity->getEntityTypeId(), $entity->bundle());
     if (empty($field)) {
       return;
     }
@@ -68,6 +78,8 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
         $form['workbench_access_disallowed'] = workbench_access_hidden_field($options_diff, $scheme);
         // Call our submitEntity() method to merge in values.
         // @todo Add tests for this.
+        // @todo this should only happen once and shouldn't be static so each
+        //   instance can do its own thing.
         $class = '\\' . get_class($scheme) . '::submitEntity';
         // Account for all the submit buttons on the node form.
         $buttons = ['submit', 'publish', 'unpublish'];
@@ -159,10 +171,10 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
 
   // Check that access control applies to this entity type.
   $entity_type_id = $context['entity_type_id'];
-  $fields = array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function ($fields = [], AccessSchemeInterface $scheme) use ($entity_type_id, $entity_bundle) {
-    return array_merge($fields, $scheme->getAccessScheme()->fields($entity_type_id, $entity_bundle));
-  }, []);
-  if (!$fields) {
+  $schemes = array_filter(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessSchemeInterface $scheme) use ($entity_type_id, $entity_bundle) {
+    return $scheme->getAccessScheme()->applies($entity_type_id, $entity_bundle);
+  });
+  if (!$schemes) {
     return $return;
   }
 
@@ -210,7 +222,7 @@ function workbench_access_views_data_alter(array &$data) {
  *
  * @param array $options_diff
  *   An array of section ids that cannot be edited by the current user.
- * @param Drupal\workbench_access\Annotation\AccessControlHierarchy $scheme
+ * @param Drupal\workbench_access\AccessControlHierarchyInterface $scheme
  *   The active access control scheme.
  *
  * @return array

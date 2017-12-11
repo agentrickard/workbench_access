@@ -70,8 +70,7 @@ class Section extends FieldPluginBase {
     $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
     if ($scheme = $manager->getActiveScheme()) {
       $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
-      $fields = $scheme->fields('node', $node->bundle());
-      $sections = $scheme->getEntityValues($node, $fields);
+      $sections = $scheme->getEntityValues($node);
       $tree = $manager->getActiveTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
