@@ -183,6 +183,26 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * Gets the fields that may be used for a plugin type.
+   *
+   * This method informs the system what fields are eligible to use for
+   * access controls. For instance, with taxonomy, it returns all taxonomy
+   * reference fields.
+   *
+   * @param $entity_type
+   *   The type of entity access control is being tested for (e.g. 'node').
+   * @param $bundle
+   *   The entity bundle being tested (e.g. 'article').
+   * @param $parents
+   *   The selected parent roots of the hierarchy. e.g. a taxonomy vocabulary.
+   *   The array contains the ids of the root items (e.g. a vocabulary id).
+   *
+   * @return array
+   *   An array of fields in the format id => label, for use in a form.
+   */
+  abstract protected function getFields($entity_type, $bundle, array $parents);
+
+  /**
    * {@inheritdoc}
    */
   public function configValidate(array &$form, FormStateInterface $form_state) {
