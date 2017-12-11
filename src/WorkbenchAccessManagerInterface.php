@@ -52,12 +52,4 @@ interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, R
    */
   public function userInAll($uid = NULL, array $tree);
 
-  /**
-   * Removes all field settings.
-   *
-   * This method should be triggered when changing access schemes. If possible,
-   * let the administrator choose to run this.
-   */
-  public function flushFields();
-
 }

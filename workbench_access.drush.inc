@@ -124,7 +124,6 @@ function drush_workbench_access_flush() {
   $role_section_storage = \Drupal::getContainer()->get('workbench_access.role_section_storage');
   $role_section_storage->flushRoles();
   $user_section_storage->flushUsers();
-  $manager->flushFields();
   drush_print('User and role assignments cleared. Field assigments reset.');
 }
 
