@@ -50,5 +50,15 @@ workbench_access.scheme_settings.taxonomy:
       type: sequence
       label: 'Fields'
       sequence:
-        type: string
+        type: mapping
         label: 'Field'
+        mapping:
+          entity_type:
+            type: string
+            label: 'Entity type ID'
+          bundle:
+            type: string
+            label: 'Bundle'
+          field:
+            type: string
+            label: 'Field'

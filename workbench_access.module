@@ -5,12 +5,15 @@
  * Contains workbench_access.module.
  */
 
+use Drupal\Core\Access\AccessResultInterface;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\node\NodeInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -129,7 +132,7 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
         'type' => $bundle,
         'label' => 'Sections', // @TODO tie to config
         'description' => 'The editorial section for this content.',
-      ]
+      ],
     ];
     $id = $entity_type . '.' . $bundle . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
 
@@ -160,15 +163,15 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
 }
 
 /**
- * Implements hook_node_access().
+ * Implements hook_entity_access().
  */
-function workbench_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  // Check that our access control is configured.
+function workbench_access_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
+  // Return net result of all enabled access schemes. If one scheme allows
+  // access, then it is granted.
   $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
-  if ($scheme = $manager->getActiveScheme()) {
-    return $scheme->checkEntityAccess($node, $op, $account, $manager);
-  }
-  return AccessResult::neutral();
+  return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResultInterface $carry, AccessSchemeInterface $scheme) use ($manager, $entity, $op, $account) {
+    return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($entity, $op, $account, $manager));
+  }, AccessResult::neutral());
 }
 
 /**
@@ -177,6 +180,7 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
  * @link https://www.drupal.org/node/2348203
  */
 function workbench_access_node_create_access(AccountInterface $account, $context, $entity_bundle) {
+  // @todo move this to the access schemes.
   $return = AccessResult::neutral();
   // User can bypass.
   if ($account->hasPermission('bypass workbench access')) {

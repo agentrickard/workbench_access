@@ -66,7 +66,11 @@ class EntityTestAccessTest extends KernelTestBase {
       'scheme_settings' => [
         'vocabularies' => ['workbench_access'],
         'fields' => [
-          'entity_test:access_controlled:field_workbench_access',
+          [
+            'entity_type' => 'entity_test',
+            'bundle' => 'access_controlled',
+            'field' => 'field_workbench_access',
+          ],
         ],
       ],
     ]);

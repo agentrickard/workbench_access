@@ -2,6 +2,9 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\taxonomy\Entity\Term;
@@ -153,6 +156,45 @@ class Taxonomy extends AccessControlHierarchyBase {
     }
 
     return $element;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function applies(EntityInterface $entity, $op, AccountInterface $account) {
+    if (!$entity instanceof ContentEntityInterface) {
+      return FALSE;
+    }
+    return (bool) $this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle());
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function fields($entity_type, $bundle) {
+    return array_column($this->getApplicableFields($entity_type, $bundle), 'field');
+  }
+
+  /**
+   * Gets applicable fields for given entity type and bundle.
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle ID.
+   *
+   * @return array
+   *   Associative Array of fields with keys entity_type, bundle and field.
+   */
+  protected function getApplicableFields($entity_type, $bundle) {
+    return array_filter($this->configuration['fields'], function ($field) use ($entity_type, $bundle) {
+      $field += [
+        'entity_type' => NULL,
+        'bundle' => NULL,
+        'field_name' => '',
+      ];
+      return $field['entity_type'] === $entity_type && $field['bundle'] === $bundle;
+    });
   }
 
 }

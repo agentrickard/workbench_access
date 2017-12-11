@@ -180,4 +180,12 @@ class Menu extends AccessControlHierarchyBase {
     return $configuration;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  protected function applies(EntityInterface $entity, $op, AccountInterface $account) {
+    // @todo configuration changes for this.
+    return $entity->getEntityTypeId() === 'node' && in_array($entity->bundle(), $this->configuration['bundles']);
+  }
+
 }

@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
@@ -222,22 +223,16 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       return AccessResult::neutral();
     }
 
-    // Check that the content type is configured.
-    // @TODO: Right now this only handles nodes.
-    /** @var \Drupal\node\NodeTypeInterface $type */
-    $active = FALSE;
-    if ($type = $this->entityTypeManager->getStorage('node_type')->load($entity->bundle())) {
-      $active = $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0);
-    }
-
-    if (!$active) {
-      // No such node-type or not-active.
+    if (!$this->applies($entity, $op, $account)) {
       return AccessResult::neutral();
     }
 
-    if ($field = $this->fields('node', $type->id())) {
+    if ($fields = $this->fields($entity->getEntityTypeId(), $entity->bundle())) {
       // Discover the field and check status.
-      $entity_sections = $this->getEntityValues($entity, $field);
+      $entity_sections = [];
+      foreach ($fields as $field) {
+        $entity_sections = array_unique(array_merge($this->getEntityValues($entity, $field), $entity_sections));
+      }
       // If no value is set on the entity, ignore.
       // @TODO: Is this the correct logic? It is helpful for new installs.
       $deny_on_empty = $this->config->get('deny_on_empty');
@@ -264,6 +259,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function getEntityValues(EntityInterface $entity, $field) {
+    if (!$entity instanceof ContentEntityInterface) {
+      return [];
+    }
     $values = [];
     foreach ($entity->get($field)->getValue() as $item) {
       if (isset($item['target_id'])) {
@@ -370,5 +368,20 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $filter->query->addWhere($filter->options['group'], $or);
     }
   }
+
+  /**
+   * Check if this access scheme applies to the given entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   Entity to check access on.
+   * @param string $op
+   *   Operation.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The account requesting access.
+   *
+   * @return bool
+   *   TRUE if this access scheme applies to the entity.
+   */
+  abstract protected function applies(EntityInterface $entity, $op, AccountInterface $account);
 
 }
