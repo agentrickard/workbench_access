@@ -119,12 +119,14 @@ function drush_workbench_access_test() {
  * Flushes assigned user permissions.
  */
 function drush_workbench_access_flush() {
-  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
   $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
   $role_section_storage = \Drupal::getContainer()->get('workbench_access.role_section_storage');
   $role_section_storage->flushRoles();
   $user_section_storage->flushUsers();
-  drush_print('User and role assignments cleared. Field assigments reset.');
+  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $scheme) {
+    $scheme->delete();
+  }
+  drush_print('User and role assignments cleared. Access schemes deleted.');
 }
 
 /**
