@@ -2,41 +2,10 @@ workbench_access.settings:
   type: config_object
   label: 'Workbench Access settings'
   mapping:
-    scheme:
-      type: text
-      label: 'Active access scheme.'
-    parents:
-      type: sequence
-      label: 'Active access parents for a scheme.'
-      sequence:
-        type: string
-        label: 'Parent'
     deny_on_empty:
       type: boolean
       label: 'Deny access to unassigned content'
-    label:
-      type: text
-      label: 'Label shown to define a Workbench Access control group.'
-    plural_label:
-      type: text
-      label: 'Label shown to define a set of Workbench Access control groups.'
-    fields:
-      type: sequence
-      label: 'Fields that store access control data.'
-      sequence:
-        type: sequence
-        label: 'Content type'
-        sequence:
-          type: string
-          label: 'Field'
 
-node.type.*.third_party.workbench_access:
-  type: mapping
-  label: 'Per-content type access control settings'
-  mapping:
-    workbench_access_status:
-      type: boolean
-      label: 'Workbench Access status'
 
 entity_reference_selection.workbench_access:
   type: entity_reference_selection.default
@@ -44,3 +13,42 @@ entity_reference_selection.workbench_access:
 
 entity_reference_selection.workbench_access:*:
   type: entity_reference_selection.default
+
+workbench_access.access_scheme.*:
+  type: config_entity
+  label: 'Access scheme config'
+  mapping:
+    id:
+      type: string
+      label: 'ID'
+    plural_label:
+      type: text
+      label: 'Label shown to define a set of Workbench Access control groups.'
+    label:
+      type: label
+      label: 'Label'
+    scheme:
+      type: string
+      label: 'Access scheme'
+    scheme_settings:
+      type: workbench_access.scheme_settings.[%parent.scheme]
+
+workbench_access_scheme_settings:
+  type: mapping
+  label: 'Settings'
+
+workbench_access.scheme_settings.taxonomy:
+  type: workbench_access_scheme_settings
+  mapping:
+    vocabularies:
+      type: sequence
+      label: 'Vocabularies'
+      sequence:
+        type: string
+        label: 'Vocabulary'
+    fields:
+      type: sequence
+      label: 'Fields'
+      sequence:
+        type: string
+        label: 'Field'

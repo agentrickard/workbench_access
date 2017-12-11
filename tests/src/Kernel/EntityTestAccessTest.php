@@ -7,6 +7,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -59,16 +60,13 @@ class EntityTestAccessTest extends KernelTestBase {
     $this->installConfig(['filter', 'entity_test', 'workbench_access']);
     $scheme = AccessScheme::create([
       'id' => 'test_scheme',
-      'label' => 'Test access scheme',
-      'access_scheme' => [
-        'id' => 'taxonomy',
-        'settings' => [
-          'vocabularies' => ['workbench_access'],
-          'entity_types' => [
-            'entity_test:access_controlled' => [
-              'fields' => ['field_workbench_access'],
-            ],
-          ],
+      'label' => 'Editorial section',
+      'plural_label' => 'Editorial sections',
+      'scheme' => 'taxonomy',
+      'scheme_settings' => [
+        'vocabularies' => ['workbench_access'],
+        'fields' => [
+          'entity_test:access_controlled:field_workbench_access',
         ],
       ],
     ]);

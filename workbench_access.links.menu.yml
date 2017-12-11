@@ -1,5 +1,11 @@
 workbench_access.settings:
   title: 'Workbench Access'
+<<<<<<< HEAD
   description: 'Configure settings for Workbench Access.'
   parent: system.admin_config_workflow
   route_name: workbench_access.admin
+=======
+  description: 'Configure Workbench Access.'
+  parent: system.admin_config_workflow
+  route_name: entity.access_scheme.collection
+>>>>>>> master

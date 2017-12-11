@@ -1,10 +1,27 @@
+<<<<<<< HEAD
 workbench_access.admin:
   title: 'Settings'
   route_name: workbench_access.admin
   base_route: workbench_access.admin
+=======
+entity.access_scheme.collection:
+  title: 'Settings'
+  route_name: entity.access_scheme.collection
+  base_route: entity.access_scheme.collection
+
+workbench_access.admin:
+  title: 'Settings'
+  route_name: workbench_access.admin
+  base_route: entity.access_scheme.collection
+  weight: 30
+>>>>>>> master
 
 workbench_access.sections:
   title: 'Sections'
   route_name: workbench_access.sections
+<<<<<<< HEAD
   base_route: workbench_access.admin
+=======
+  base_route: entity.access_scheme.collection
+>>>>>>> master
   weight: 10

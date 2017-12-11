@@ -1,5 +1,9 @@
 workbench_access.admin:
+<<<<<<< HEAD
   path: '/admin/config/workflow/workbench_access'
+=======
+  path: '/admin/config/workflow/workbench_access/settings'
+>>>>>>> master
   defaults:
     _form: 'Drupal\workbench_access\Form\WorkbenchAccessConfigForm'
     _title: 'Workbench Access'
