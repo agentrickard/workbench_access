@@ -112,9 +112,9 @@ class EntityTestAccessTest extends KernelTestBase {
     $permissions[] = 'bypass workbench access';
     $editor_with_bypass_access = $this->createUser($permissions);
 
-    $this->assertTrue($this->accessHandler->createAccess('page', $allowed_editor));
-    $this->assertFalse($this->accessHandler->createAccess('page', $editor_with_no_access));
-    $this->assertTrue($this->accessHandler->createAccess('page', $editor_with_bypass_access));
+    $this->assertTrue($this->accessHandler->createAccess('access_controlled', $allowed_editor));
+    $this->assertFalse($this->accessHandler->createAccess('access_controlled', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->createAccess('access_controlled', $editor_with_bypass_access));
   }
 
   /**
