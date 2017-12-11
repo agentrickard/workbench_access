@@ -116,10 +116,12 @@ interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, R
    *
    * @param boolean $root_only
    *   If TRUE, only show the root-level assignments.
+   * @param array $tree
+   *   Tree to fetch sections from.
    *
    * @return array
    */
-  public function getAllSections($root_only = FALSE);
+  public static function getAllSections($root_only = FALSE, array $tree);
 
   /**
    * Determines if a user is assigned to all sections.
@@ -130,10 +132,12 @@ interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, R
    *
    * @param $uid
    *   An optional user id. If not provided, the active user is returned.
+   * @param array $tree
+   *   Tree.
    *
    * @return boolean
    */
-  public function userInAll($uid = NULL);
+  public function userInAll($uid = NULL, array $tree);
 
   /**
    * Removes all field settings.

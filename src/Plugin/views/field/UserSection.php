@@ -2,12 +2,14 @@
 
 namespace Drupal\workbench_access\Plugin\views\field;
 
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\Plugin\views\field\Section;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
+use Drupal\workbench_access\WorkbenchAccessManager;
 
 /**
  * Field handler to present the section assigned to the user.
@@ -36,18 +38,25 @@ class UserSection extends Section {
   public function render(ResultRow $values) {
     $uid = $this->getValue($values, 'uid');
     $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-    if ($scheme = $manager->getActiveScheme()) {
+    $schemes = \Drupal::entityTypeManager()
+      ->getStorage('access_scheme')
+      ->loadMultiple();
+    if ($schemes) {
+      $all = array_reduce($schemes, function (array $items, AccessSchemeInterface $scheme) {
+        // @todo this needs to retain keys.
+        // @todo this needs to respect IDs in each scheme.
+        return array_unique(array_merge($items, $scheme->getAccessScheme()->getTree()));
+      }, []);
       if ($manager->userInAll($uid)) {
-        $sections = $manager->getAllSections(TRUE);
+        $sections = WorkbenchAccessManager::getAllSections(TRUE, $all);
       }
       else {
         $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
         $sections = $user_section_storage->getUserSections($uid);
       }
       $output = [];
-      $tree = $manager->getActiveTree();
       foreach ($sections as $id) {
-        foreach ($tree as $root => $data) {
+        foreach ($all as $root => $data) {
           if (isset($data[$id])) {
             $output[] = $this->sanitizeValue($data[$id]['label']);
           }

@@ -363,9 +363,9 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   /**
    * {@inheritdoc}
    */
-  public function getAllSections($root_only = FALSE) {
+  public static function getAllSections($root_only = FALSE, array $tree) {
     $sections = [];
-    foreach ($this->getActiveTree() as $root => $item) {
+    foreach ($tree as $root => $item) {
       if ($root_only) {
         $sections[] = $root;
       }
@@ -381,7 +381,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   /**
    * {@inheritdoc}
    */
-  public function userInAll($uid = NULL) {
+  public function userInAll($uid = NULL, array $tree) {
     // Get the information from the account.
     if (is_null($uid)) {
       $uid = $this->currentUser->id();
@@ -393,7 +393,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
     else {
       // If the user is assigned to all the top-level sections, treat as admin.
       $user_sections = $this->userSectionStorage->getUserSections($uid);
-      foreach (array_keys($this->getActiveTree()) as $root) {
+      foreach (array_keys($tree) as $root) {
         if (empty($user_sections[$root])) {
           return FALSE;
         }

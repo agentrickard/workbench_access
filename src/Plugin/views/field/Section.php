@@ -71,6 +71,8 @@ class Section extends FieldPluginBase {
     if ($scheme = $manager->getActiveScheme()) {
       $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
       $sections = $scheme->getEntityValues($node);
+      // @todo this should be given to the plugins to handle which can be done
+      //   once they become derivative based.
       $tree = $manager->getActiveTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
