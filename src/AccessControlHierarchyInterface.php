@@ -2,10 +2,9 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
-use Drupal\workbench_access\WorkbenchAccessManager;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
@@ -14,7 +13,7 @@ use Drupal\Core\Session\AccountInterface;
 /**
  * Defines a base hierarchy class that others may extend.
  */
-interface AccessControlHierarchyInterface {
+interface AccessControlHierarchyInterface extends ConfigurablePluginInterface {
 
   /**
    * Returns the id for a hierarchy.
@@ -29,13 +28,6 @@ interface AccessControlHierarchyInterface {
    * @return string
    */
   public function label();
-
-  /**
-   * Returns the status of a hierarchy.
-   *
-   * @return boolean
-   */
-  public function status();
 
   /**
    * Gets the options for a hierarchy.

@@ -54,6 +54,17 @@ class Taxonomy extends AccessControlHierarchyBase {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    $defaults = [
+      'fields' => [],
+      'vocabularies' => [],
+    ];
+    return $defaults + parent::defaultConfiguration();
+  }
+
+  /**
    * Traverses the taxonomy tree and builds parentage arrays.
    *
    * Note: this method is necessary to load all parents to the array.

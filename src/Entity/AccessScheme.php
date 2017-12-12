@@ -16,7 +16,7 @@ use Drupal\Core\Plugin\DefaultSingleLazyPluginCollection;
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "list_builder" = "Drupal\workbench_access\AccessSchemeListBuilder",
  *     "form" = {
- *       "add" = "Drupal\workbench_access\Form\AccessSchemeForm",
+ *       "add" = "Drupal\workbench_access\Form\AccessSchemeAddForm",
  *       "edit" = "Drupal\workbench_access\Form\AccessSchemeForm",
  *       "delete" = "Drupal\workbench_access\Form\AccessSchemeDeleteForm"
  *     },
@@ -32,11 +32,11 @@ use Drupal\Core\Plugin\DefaultSingleLazyPluginCollection;
  *     "uuid" = "uuid"
  *   },
  *   links = {
- *     "canonical" = "/admin/structure/workflow/workbench_access/access_scheme/{access_scheme}",
- *     "add-form" = "/admin/structure/workflow/workbench_access/access_scheme/add",
- *     "edit-form" = "/admin/structure/workflow/workbench_access/access_scheme/{access_scheme}/edit",
- *     "delete-form" = "/admin/structure/workflow/workbench_access/access_scheme/{access_scheme}/delete",
- *     "collection" = "/admin/structure/workflow/workbench_access"
+ *     "canonical" = "/admin/config/workflow/workbench_access/access_scheme/{access_scheme}",
+ *     "add-form" = "/admin/config/workflow/workbench_access/access_scheme/add",
+ *     "edit-form" = "/admin/config/workflow/workbench_access/access_scheme/{access_scheme}/edit",
+ *     "delete-form" = "/admin/config/workflow/workbench_access/access_scheme/{access_scheme}/delete",
+ *     "collection" = "/admin/config/workflow/workbench_access"
  *   },
  *   config_export = {
  *     "id",

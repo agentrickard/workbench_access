@@ -125,14 +125,18 @@ trait WorkbenchAccessTestTrait {
   /**
    * Sets up a user with an editor role that has access to content.
    *
+   * @param array $additional_permissions
+   *   Array of additional permissions beyond 'access administration pages' and
+   *   'assign workbench access'.
+   *
    * @return \Drupal\user\Entity\User
    *   The user entity.
    */
-  protected function setUpAdminUser() {
-    $admin_rid = $this->createRole([
+  protected function setUpAdminUser($additional_permissions = []) {
+    $admin_rid = $this->createRole(array_merge($additional_permissions, [
       'access administration pages',
       'assign workbench access',
-    ], 'admin');
+    ]), 'admin');
 
     return $this->createUserWithRole($admin_rid);
   }

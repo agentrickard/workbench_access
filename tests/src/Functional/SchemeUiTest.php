@@ -30,6 +30,7 @@ class SchemeUiTest extends BrowserTestBase {
     'taxonomy',
     'options',
     'user',
+    'block',
     'system',
   ];
 
@@ -41,7 +42,8 @@ class SchemeUiTest extends BrowserTestBase {
     $node_type = $this->createContentType(['type' => 'page']);
     $vocabulary = $this->setUpVocabulary();
     $this->setUpTaxonomyField($node_type, $vocabulary);
-    $this->admin = $this->setUpAdminUser();
+    $this->admin = $this->setUpAdminUser(['administer workbench access']);
+    $this->placeBlock('local_actions_block');
   }
 
   /**

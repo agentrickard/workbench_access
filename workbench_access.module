@@ -132,7 +132,6 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
         'bundle' => $bundle,
         'required' => FALSE,
         'description' => $text[$entity_type]['description'],
-        'default_value_callback' => 'Drupal\workbench_access\WorkbenchAccessManager::getDefaultValue',
       );
       if ($entity_type == 'node') {
         $field['settings']['handler_settings']['target_bundles'] = ['workbench_access' => 'workbench_access'];

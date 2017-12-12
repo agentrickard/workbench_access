@@ -77,8 +77,12 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     $this->config = $configFactory->get('workbench_access.settings');
     $this->userSectionStorage = $user_section_storage;
     $this->entityTypeManager = $entityTypeManager;
+    $this->setConfiguration($configuration);
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
       $configuration,
@@ -88,6 +92,27 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $container->get('config.factory'),
       $container->get('entity_type.manager')
     );
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setConfiguration(array $configuration) {
+    $this->configuration = $configuration + $this->defaultConfiguration();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguration() {
+    return $this->configuration;
   }
 
   /**
@@ -107,8 +132,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function status() {
-    return $this->config->get('scheme') === $this->id();
+  public function calculateDependencies() {
+    return [];
   }
 
   /**

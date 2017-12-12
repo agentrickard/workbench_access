@@ -2,10 +2,12 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Component\Plugin\PluginManagerInterface;
+
 /**
  * Defines an interface handling Workbench Access configuration.
  */
-interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, RoleSectionStorageInterface {
+interface WorkbenchAccessManagerInterface extends UserSectionStorageInterface, RoleSectionStorageInterface, PluginManagerInterface {
   const FIELD_NAME = 'field_workbench_access';
 
   /**
