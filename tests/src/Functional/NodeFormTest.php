@@ -57,7 +57,7 @@ class NodeFormTest extends BrowserTestBase {
       'name' => 'Editor',
     ]);
     $base_term->save();
-    $editor->{WORKBENCH_ACCESS_FIELD} = $base_term->id();
+    $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $base_term->id();
     $editor->save();
 
     $staff_rid = $this->createRole([], 'staff');
