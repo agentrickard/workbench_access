@@ -6,6 +6,7 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Plugin\PluginWithFormsTrait;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
 use Drupal\Component\Plugin\PluginBase;
@@ -21,6 +22,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 abstract class AccessControlHierarchyBase extends PluginBase implements AccessControlHierarchyInterface, ContainerFactoryPluginInterface {
 
+  use PluginWithFormsTrait;
   use StringTranslationTrait;
 
   /*
@@ -177,7 +179,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function configForm($parents = []) {
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $node_types = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
     $form = [];
     /** @var \Drupal\node\NodeTypeInterface $type */
@@ -189,7 +191,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
         '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
       ];
       $options = ['' => $this->t('No field set')];
-      $options += $this->getFields('node', $type->id(), $parents);
+      $options += $this->getFields('node', $type->id());
       if (!empty($options)) {
         $form['field_' . $id] = [
           '#type' => 'select',
@@ -219,26 +221,23 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    *   The type of entity access control is being tested for (e.g. 'node').
    * @param $bundle
    *   The entity bundle being tested (e.g. 'article').
-   * @param $parents
-   *   The selected parent roots of the hierarchy. e.g. a taxonomy vocabulary.
-   *   The array contains the ids of the root items (e.g. a vocabulary id).
    *
    * @return array
    *   An array of fields in the format id => label, for use in a form.
    */
-  abstract protected function getFields($entity_type, $bundle, array $parents);
+  abstract protected function getFields($entity_type, $bundle);
 
   /**
    * {@inheritdoc}
    */
-  public function configValidate(array &$form, FormStateInterface $form_state) {
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     // Default implementation is empty.
   }
 
   /**
    * {@inheritdoc}
    */
-  public function configSubmit(array &$form, FormStateInterface $form_state) {
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $fields = $this->config->get('fields');
 
     $node_types = $this->entityTypeManager->getStorage('node_type')->loadMultiple();

@@ -23,7 +23,7 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  protected function getFields($entity_type, $bundle, array $parents) {
+  protected function getFields($entity_type, $bundle) {
     return ['uid' => 'User'];
   }
 

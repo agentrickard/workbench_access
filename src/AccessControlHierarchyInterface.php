@@ -4,16 +4,18 @@ namespace Drupal\workbench_access;
 
 use Drupal\Component\Plugin\ConfigurablePluginInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Plugin\PluginWithFormsInterface;
 
 /**
  * Defines a base hierarchy class that others may extend.
  */
-interface AccessControlHierarchyInterface extends ConfigurablePluginInterface {
+interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, PluginWithFormsInterface, PluginFormInterface {
 
   /**
    * Returns the id for a hierarchy.
@@ -65,38 +67,6 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface {
    *   A plugin implementation.
    */
   public function load($id);
-
-  /**
-   * Provides configuration options.
-   *
-   * @param $parents
-   *   The selected parent roots of the hierarchy. e.g. a taxonomy vocabulary.
-   *   The array contains the ids of the root items (e.g. a vocabulary id).
-   */
-  public function configForm($parents = []);
-
-  /**
-   * Validates configuration options.
-   *
-   * @param array &$form
-   *   The submitted form, passed by reference.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   *
-   * @return
-   *   No return value. Interact with the $form_state object.
-   */
-  public function configValidate(array &$form, FormStateInterface $form_state);
-
-  /**
-   * Submits configuration options.
-   *
-   * @param array &$form
-   *   The submitted form, passed by reference.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   The form state object.
-   */
-  public function configSubmit(array &$form, FormStateInterface $form_state);
 
   /**
    * Responds to request for node access.

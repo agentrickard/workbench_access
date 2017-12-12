@@ -4,6 +4,9 @@ namespace Drupal\workbench_access\Form;
 
 use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Form\SubformState;
+use Drupal\Core\Plugin\PluginFormFactoryInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides the access scheme form.
@@ -16,6 +19,32 @@ class AccessSchemeForm extends EntityForm {
    * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
    */
   protected $entity;
+
+  /**
+   * The plugin form factory.
+   *
+   * @var \Drupal\Core\Plugin\PluginFormFactoryInterface
+   */
+  protected $pluginFormFactory;
+
+  /**
+   * Creates an instance of WorkflowStateEditForm.
+   *
+   * @param \Drupal\Core\Plugin\PluginFormFactoryInterface $pluginFormFactory
+   *   The plugin form factory.
+   */
+  public function __construct(PluginFormFactoryInterface $pluginFormFactory) {
+    $this->pluginFormFactory = $pluginFormFactory;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(
+      $container->get('plugin_form.factory')
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -51,10 +80,28 @@ class AccessSchemeForm extends EntityForm {
       '#required' => TRUE,
     ];
 
-    // @todo add form for selecting plugin type
-    // @todo add configuration form to plugins for selecting entity types and
-    //  bundles
+    if ($access_scheme->getAccessScheme()->hasFormClass('configure')) {
+      $form['scheme_settings'] = [
+        '#tree' => TRUE,
+      ];
+      $subform_state = SubformState::createForSubform($form['scheme_settings'], $form, $form_state);
+      $form['scheme_settings'] += $access_scheme->getAccessScheme()
+        ->buildConfigurationForm($form['scheme_settings'], $subform_state);
+    }
+
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state) {
+    $access_scheme = $this->entity;
+    if ($access_scheme->getAccessScheme()->hasFormClass('configure')) {
+      $subform_state = SubformState::createForSubform($form['scheme_settings'], $form, $form_state);
+      $form['scheme_settings'] += $access_scheme->getAccessScheme()
+        ->validateConfigurationForm($form['scheme_settings'], $subform_state);
+    }
   }
 
   /**
@@ -62,20 +109,16 @@ class AccessSchemeForm extends EntityForm {
    */
   public function save(array $form, FormStateInterface $form_state) {
     $access_scheme = $this->entity;
-    $status = $access_scheme->save();
 
-    switch ($status) {
-      case SAVED_NEW:
-        drupal_set_message($this->t('Created the %label Access scheme.', [
-          '%label' => $access_scheme->label(),
-        ]));
-        break;
-
-      default:
-        drupal_set_message($this->t('Saved the %label Access scheme.', [
-          '%label' => $access_scheme->label(),
-        ]));
+    if ($access_scheme->getAccessScheme()->hasFormClass('configure')) {
+      $subform_state = SubformState::createForSubform($form['scheme_settings'], $form, $form_state);
+      $form['scheme_settings'] += $access_scheme->getAccessScheme()
+        ->submitConfigurationForm($form['scheme_settings'], $subform_state);
     }
+    $access_scheme->save();
+    drupal_set_message($this->t('Saved the %label Access scheme.', [
+      '%label' => $access_scheme->label(),
+    ]));
     $form_state->setRedirectUrl($access_scheme->toUrl('collection'));
   }
 
