@@ -40,18 +40,6 @@ trait WorkbenchAccessTestTrait {
   }
 
   /**
-   * Sets up an access taxonomy field for a given vocab on a given node type.
-   *
-   * @param \Drupal\node\Entity\NodeType $node_type
-   *   The node type to create the field on.
-   * @param \Drupal\taxonomy\Entity\Vocabulary $vocab
-   *   The vocab to create the field against.
-   */
-  protected function setUpTaxonomyField(NodeType $node_type, Vocabulary $vocab) {
-    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
-  }
-
-  /**
    * Sets up a taxonomy field on a given entity type and bundle.
    *
    * @param string $entity_type_id

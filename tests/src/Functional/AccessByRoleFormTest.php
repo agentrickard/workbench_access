@@ -37,7 +37,7 @@ class AccessByRoleFormTest extends BrowserTestBase {
     // Set up a content type, taxonomy field, and taxonomy scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
-    $this->setUpTaxonomyField($node_type, $vocab);
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
     $this->setUpTaxonomyScheme($node_type, $vocab);
 
     // Set up some roles and terms for this test.

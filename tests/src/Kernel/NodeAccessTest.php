@@ -67,7 +67,7 @@ class NodeAccessTest extends KernelTestBase {
     $this->vocabulary = $this->setUpVocabulary();
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('node');
-    $this->setUpTaxonomyField($node_type, $this->vocabulary);
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
     $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
   }
 
