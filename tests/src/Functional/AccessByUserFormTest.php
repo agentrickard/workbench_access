@@ -35,7 +35,7 @@ class AccessByUserFormTest extends BrowserTestBase {
     $web_assert = $this->assertSession();
     $page = $this->getSession()->getPage();
 
-    $node_type = $this->setUpContentType();
+    $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
     $this->setUpTaxonomyField($node_type, $vocab);
     $this->setUpTaxonomyScheme($node_type, $vocab);

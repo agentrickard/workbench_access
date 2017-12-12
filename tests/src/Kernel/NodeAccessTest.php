@@ -63,7 +63,7 @@ class NodeAccessTest extends KernelTestBase {
     $this->installSchema('system', ['key_value', 'sequences']);
     module_load_install('workbench_access');
     workbench_access_install();
-    $node_type = $this->setUpContentType();
+    $node_type = $this->createContentType(['type' => 'page']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('node');

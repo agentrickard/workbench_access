@@ -7,6 +7,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -22,8 +23,6 @@ trait WorkbenchAccessTestTrait {
    */
   public function setUpContentType() {
     $node_type = $this->createContentType(['type' => 'page']);
-    $node_type->setThirdPartySetting('workbench_access', 'workbench_access_status', 1);
-    $node_type->save();
 
     return $node_type;
   }
@@ -161,12 +160,21 @@ trait WorkbenchAccessTestTrait {
    *   The vocab to use for the scheme.
    */
   public function setUpTaxonomyScheme(NodeType $node_type, Vocabulary $vocab) {
-    $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
-    $config->set('scheme', 'taxonomy');
-    $config->set('parents', [$vocab->id() => $vocab->id()]);
-    $fields['node'][$node_type->id()] = WorkbenchAccessManagerInterface::FIELD_NAME;
-    $config->set('fields', $fields);
-    $config->save();
+    $scheme = AccessScheme::create([
+      'id' => 'editorial_section',
+      'label' => 'Editorial section',
+      'plural_label' => 'Editorial sections',
+      'scheme' => 'taxonomy',
+      'scheme_settings' => [
+        'vocabularies' => [$vocab->id()],
+        'fields' => [
+          'entity_type' => 'node',
+          'field' => WorkbenchAccessManagerInterface::FIELD_NAME,
+          'bundle' => $node_type->id(),
+        ]
+      ]
+    ]);
+    $scheme->save();
   }
 
 }
