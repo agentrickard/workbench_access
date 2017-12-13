@@ -3,7 +3,8 @@
 namespace Drupal\Tests\workbench_access\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\taxonomy\Entity\Term;
+use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\system\Entity\Menu;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
@@ -11,11 +12,11 @@ use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
- * Tests workbench_access integration with node access APIs.
+ * Tests workbench_access integration with node access via menu plugin.
  *
  * @group workbench_access
  */
-class NodeAccessTest extends KernelTestBase {
+class NodeMenuTest extends KernelTestBase {
 
   use WorkbenchAccessTestTrait;
   use NodeCreationTrait;
@@ -23,11 +24,11 @@ class NodeAccessTest extends KernelTestBase {
   use UserCreationTrait;
 
   /**
-   * Access vocabulary.
+   * Access menu.
    *
-   * @var \Drupal\taxonomy\VocabularyInterface
+   * @var \Drupal\system\MenuInterface
    */
-  protected $vocabulary;
+  protected $menu;
 
   /**
    * {@inheritdoc}
@@ -36,11 +37,12 @@ class NodeAccessTest extends KernelTestBase {
     'node',
     'text',
     'system',
+    'menu_link_content',
+    'menu_ui',
     'user',
     'workbench_access',
     'field',
     'filter',
-    'taxonomy',
     'options',
   ];
 
@@ -57,18 +59,20 @@ class NodeAccessTest extends KernelTestBase {
   protected function setUp() {
     parent::setUp();
     $this->installEntitySchema('node');
-    $this->installConfig(['filter', 'node', 'workbench_access']);
+    $this->installConfig(['filter', 'node', 'workbench_access', 'system']);
     $this->installEntitySchema('user');
-    $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('menu_link_content');
     $this->installSchema('system', ['key_value', 'sequences']);
     module_load_install('workbench_access');
     workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
-    $this->vocabulary = $this->setUpVocabulary();
+    // This is created by system module.
+    $this->menu = Menu::load('main');
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('node');
-    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
-    $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $node_type->setThirdPartySetting('menu_ui', 'available_menus', ['main']);
+    $node_type->save();
+    $this->setupMenuScheme($node_type, ['main']);
   }
 
   /**
@@ -78,12 +82,13 @@ class NodeAccessTest extends KernelTestBase {
     // The first user in a kernel test gets UID 1, so we need to make sure we're
     // not testing with that user.
     $this->createUser();
-    // Create a section.
-    $term = Term::create([
-      'vid' => $this->vocabulary->id(),
-      'name' => 'Some section',
+    // Create a menu link.
+    $link = MenuLinkContent::create([
+      'title' => 'Home',
+      'link' => [['uri' => 'route:<front>']],
+      'menu_name' => 'main',
     ]);
-    $term->save();
+    $link->save();
     // Create two users with equal permissions but assign one of them to the
     // section.
     $permissions = [
@@ -94,7 +99,7 @@ class NodeAccessTest extends KernelTestBase {
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -112,12 +117,13 @@ class NodeAccessTest extends KernelTestBase {
     // The first user in a kernel test gets UID 1, so we need to make sure we're
     // not testing with that user.
     $this->createUser();
-    // Create a section.
-    $term = Term::create([
-      'vid' => $this->vocabulary->id(),
-      'name' => 'Some section',
+    // Create a menu link.
+    $link = MenuLinkContent::create([
+      'title' => 'Home',
+      'link' => [['uri' => 'route:<front>']],
+      'menu_name' => 'main',
     ]);
-    $term->save();
+    $link->save();
     // Create two users with equal permissions but assign one of them to the
     // section.
     $permissions = [
@@ -127,7 +133,7 @@ class NodeAccessTest extends KernelTestBase {
       'delete any page content',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 
@@ -137,8 +143,13 @@ class NodeAccessTest extends KernelTestBase {
     $this->assertTrue($this->accessHandler->access($node1, 'update', $allowed_editor));
     $this->assertTrue($this->accessHandler->access($node1, 'update', $editor_with_no_access));
 
-    // Create a node that is assigned to a section.
-    $node2 = $this->createNode(['type' => 'page', 'title' => 'bar', WorkbenchAccessManagerInterface::FIELD_NAME => $term->id()]);
+    // Create a node that is a child of the section.
+    $node2 = $this->createNode(['type' => 'page', 'title' => 'bar']);
+    _menu_ui_node_save($node2, [
+      'title' => 'bar',
+      'menu' => 'main',
+      'parent' => $link->uuid(),
+    ]);
     $this->assertTrue($this->accessHandler->access($node2, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node2, 'update', $editor_with_no_access));
 
@@ -151,7 +162,6 @@ class NodeAccessTest extends KernelTestBase {
     $node3 = $this->createNode(['type' => 'page', 'title' => 'baz']);
     $this->assertFalse($this->accessHandler->access($node3, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node3, 'update', $editor_with_no_access));
-
   }
 
 }

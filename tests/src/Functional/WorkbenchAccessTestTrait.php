@@ -153,11 +153,13 @@ trait WorkbenchAccessTestTrait {
   /**
    * Sets up a taxonomy scheme for a given node type.
    *
+   * @param \Drupal\node\Entity\NodeType $node_type
+   *   Node type to set it up for.
    * @param \Drupal\taxonomy\Entity\Vocabulary $vocab
    *   The vocab to use for the scheme.
    *
    * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
-   *   Created scheme;
+   *   Created scheme.
    */
   public function setUpTaxonomyScheme(NodeType $node_type, Vocabulary $vocab) {
     $scheme = AccessScheme::create([
@@ -174,6 +176,32 @@ trait WorkbenchAccessTestTrait {
             'bundle' => $node_type->id(),
           ],
         ],
+      ],
+    ]);
+    $scheme->save();
+    return $scheme;
+  }
+
+  /**
+   * Sets up a menu scheme for a given node type.
+   *
+   * @param \Drupal\node\Entity\NodeType $node_type
+   *   Node type.
+   * @param array $menu_ids
+   *   Menu IDs.
+   *
+   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
+   *   Created scheme.
+   */
+  public function setUpMenuScheme(NodeType $node_type, array $menu_ids) {
+    $scheme = AccessScheme::create([
+      'id' => 'editorial_section',
+      'label' => 'Editorial section',
+      'plural_label' => 'Editorial sections',
+      'scheme' => 'menu',
+      'scheme_settings' => [
+        'menus' => $menu_ids,
+        'bundles' => [$node_type->id()],
       ],
     ]);
     $scheme->save();
