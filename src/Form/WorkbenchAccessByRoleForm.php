@@ -68,10 +68,10 @@ class WorkbenchAccessByRoleForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $scheme = NULL, $id = NULL) {
-    $this->scheme = $scheme;
-    $element = $scheme->getAccessScheme()->load($id);
-    $existing_roles = $this->roleSectionStorage->getRoles($scheme, $id);
+  public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $access_scheme = NULL, $id = NULL) {
+    $this->scheme = $access_scheme;
+    $element = $access_scheme->getAccessScheme()->load($id);
+    $existing_roles = $this->roleSectionStorage->getRoles($access_scheme, $id);
     $potential_roles = $this->roleSectionStorage->getPotentialRolesFiltered($id);
 
     $form['existing_roles'] = ['#type' => 'value', '#value' => $existing_roles];
@@ -126,7 +126,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
   /**
    * Returns a dynamic page title for the route.
    *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme
    *   Access scheme.
    * @param string $id
    *   The section id.
@@ -134,8 +134,8 @@ class WorkbenchAccessByRoleForm extends FormBase {
    * @return string
    *   A page title.
    */
-  public function pageTitle(AccessSchemeInterface $scheme, $id) {
-    $element = $scheme->getAccessScheme()->load($id);
+  public function pageTitle(AccessSchemeInterface $access_scheme, $id) {
+    $element = $access_scheme->getAccessScheme()->load($id);
     return $this->t('Roles assigned to %label', ['%label' => $element['label']]);
   }
 

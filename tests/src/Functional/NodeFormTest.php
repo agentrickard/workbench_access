@@ -34,8 +34,8 @@ class NodeFormTest extends BrowserTestBase {
     // Set up a content type, taxonomy field, and taxonomy scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
+    $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
-    $this->setUpTaxonomyScheme($node_type, $vocab);
     // Set up an editor and log in as them.
     $editor = $this->setUpEditorUser();
     $this->drupalLogin($editor);
@@ -57,14 +57,14 @@ class NodeFormTest extends BrowserTestBase {
       'name' => 'Editor',
     ]);
     $base_term->save();
-    $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $base_term->id();
+    $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $base_term->id();
     $editor->save();
 
     $staff_rid = $this->createRole([], 'staff');
     $super_staff_rid = $this->createRole([], 'super_staff');
     // Set the role -> term mapping.
-    \Drupal::state()->set('workbench_access_roles_' . $staff_rid, [$staff_term->id() => 1]);
-    \Drupal::state()->set('workbench_access_roles_' . $super_staff_rid, [$super_staff_term->id() => 1]);
+    \Drupal::service('workbench_access.role_section_storage')->addRole($scheme, $staff_rid, [$staff_term->id()]);
+    \Drupal::service('workbench_access.role_section_storage')->addRole($scheme, $super_staff_rid, [$super_staff_term->id()]);
 
     $web_assert = $this->assertSession();
     $this->drupalGet('node/add/page');

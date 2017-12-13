@@ -66,11 +66,16 @@ trait WorkbenchAccessTestTrait {
     }
     if (!$field = FieldConfig::load("$entity_type_id.$bundle.$field_name")) {
       // Create an instance of the access field on the bundle.
+      $handler_id = 'workbench_access:taxonomy_term:editorial_section';
+      if (!AccessScheme::load('editorial_section')) {
+        // The scheme doesn't exist yet so there is no plugin yet.
+        $handler_id = 'default:taxonomy_term';
+      }
       $field = FieldConfig::create([
         'field_storage' => $field_storage,
         'bundle' => $bundle,
         'settings' => [
-          'handler' => 'workbench_access:taxonomy_term',
+          'handler' => $handler_id,
           'handler_settings' => [
             'target_bundles' => [
               $vocabulary_id => $vocabulary_id,
@@ -150,6 +155,9 @@ trait WorkbenchAccessTestTrait {
    *
    * @param \Drupal\taxonomy\Entity\Vocabulary $vocab
    *   The vocab to use for the scheme.
+   *
+   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
+   *   Created scheme;
    */
   public function setUpTaxonomyScheme(NodeType $node_type, Vocabulary $vocab) {
     $scheme = AccessScheme::create([
@@ -169,6 +177,7 @@ trait WorkbenchAccessTestTrait {
       ],
     ]);
     $scheme->save();
+    return $scheme;
   }
 
 }

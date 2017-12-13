@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access\Entity;
 
 use Drupal\Core\Config\Entity\ConfigEntityBase;
+use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityWithPluginCollectionInterface;
 use Drupal\Core\Plugin\DefaultSingleLazyPluginCollection;
 
@@ -12,6 +13,7 @@ use Drupal\Core\Plugin\DefaultSingleLazyPluginCollection;
  * @ConfigEntityType(
  *   id = "access_scheme",
  *   label = @Translation("Access scheme"),
+ *   label_collection = @Translation("Access schemes"),
  *   handlers = {
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "list_builder" = "Drupal\workbench_access\AccessSchemeListBuilder",
@@ -21,7 +23,7 @@ use Drupal\Core\Plugin\DefaultSingleLazyPluginCollection;
  *       "delete" = "Drupal\workbench_access\Form\AccessSchemeDeleteForm"
  *     },
  *     "route_provider" = {
- *       "html" = "Drupal\Core\Entity\Routing\AdminHtmlRouteProvider",
+ *       "html" = "Drupal\workbench_access\Routing\AccessSchemeRouteProvider",
  *     },
  *   },
  *   config_prefix = "access_scheme",
@@ -36,7 +38,8 @@ use Drupal\Core\Plugin\DefaultSingleLazyPluginCollection;
  *     "add-form" = "/admin/config/workflow/workbench_access/access_scheme/add",
  *     "edit-form" = "/admin/config/workflow/workbench_access/access_scheme/{access_scheme}/edit",
  *     "delete-form" = "/admin/config/workflow/workbench_access/access_scheme/{access_scheme}/delete",
- *     "collection" = "/admin/config/workflow/workbench_access"
+ *     "collection" = "/admin/config/workflow/workbench_access",
+ *     "sections" = "/admin/config/workflow/workbench_access/{access_scheme}/sections",
  *   },
  *   config_export = {
  *     "id",
@@ -122,6 +125,14 @@ class AccessScheme extends ConfigEntityBase implements AccessSchemeInterface, En
       $this->accessSchemePluginCollection = new DefaultSingleLazyPluginCollection(\Drupal::service('plugin.manager.workbench_access.scheme'), $this->scheme, $this->scheme_settings);
     }
     return $this->accessSchemePluginCollection;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function postSave(EntityStorageInterface $storage, $update = TRUE) {
+    parent::postSave($storage, $update);
+    \Drupal::service('plugin.manager.entity_reference_selection')->clearCachedDefinitions();
   }
 
 }

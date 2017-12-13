@@ -11,8 +11,11 @@ entity_reference_selection.workbench_access:
   type: entity_reference_selection.default
   label: 'Default selection handler settings'
 
-entity_reference_selection.workbench_access:*:
-  type: entity_reference_selection.default
+entity_reference_selection.workbench_access:taxonomy_term:*:
+  type: entity_reference_selection.workbench_access
+
+entity_reference_selection.workbench_access:user:*:
+  type: entity_reference_selection.workbench_access
 
 workbench_access.access_scheme.*:
   type: config_entity

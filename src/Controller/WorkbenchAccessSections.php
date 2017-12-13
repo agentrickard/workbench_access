@@ -68,37 +68,34 @@ class WorkbenchAccessSections extends ControllerBase implements ContainerInjecti
   /**
    * Returns the section assignment page.
    */
-  public function page(AccessSchemeInterface $scheme) {
-    $config = $this->config('workbench_access.settings');
+  public function page(AccessSchemeInterface $access_scheme) {
     $rows = [];
-    if ($scheme_id = $config->get('scheme')) {
-      $tree = $scheme->getAccessScheme()->getTree();
-      foreach (array_keys($tree) as $id) {
-        // @TODO: Move to a theme function?
-        // @TODO: format plural
-        foreach ($tree[$id] as $iid => $item) {
-          $editor_count = count($this->userSectionStorage->getEditors($scheme, $iid));
-          $role_count = count($this->roleSectionStorage->getRoles($scheme, $iid));
-          $row = [];
-          $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
-          $row[] = Link::fromTextAndUrl($this->t('@count editors', ['@count' => $editor_count]), Url::fromRoute('workbench_access.by_user', ['id' => $iid]));
-          $row[] = Link::fromTextAndUrl($this->t('@count roles', ['@count' => $role_count]), Url::fromRoute('workbench_access.by_role', ['id' => $iid]));
-          $rows[] = $row;
-        }
+    $tree = $access_scheme->getAccessScheme()->getTree();
+    foreach (array_keys($tree) as $id) {
+      // @TODO: Move to a theme function?
+      // @TODO: format plural
+      foreach ($tree[$id] as $iid => $item) {
+        $editor_count = count($this->userSectionStorage->getEditors($access_scheme, $iid));
+        $role_count = count($this->roleSectionStorage->getRoles($access_scheme, $iid));
+        $row = [];
+        $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
+        $row[] = Link::fromTextAndUrl($this->t('@count editors', ['@count' => $editor_count]), Url::fromRoute('entity.access_scheme.by_user', [
+          'access_scheme' => $access_scheme->id(),
+          'id' => $iid,
+        ]));
+        $row[] = Link::fromTextAndUrl($this->t('@count roles', ['@count' => $role_count]), Url::fromRoute('entity.access_scheme.by_role', [
+          'access_scheme' => $access_scheme->id(),
+          'id' => $iid,
+        ]));
+        $rows[] = $row;
       }
-      $build = [
-        '#type' => 'table',
-        '#header' => [$config->get('plural_label'), $this->t('Editors'), $this->t('Roles')],
-        '#rows' => $rows,
-      ];
     }
-    else {
-      $build = [
-        '#type' => 'markup',
-        '#markup' => $this->t('No sections are available.'),
-      ];
-    }
-    return $build;
+    return [
+      '#type' => 'table',
+      '#header' => [$access_scheme->getPluralLabel(), $this->t('Editors'), $this->t('Roles')],
+      '#rows' => $rows,
+      '#empty' => $this->t('No sections are available.'),
+    ];
   }
 
 }

@@ -56,7 +56,10 @@ class AccessByUserFormTest extends BrowserTestBase {
     $user4 = $this->createUserWithRole($staff_rid);
 
     $this->drupalLogin($this->setUpAdminUser());
-    $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/sections/%s/users', $staff_term->id()));
+    $this->drupalGet('/admin/config/workflow/workbench_access/editorial_section/sections');
+    $web_assert->pageTextContains('Editorial sections');
+    $web_assert->pageTextContains('Staff');
+    $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/editorial_section/sections/%s/users', $staff_term->id()));
 
     // Add a user from staff with autocomplete.
     $page->fillField('edit-editors-add', $user2->label() . ' (' . $user2->id() . ')');
@@ -85,20 +88,20 @@ class AccessByUserFormTest extends BrowserTestBase {
 
     // Check user is not or removed to the section.
     $user = User::load($user1->id());
-    $expected = [['value' => $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
     $this->assertNotEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
 
     $user = User::load($user2->id());
-    $expected = [['value' => $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
     $this->assertNotEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
 
     // Check user has been added to the section.
     $user = User::load($user3->id());
-    $expected = [['value' => $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
     $this->assertEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
 
     $user = User::load($user4->id());
-    $expected = [['value' => $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
     $this->assertEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
   }
 

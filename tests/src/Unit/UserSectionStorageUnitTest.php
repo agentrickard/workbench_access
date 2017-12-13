@@ -33,8 +33,8 @@ class UserSectionStorageUnitTest extends UnitTestCase {
   public function testGetUserSectionsShouldBeStaticallyCached() {
     $field_items = $this->prophesize(FieldItemListInterface::class);
     $field_items->getValue()->willReturn([
-      ['value' => 'test_scheme:123'],
-      ['value' => 'test_scheme:456'],
+      ['value' => 'editorial_section:123'],
+      ['value' => 'editorial_section:456'],
     ])->shouldBeCalledTimes(1);
     $user = $this->prophesize(UserInterface::class);
     $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->willReturn($field_items->reveal());
@@ -45,7 +45,7 @@ class UserSectionStorageUnitTest extends UnitTestCase {
     $entity_type_manager = $this->prophesize(EntityTypeManagerInterface::class);
     $entity_type_manager->getStorage('user')->willReturn($user_storage->reveal());
     $scheme = $this->prophesize(AccessSchemeInterface::class);
-    $scheme->id()->willReturn('test_scheme');
+    $scheme->id()->willReturn('editorial_section');
     $role_section_storage = $this->prophesize(RoleSectionStorageInterface::class);
     $role_section_storage->getRoleSections($scheme->reveal(), $user->reveal())->willReturn([]);
     $user_section_storage = new UserSectionStorage($entity_type_manager->reveal(), $user->reveal(), $role_section_storage->reveal());

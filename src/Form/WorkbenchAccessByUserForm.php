@@ -70,10 +70,10 @@ class WorkbenchAccessByUserForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $scheme = NULL, $id = NULL) {
-    $this->scheme = $scheme;
-    $element = $scheme->getAccessScheme()->load($id);
-    $existing_editors = $this->userSectionStorage->getEditors($scheme, $id);
+  public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $access_scheme = NULL, $id = NULL) {
+    $this->scheme = $access_scheme;
+    $element = $access_scheme->getAccessScheme()->load($id);
+    $existing_editors = $this->userSectionStorage->getEditors($access_scheme, $id);
     $potential_editors = $this->userSectionStorage->getPotentialEditors($id);
 
     $form['existing_editors'] = ['#type' => 'value', '#value' => $existing_editors];
@@ -87,7 +87,7 @@ class WorkbenchAccessByUserForm extends FormBase {
       $form['add']['editors_add'] = [
         '#type' => 'entity_autocomplete',
         '#target_type' => 'user',
-        '#selection_handler' => 'workbench_access:user',
+        '#selection_handler' => 'workbench_access:user:' . $access_scheme->id(),
         '#selection_settings' => [
           'include_anonymous' => FALSE,
           'match_operator' => 'STARTS_WITH',
@@ -218,7 +218,7 @@ class WorkbenchAccessByUserForm extends FormBase {
   /**
    * Returns a dynamic page title for the route.
    *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme
    *   Access scheme.
    * @param string $id
    *   The section id.
@@ -226,8 +226,8 @@ class WorkbenchAccessByUserForm extends FormBase {
    * @return string
    *   A page title.
    */
-  public function pageTitle(AccessSchemeInterface $scheme, $id) {
-    $element = $scheme->getAccessScheme()->load($id);
+  public function pageTitle(AccessSchemeInterface $access_scheme, $id) {
+    $element = $access_scheme->getAccessScheme()->load($id);
     return $this->t('Editors assigned to %label', ['%label' => $element['label']]);
   }
 

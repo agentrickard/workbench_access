@@ -59,7 +59,7 @@ class EntityTestAccessTest extends KernelTestBase {
     entity_test_create_bundle('not_access_controlled');
     $this->installConfig(['filter', 'entity_test', 'workbench_access']);
     $scheme = AccessScheme::create([
-      'id' => 'test_scheme',
+      'id' => 'editorial_section',
       'label' => 'Editorial section',
       'plural_label' => 'Editorial sections',
       'scheme' => 'taxonomy',
@@ -106,7 +106,7 @@ class EntityTestAccessTest extends KernelTestBase {
       'view test entity',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'test_scheme:' . $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -137,7 +137,7 @@ class EntityTestAccessTest extends KernelTestBase {
       'view test entity',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'test_scheme:' . $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 

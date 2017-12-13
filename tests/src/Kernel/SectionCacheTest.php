@@ -123,5 +123,7 @@ class SectionCacheTest extends KernelTestBase {
     $this->userSectionStorage->removeUser($this->scheme, $editor->id(), [$term2->id()]);
     $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
     $this->assertTrue(count($sections) == 1);
+
+    $this->assertEquals([$editor->id() => $editor->label()], $this->userSectionStorage->getEditors($this->scheme, $term->id()));
   }
 }

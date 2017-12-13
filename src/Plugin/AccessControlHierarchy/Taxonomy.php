@@ -94,11 +94,13 @@ class Taxonomy extends AccessControlHierarchyBase {
    */
   public function getTree() {
     if (!isset($this->tree)) {
-      $parents = $this->config->get('parents');
+      $this->tree = [];
+      /** @var \Drupal\taxonomy\TermStorageInterface $term_storage */
+      $term_storage = $this->entityTypeManager->getStorage('taxonomy_term');
       $tree = [];
-      foreach ($parents as $id => $label) {
-        if ($vocabulary = Vocabulary::load($id)) {
-          $tree[$id][$id] = [
+      foreach ($this->configuration['vocabularies'] as $vocabulary_id) {
+        if ($vocabulary = Vocabulary::load($vocabulary_id)) {
+          $tree[$vocabulary_id][$vocabulary_id] = [
             'label' => $vocabulary->label(),
             'depth' => 0,
             'parents' => [],
@@ -107,8 +109,8 @@ class Taxonomy extends AccessControlHierarchyBase {
           ];
           // @TODO: It is possible that this will return a filtered set, if
           // term_access is applied to the query.
-          $data = \Drupal::entityTypeManager()->getStorage('taxonomy_term')->loadTree($id);
-          $this->tree = $this->buildTree($id, $data, $tree);
+          $data = $term_storage->loadTree($vocabulary_id);
+          $this->tree = $this->buildTree($vocabulary_id, $data, $tree);
         }
       }
     }
@@ -227,7 +229,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     else {
       foreach ($element['widget'] as $key => $item) {
         if (is_array($item) && isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
-          $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term';
+          $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term:' . $scheme->id();
         }
       }
     }

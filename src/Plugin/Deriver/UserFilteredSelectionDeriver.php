@@ -5,12 +5,13 @@ namespace Drupal\workbench_access\Plugin\Deriver;
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Defines a plugin deriver for the workbench access section.
+ * Defines a selection handler deriver for filtered users.
  */
-class SectionViewsPluginDeriver extends DeriverBase implements ContainerDeriverInterface {
+class UserFilteredSelectionDeriver extends DeriverBase implements ContainerDeriverInterface {
 
   /**
    * Entity type manager.
@@ -20,23 +21,13 @@ class SectionViewsPluginDeriver extends DeriverBase implements ContainerDeriverI
   protected $entityTypeManager;
 
   /**
-   * Base plugin ID.
-   *
-   * @var string
-   */
-  protected $basePluginId;
-
-  /**
    * Constructs a new SectionViewsPluginDeriver object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity type manager.
-   * @param string $base_plugin_id
-   *   Base plugin ID.
    */
-  public function __construct(EntityTypeManagerInterface $entityTypeManager, $base_plugin_id) {
+  public function __construct(EntityTypeManagerInterface $entityTypeManager) {
     $this->entityTypeManager = $entityTypeManager;
-    $this->basePluginId = $base_plugin_id;
   }
 
   /**
@@ -44,8 +35,7 @@ class SectionViewsPluginDeriver extends DeriverBase implements ContainerDeriverI
    */
   public static function create(ContainerInterface $container, $base_plugin_id) {
     return new static(
-      $container->get('entity_type.manager'),
-      $base_plugin_id
+      $container->get('entity_type.manager')
     );
   }
 
@@ -55,10 +45,12 @@ class SectionViewsPluginDeriver extends DeriverBase implements ContainerDeriverI
   public function getDerivativeDefinitions($base_plugin_definition) {
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $id => $scheme) {
       $this->derivatives[$id] = [
-        'scheme' => $id,
-      ] + $base_plugin_definition;
+          'scheme' => $id,
+          'label' => new TranslatableMarkup('Filtered user selection: @name', [
+            '@name' => $scheme->label(),
+          ]),
+        ] + $base_plugin_definition;
     }
     return $this->derivatives;
   }
-
 }

@@ -6,26 +6,26 @@ workbench_access.admin:
   requirements:
     _permission: 'administer workbench access'
 
-workbench_access.sections:
-  path: '/admin/config/workflow/workbench_access/sections'
-  defaults:
-    _controller: 'Drupal\workbench_access\Controller\WorkbenchAccessSections::page'
-    _title: 'Sections'
-  requirements:
-    _permission: 'assign workbench access'
-
-workbench_access.by_role:
-  path: '/admin/config/workflow/workbench_access/sections/{id}/roles'
+entity.access_scheme.by_role:
+  path: '/admin/config/workflow/workbench_access/{access_scheme}/sections/{id}/roles'
   defaults:
     _form: 'Drupal\workbench_access\Form\WorkbenchAccessByRoleForm'
     _title_callback: 'Drupal\workbench_access\Form\WorkbenchAccessByRoleForm::pageTitle'
   requirements:
     _permission: 'assign workbench access'
+  options:
+      parameters:
+        access_scheme:
+          type: 'entity:access_scheme'
 
-workbench_access.by_user:
-  path: '/admin/config/workflow/workbench_access/sections/{id}/users'
+entity.access_scheme.by_user:
+  path: '/admin/config/workflow/workbench_access/{access_scheme}/sections/{id}/users'
   defaults:
     _form: 'Drupal\workbench_access\Form\WorkbenchAccessByUserForm'
     _title_callback: 'Drupal\workbench_access\Form\WorkbenchAccessByUserForm::pageTitle'
   requirements:
     _permission: 'assign workbench access'
+  options:
+    parameters:
+      access_scheme:
+        type: 'entity:access_scheme'
