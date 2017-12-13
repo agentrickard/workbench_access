@@ -36,6 +36,7 @@ class NodeMenuTest extends KernelTestBase {
   protected static $modules = [
     'node',
     'text',
+    'link',
     'system',
     'menu_link_content',
     'menu_ui',
@@ -133,7 +134,7 @@ class NodeMenuTest extends KernelTestBase {
       'delete any page content',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->getPluginId();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 
@@ -147,8 +148,9 @@ class NodeMenuTest extends KernelTestBase {
     $node2 = $this->createNode(['type' => 'page', 'title' => 'bar']);
     _menu_ui_node_save($node2, [
       'title' => 'bar',
-      'menu' => 'main',
-      'parent' => $link->uuid(),
+      'menu_name' => 'main',
+      'description' => 'view bar',
+      'parent' => $link->getPluginId(),
     ]);
     $this->assertTrue($this->accessHandler->access($node2, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node2, 'update', $editor_with_no_access));

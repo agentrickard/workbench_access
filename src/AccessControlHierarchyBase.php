@@ -188,56 +188,25 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       return AccessResult::neutral();
     }
 
-    if ($fields = $this->fields($entity->getEntityTypeId(), $entity->bundle())) {
-      // Discover the field and check status.
-      $entity_sections = $this->getEntityValues($entity);
-      // If no value is set on the entity, ignore.
-      // @TODO: Is this the correct logic? It is helpful for new installs.
-      $deny_on_empty = $this->config->get('deny_on_empty');
+    // Discover the field and check status.
+    $entity_sections = $this->getEntityValues($entity);
+    // If no value is set on the entity, ignore.
+    // @TODO: Is this the correct logic? It is helpful for new installs.
+    $deny_on_empty = $this->config->get('deny_on_empty');
 
-      if (!$deny_on_empty && empty($entity_sections)) {
-        return AccessResult::neutral();
-      }
-      $user_sections = $this->userSectionStorage->getUserSections($scheme, $account->id());
-      if (empty($user_sections)) {
-        return AccessResult::forbidden();
-      }
-      // Check the tree status of the $entity against the $user.
-      // Return neutral if in tree, forbidden if not.
-      if (WorkbenchAccessManager::checkTree($scheme, $entity_sections, $user_sections)) {
-        return AccessResult::neutral();
-      }
+    if (!$deny_on_empty && empty($entity_sections)) {
+      return AccessResult::neutral();
+    }
+    $user_sections = $this->userSectionStorage->getUserSections($scheme, $account->id());
+    if (empty($user_sections)) {
       return AccessResult::forbidden();
     }
-    // Deny is our default response.
+    // Check the tree status of the $entity against the $user.
+    // Return neutral if in tree, forbidden if not.
+    if (WorkbenchAccessManager::checkTree($scheme, $entity_sections, $user_sections)) {
+      return AccessResult::neutral();
+    }
     return AccessResult::forbidden();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getEntityValues(EntityInterface $entity) {
-    $fields = $this->fields($entity->getEntityTypeId(), $entity->bundle());
-    if (!$entity instanceof ContentEntityInterface) {
-      return [];
-    }
-    $values = [];
-    foreach ($fields as $field) {
-      foreach ($entity->get($field)->getValue() as $item) {
-        if (isset($item['target_id'])) {
-          $values[] = $item['target_id'];
-        }
-      }
-    }
-    return $values;
-  }
-
-  /**
-   * {inheritdoc}
-   */
-  protected function fields($entity_type, $bundle) {
-    $fields = $this->config->get('fields');
-    return isset($fields[$entity_type][$bundle]) ? $fields[$entity_type][$bundle] : [];
   }
 
   /**

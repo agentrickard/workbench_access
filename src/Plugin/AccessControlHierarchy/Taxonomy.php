@@ -219,8 +219,19 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  protected function fields($entity_type, $bundle) {
-    return array_column($this->getApplicableFields($entity_type, $bundle), 'field');
+  public function getEntityValues(EntityInterface $entity) {
+    if (!$entity instanceof ContentEntityInterface) {
+      return [];
+    }
+    $values = [];
+    foreach (array_column($this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle()), 'field') as $field) {
+      foreach ($entity->get($field)->getValue() as $item) {
+        if (isset($item['target_id'])) {
+          $values[] = $item['target_id'];
+        }
+      }
+    }
+    return $values;
   }
 
   /**
@@ -273,7 +284,7 @@ class Taxonomy extends AccessControlHierarchyBase {
    * {@inheritdoc}
    */
   public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values) {
-    foreach ($this->fields($entity->getEntityTypeId(), $entity->bundle()) as $field_name) {
+    foreach (array_column($this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle()), 'field') as $field_name) {
       $values = $form_state->getValue($field_name);
       foreach ($hidden_values as $value) {
         $values[]['target_id'] = $value;

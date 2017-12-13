@@ -17,6 +17,7 @@ use Drupal\Core\Menu\MenuLinkManagerInterface;
 use Drupal\Core\Menu\MenuLinkTreeElement;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines a hierarchy based on a Menu.
@@ -32,26 +33,52 @@ use Drupal\Core\Menu\MenuTreeParameters;
 class Menu extends AccessControlHierarchyBase {
 
   /**
+   * Menu link tree service.
+   *
+   * @var \Drupal\Core\Menu\MenuLinkTreeInterface
+   */
+  protected $menuTree;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    return $instance->setMenuTree($container->get('menu.link_tree'));
+  }
+
+  /**
+   * Sets menu tree service.
+   *
+   * @param \Drupal\Core\Menu\MenuLinkTreeInterface $menuTree
+   *   Menu tree service.
+   *
+   * @return $this
+   */
+  public function setMenuTree(\Drupal\Core\Menu\MenuLinkTreeInterface $menuTree) {
+    $this->menuTree = $menuTree;
+    return $this;
+  }
+
+  /**
    * @inheritdoc
    */
   public function getTree() {
     if (!isset($this->tree)) {
-      $parents = $this->config->get('parents');
       $tree = [];
-      $this->menuTree = \Drupal::getContainer()->get('menu.link_tree');
-      foreach ($parents as $id => $label) {
-        if ($menu = MenuEntity::load($id)) {
-          $tree[$id][$id] = [
-            'label' => $menu->label(),
-            'depth' => 0,
-            'parents' => [],
-            'weight' => 0,
-            'description' => $menu->label(),
-          ];
-          $params = new MenuTreeParameters();
-          $data = $this->menuTree->load($id, $params);
-          $this->tree = $this->buildTree($id, $data, $tree);
-        }
+      $menuStorage = $this->entityTypeManager->getStorage('menu');
+      foreach ($menuStorage->loadMultiple($this->configuration['menus']) as $menu_id => $menu) {
+        $tree[$menu_id][$menu_id] = [
+          'label' => $menu->label(),
+          'depth' => 0,
+          'parents' => [],
+          'weight' => 0,
+          'description' => $menu->label(),
+        ];
+        $params = new MenuTreeParameters();
+        $data = $this->menuTree->load($menu_id, $params);
+        $this->tree = $this->buildTree($menu_id, $data, $tree);
       }
     }
     return $this->tree;
@@ -178,7 +205,6 @@ class Menu extends AccessControlHierarchyBase {
    * {@inheritdoc}
    */
   public function applies($entity_type_id, $bundle) {
-    // @todo change configuration
     return $entity_type_id === 'node' && in_array($bundle, $this->configuration['bundles']);
   }
 
@@ -189,4 +215,10 @@ class Menu extends AccessControlHierarchyBase {
     // TODO: Implement submitConfigurationForm() method.
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    // TODO: Implement buildConfigurationForm() method.
+  }
 }

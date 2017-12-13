@@ -65,3 +65,19 @@ workbench_access.scheme_settings.taxonomy:
           field:
             type: string
             label: 'Field'
+
+workbench_access.scheme_settings.menu:
+  type: workbench_access_scheme_settings
+  mapping:
+    menus:
+      type: sequence
+      label: 'Menus'
+      sequence:
+        type: string
+        label: 'Menu'
+    bundles:
+      type: sequence
+      label: 'Bundles'
+      sequence:
+        type: string
+        label: 'Bundle'

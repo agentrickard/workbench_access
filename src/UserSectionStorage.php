@@ -199,7 +199,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   protected function unformatAndFilterSections(AccessSchemeInterface $scheme, array $sections) {
     return array_reduce($sections, function ($carry, $section) use ($scheme) {
-      list($scheme_id, $section_id) = explode(':', $section);
+      list($scheme_id, $section_id) = explode(':', $section, 2);
       if ($scheme_id !== $scheme->id()) {
         return $carry;
       }
