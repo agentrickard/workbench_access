@@ -70,43 +70,8 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     $this->assertAdminCannotAddArticleNodeTypeToScheme($scheme);
     $this->assertAdminCanAddEntityTestAccessControlledBundleToScheme($scheme);
     $this->assertAdminCannotAddEntityTestAccessAccessControlledBundleToScheme($scheme);
-
   }
 
-  /**
-   * Assert that unprivileged users cannot access admin pages.
-   */
-  protected function assertThatUnprivilegedUsersCannotAccessAdminPages() {
-    $this->drupalGet(Url::fromRoute('entity.access_scheme.collection'));
-    $assert = $this->assertSession();
-    $assert->statusCodeEquals(403);
-  }
-
-  /**
-   * Assert that admin can create an access scheme.
-   *
-   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
-   *   Created scheme.
-   */
-  protected function assertCreatingAnAccessSchemeAsAdmin() {
-    $this->drupalLogin($this->admin);
-    $this->drupalGet(Url::fromRoute('entity.access_scheme.collection'));
-    $assert = $this->assertSession();
-    $assert->statusCodeEquals(200);
-    $this->clickLink('Add Access scheme');
-    $this->submitForm([
-      'label' => 'Section',
-      'plural_label' => 'Sections',
-      'id' => 'editorial_section',
-      'scheme' => 'taxonomy',
-    ], 'Save');
-    /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
-    $scheme = $this->loadUnchangedScheme('editorial_section');
-    $this->assertEquals('Section', $scheme->label());
-    $this->assertEquals('Sections', $scheme->getPluralLabel());
-    $this->assertEquals($scheme->toUrl('edit-form')->setAbsolute()->toString(), $this->getSession()->getCurrentUrl());
-    return $scheme;
-  }
 
   /**
    * Assert admin can select vocabularies.
@@ -175,20 +140,6 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->assertSession()->fieldNotExists('scheme_settings[fields][entity_test:not_access_controlled:field_workbench_access]');
     $this->assertFalse($scheme->getAccessScheme()->applies('entity_test', 'not_access_controlled'));
-  }
-
-  /**
-   * Loads the given scheme
-   * @param string $scheme_id
-   *   Scheme ID.
-   *
-   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
-   *   Unchanged scheme.
-   */
-  protected function loadUnchangedScheme($scheme_id) {
-    return $this->container->get('entity_type.manager')
-      ->getStorage('access_scheme')
-      ->loadUnchanged($scheme_id);
   }
 
 }

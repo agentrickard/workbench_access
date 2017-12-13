@@ -3,6 +3,7 @@
 namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
+use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
@@ -206,6 +207,61 @@ trait WorkbenchAccessTestTrait {
     ]);
     $scheme->save();
     return $scheme;
+  }
+
+  /**
+   * Assert that unprivileged users cannot access admin pages.
+   */
+  protected function assertThatUnprivilegedUsersCannotAccessAdminPages() {
+    $this->drupalGet(Url::fromRoute('entity.access_scheme.collection'));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(403);
+  }
+
+  /**
+   * Assert that admin can create an access scheme.
+   *
+   * @param string $scheme_id
+   *   Scheme plugin ID.
+   *
+   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface Created scheme.
+   * Created scheme.
+   */
+  protected function assertCreatingAnAccessSchemeAsAdmin($scheme_id = 'taxonomy') {
+    $this->drupalLogin($this->admin);
+    $this->drupalGet(Url::fromRoute('entity.access_scheme.collection'));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(200);
+    $this->clickLink('Add Access scheme');
+    $this->submitForm([
+      'label' => 'Section',
+      'plural_label' => 'Sections',
+      'id' => 'editorial_section',
+      'scheme' => $scheme_id,
+    ], 'Save');
+    /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
+    $scheme = $this->loadUnchangedScheme('editorial_section');
+    $this->assertEquals('Section', $scheme->label());
+    $this->assertEquals('Sections', $scheme->getPluralLabel());
+    $this->assertEquals($scheme->toUrl('edit-form')
+      ->setAbsolute()
+      ->toString(), $this->getSession()->getCurrentUrl());
+    return $scheme;
+  }
+
+  /**
+   * Loads the given scheme
+   *
+   * @param string $scheme_id
+   *   Scheme ID.
+   *
+   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
+   *   Unchanged scheme.
+   */
+  protected function loadUnchangedScheme($scheme_id) {
+    return $this->container->get('entity_type.manager')
+      ->getStorage('access_scheme')
+      ->loadUnchanged($scheme_id);
   }
 
 }
