@@ -160,11 +160,13 @@ trait WorkbenchAccessTestTrait {
       'scheme_settings' => [
         'vocabularies' => [$vocab->id()],
         'fields' => [
-          'entity_type' => 'node',
-          'field' => WorkbenchAccessManagerInterface::FIELD_NAME,
-          'bundle' => $node_type->id(),
-        ]
-      ]
+          [
+            'entity_type' => 'node',
+            'field' => WorkbenchAccessManagerInterface::FIELD_NAME,
+            'bundle' => $node_type->id(),
+          ],
+        ],
+      ],
     ]);
     $scheme->save();
   }

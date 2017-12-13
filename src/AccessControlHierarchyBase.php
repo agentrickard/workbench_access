@@ -291,14 +291,16 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function getEntityValues(EntityInterface $entity) {
-    $field = $this->fields($entity->getEntityTypeId(), $entity->bundle());
+    $fields = $this->fields($entity->getEntityTypeId(), $entity->bundle());
     if (!$entity instanceof ContentEntityInterface) {
       return [];
     }
     $values = [];
-    foreach ($entity->get($field)->getValue() as $item) {
-      if (isset($item['target_id'])) {
-        $values[] = $item['target_id'];
+    foreach ($fields as $field) {
+      foreach ($entity->get($field)->getValue() as $item) {
+        if (isset($item['target_id'])) {
+          $values[] = $item['target_id'];
+        }
       }
     }
     return $values;

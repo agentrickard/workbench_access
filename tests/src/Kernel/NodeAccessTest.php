@@ -94,7 +94,7 @@ class NodeAccessTest extends KernelTestBase {
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -127,7 +127,7 @@ class NodeAccessTest extends KernelTestBase {
       'delete any page content',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 

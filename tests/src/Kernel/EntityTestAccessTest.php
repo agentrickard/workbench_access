@@ -106,7 +106,7 @@ class EntityTestAccessTest extends KernelTestBase {
       'view test entity',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'test_scheme:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -137,7 +137,7 @@ class EntityTestAccessTest extends KernelTestBase {
       'view test entity',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'test_scheme:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 

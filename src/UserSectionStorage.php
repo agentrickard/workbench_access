@@ -103,7 +103,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     }
     $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_keys($new));
     $entity->save();
-    $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, $new);
+    $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, array_keys($new));
   }
 
   /**
@@ -199,7 +199,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   protected function unformatAndFilterSections(AccessSchemeInterface $scheme, array $sections) {
     return array_reduce($sections, function ($carry, $section) use ($scheme) {
-      list($section_id, $scheme_id) = explode(':', $section);
+      list($scheme_id, $section_id) = explode(':', $section);
       if ($scheme_id !== $scheme->id()) {
         return $carry;
       }

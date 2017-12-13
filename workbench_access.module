@@ -185,8 +185,15 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
 
   // Check that the user is able to assign content to a section.
   $user_section_storage = \Drupal::service('workbench_access.user_section_storage');
-  if (!$user_section_storage->getUserSections($account->id())) {
-    return AccessResult::forbidden();
+  $invalid_schemes = array_reduce($schemes, function ($carry, AccessSchemeInterface $scheme) use ($user_section_storage, $account) {
+    $sections = $user_section_storage->getUserSections($scheme, $account->id());
+    if (!$sections) {
+      $carry[] = $scheme->label();
+    }
+    return $carry;
+  }, []);
+  if ($invalid_schemes) {
+    return AccessResult::forbidden(sprintf('User has no active sections for the following access scheme(s): %s', implode(', ', $invalid_schemes)));
   }
   return $return;
 }
