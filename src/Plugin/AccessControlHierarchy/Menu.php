@@ -2,6 +2,8 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
+use Drupal\node\NodeTypeInterface;
+use Drupal\system\MenuInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
@@ -212,13 +214,43 @@ class Menu extends AccessControlHierarchyBase {
    * {@inheritdoc}
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // TODO: Implement submitConfigurationForm() method.
+    $this->configuration['menus'] = array_values(array_filter($form_state->getValue('menus')));
+    $this->configuration['bundles'] = array_values(array_filter($form_state->getValue('bundles')));
   }
 
   /**
    * {@inheritdoc}
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    // TODO: Implement buildConfigurationForm() method.
+    $form['menus'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Menus'),
+      '#description' => $this->t('Select the menus to use.'),
+      '#options' => array_map(function (MenuInterface $menu) {
+        return $menu->label();
+      }, $this->entityTypeManager->getStorage('menu')->loadMultiple()),
+      '#default_value' => $this->configuration['menus'],
+    ];
+    $form['bundles'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Content types'),
+      '#description' => $this->t('Select the content types to enable access control on.'),
+      '#options' => array_map(function (NodeTypeInterface $node_type) {
+        return $node_type->label();
+      }, $this->entityTypeManager->getStorage('node_type')->loadMultiple()),
+      '#default_value' => $this->configuration['bundles'],
+    ];
+    return $form;
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [
+      'menus' => [],
+      'bundles' => [],
+    ];
+  }
+
 }

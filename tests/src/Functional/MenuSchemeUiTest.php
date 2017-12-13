@@ -77,7 +77,7 @@ class MenuSchemeUiTest extends BrowserTestBase {
       'scheme_settings[menus][main]' => 1,
     ], 'Save');
     $updated = $this->loadUnchangedScheme($scheme->id());
-    $this->assertEquals(['main'], $updated->getAccessScheme()->getConfiguration()['menu']);
+    $this->assertEquals(['main'], $updated->getAccessScheme()->getConfiguration()['menus']);
   }
 
   /**

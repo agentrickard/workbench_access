@@ -169,13 +169,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
-    // Default implementation is empty.
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
     // @TODO: Check for super-admin?
     // We don't care about the View operation right now.
@@ -320,6 +313,27 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values) {
     // Null op.
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    return [];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    // Default implementation is empty.
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+    // Default implementation is empty.
   }
 
 }
