@@ -49,4 +49,11 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
     return [];
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityValues(EntityInterface $entity) {
+    return [];
+  }
+
 }

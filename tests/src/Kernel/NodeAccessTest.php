@@ -64,6 +64,7 @@ class NodeAccessTest extends KernelTestBase {
     module_load_install('workbench_access');
     workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
+    $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('node');
@@ -136,11 +137,15 @@ class NodeAccessTest extends KernelTestBase {
     $node1 = $this->createNode(['type' => 'page', 'title' => 'foo']);
     $this->assertTrue($this->accessHandler->access($node1, 'update', $allowed_editor));
     $this->assertTrue($this->accessHandler->access($node1, 'update', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $allowed_editor));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $editor_with_no_access));
 
     // Create a node that is assigned to a section.
     $node2 = $this->createNode(['type' => 'page', 'title' => 'bar', WorkbenchAccessManagerInterface::FIELD_NAME => $term->id()]);
     $this->assertTrue($this->accessHandler->access($node2, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node2, 'update', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->access($node2, 'delete', $allowed_editor));
+    $this->assertFalse($this->accessHandler->access($node2, 'delete', $editor_with_no_access));
 
     // With strict checking, nodes that are not assigned to a section return false.
     $this->config('workbench_access.settings')
@@ -151,7 +156,8 @@ class NodeAccessTest extends KernelTestBase {
     $node3 = $this->createNode(['type' => 'page', 'title' => 'baz']);
     $this->assertFalse($this->accessHandler->access($node3, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node3, 'update', $editor_with_no_access));
-
+    $this->assertFalse($this->accessHandler->access($node3, 'delete', $allowed_editor));
+    $this->assertFalse($this->accessHandler->access($node3, 'delete', $editor_with_no_access));
   }
 
 }

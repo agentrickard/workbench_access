@@ -67,6 +67,7 @@ class NodeMenuTest extends KernelTestBase {
     module_load_install('workbench_access');
     workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
+    $this->createContentType(['type' => 'article']);
     // This is created by system module.
     $this->menu = Menu::load('main');
     $this->accessHandler = $this->container->get('entity_type.manager')
@@ -94,13 +95,14 @@ class NodeMenuTest extends KernelTestBase {
     // section.
     $permissions = [
       'create page content',
+      'create article content',
       'edit any page content',
       'access content',
       'delete any page content',
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->getPluginId();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -109,6 +111,11 @@ class NodeMenuTest extends KernelTestBase {
     $this->assertTrue($this->accessHandler->createAccess('page', $allowed_editor));
     $this->assertFalse($this->accessHandler->createAccess('page', $editor_with_no_access));
     $this->assertTrue($this->accessHandler->createAccess('page', $editor_with_bypass_access));
+
+    // Non access controlled bundles should be allowed.
+    $this->assertTrue($this->accessHandler->createAccess('article', $allowed_editor));
+    $this->assertTrue($this->accessHandler->createAccess('article', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->createAccess('article', $editor_with_bypass_access));
   }
 
   /**
@@ -129,7 +136,10 @@ class NodeMenuTest extends KernelTestBase {
     // section.
     $permissions = [
       'create page content',
+      'create article content',
       'edit any page content',
+      'edit any article content',
+      'delete any article content',
       'access content',
       'delete any page content',
     ];
@@ -143,6 +153,8 @@ class NodeMenuTest extends KernelTestBase {
     $node1 = $this->createNode(['type' => 'page', 'title' => 'foo']);
     $this->assertTrue($this->accessHandler->access($node1, 'update', $allowed_editor));
     $this->assertTrue($this->accessHandler->access($node1, 'update', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $allowed_editor));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $editor_with_no_access));
 
     // Create a node that is a child of the section.
     $node2 = $this->createNode(['type' => 'page', 'title' => 'bar']);
@@ -154,6 +166,8 @@ class NodeMenuTest extends KernelTestBase {
     ]);
     $this->assertTrue($this->accessHandler->access($node2, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node2, 'update', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->access($node2, 'delete', $allowed_editor));
+    $this->assertFalse($this->accessHandler->access($node2, 'delete', $editor_with_no_access));
 
     // With strict checking, nodes that are not assigned to a section return false.
     $this->config('workbench_access.settings')
@@ -164,6 +178,12 @@ class NodeMenuTest extends KernelTestBase {
     $node3 = $this->createNode(['type' => 'page', 'title' => 'baz']);
     $this->assertFalse($this->accessHandler->access($node3, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node3, 'update', $editor_with_no_access));
+
+    $node1 = $this->createNode(['type' => 'article', 'title' => 'foo']);
+    $this->assertTrue($this->accessHandler->access($node1, 'update', $allowed_editor));
+    $this->assertTrue($this->accessHandler->access($node1, 'update', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $allowed_editor));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $editor_with_no_access));
   }
 
 }

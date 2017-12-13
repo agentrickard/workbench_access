@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\workbench_access\Functional;
 
+use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\Entity\User;
@@ -26,15 +27,15 @@ class AccessByUserFormTest extends BrowserTestBase {
     'options',
     'user',
     'system',
+    'link',
+    'menu_ui',
+    'menu_link_content',
   ];
 
   /**
    * Tests that the correct users are displayed on the access by user form.
    */
   public function testAccessByUserForm() {
-    $web_assert = $this->assertSession();
-    $page = $this->getSession()->getPage();
-
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
@@ -46,6 +47,40 @@ class AccessByUserFormTest extends BrowserTestBase {
       'name' => 'Staff',
     ]);
     $staff_term->save();
+    $section_id = $staff_term->id();
+    $this->doFormTests($section_id, 'Staff');
+  }
+
+  /**
+   * Tests that the correct users are displayed on the access by user form.
+   */
+  public function testAccessByUserFormMenu() {
+    // Set up test scheme.
+    $node_type = $this->createContentType(['type' => 'page']);
+    $this->setUpMenuScheme($node_type, ['main']);
+
+    // Create a menu link.
+    $link = MenuLinkContent::create([
+      'title' => 'Home',
+      'link' => [['uri' => 'route:<front>']],
+      'menu_name' => 'main',
+    ]);
+    $link->save();
+    $section_id = $link->getPluginId();
+    $this->doFormTests($section_id, 'Home');
+  }
+
+  /**
+   * Test the form with the given section.
+   *
+   * @param string $section_id
+   *   Section ID.
+   * @param string $section_label
+   *   Section label.
+   */
+  protected function doFormTests($section_id, $section_label) {
+    $web_assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
 
     $non_staff_rid = $this->createRole([], 'non_staff');
     $staff_rid = $this->createRole(['use workbench access'], 'staff');
@@ -58,8 +93,8 @@ class AccessByUserFormTest extends BrowserTestBase {
     $this->drupalLogin($this->setUpAdminUser());
     $this->drupalGet('/admin/config/workflow/workbench_access/editorial_section/sections');
     $web_assert->pageTextContains('Editorial sections');
-    $web_assert->pageTextContains('Staff');
-    $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/editorial_section/sections/%s/users', $staff_term->id()));
+    $web_assert->pageTextContains($section_label);
+    $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/editorial_section/sections/%s/users', $section_id));
 
     // Add a user from staff with autocomplete.
     $page->fillField('edit-editors-add', $user2->label() . ' (' . $user2->id() . ')');
@@ -88,20 +123,20 @@ class AccessByUserFormTest extends BrowserTestBase {
 
     // Check user is not or removed to the section.
     $user = User::load($user1->id());
-    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $section_id]];
     $this->assertNotEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
 
     $user = User::load($user2->id());
-    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $section_id]];
     $this->assertNotEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
 
     // Check user has been added to the section.
     $user = User::load($user3->id());
-    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $section_id]];
     $this->assertEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
 
     $user = User::load($user4->id());
-    $expected = [['value' => 'editorial_section:' . $staff_term->id()]];
+    $expected = [['value' => 'editorial_section:' . $section_id]];
     $this->assertEquals($expected, $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue());
   }
 
