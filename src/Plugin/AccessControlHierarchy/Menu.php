@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
@@ -23,7 +24,6 @@ use Drupal\Core\Menu\MenuTreeParameters;
  * @AccessControlHierarchy(
  *   id = "menu",
  *   module = "menu_ui",
- *   base_entity = "menu",
  *   entity = "menu_link_content",
  *   label = @Translation("Menu"),
  *   description = @Translation("Uses a menu as an access control hierarchy.")
@@ -107,7 +107,7 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, array $user_sections = []) {
+  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
     $element = $field;
     $menu_check = [];
     foreach ($element['link']['menu_parent']['#options'] as $id => $data) {
@@ -121,7 +121,7 @@ class Menu extends AccessControlHierarchyBase {
       }
       // Check for the root menu item.
       if (!isset($menu_check[$menu]) && isset($element['link']['menu_parent']['#options'][$menu . ':'])) {
-        if (empty(WorkbenchAccessManager::checkTree([$menu], $user_sections, $this->getTree()))) {
+        if (empty(WorkbenchAccessManager::checkTree($scheme, [$menu], $user_sections))) {
           unset($element['link']['menu_parent']['#options'][$menu . ':']);
         }
         $menu_check[$menu] = TRUE;

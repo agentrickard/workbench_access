@@ -2,16 +2,23 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
+use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\taxonomy\VocabularyInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines a hierarchy based on a Vocabulary.
@@ -19,13 +26,68 @@ use Drupal\taxonomy\Entity\Vocabulary;
  * @AccessControlHierarchy(
  *   id = "taxonomy",
  *   module = "taxonomy",
- *   base_entity = "taxonomy_vocabulary",
  *   entity = "taxonomy_term",
  *   label = @Translation("Taxonomy"),
  *   description = @Translation("Uses a taxonomy vocabulary as an access control hierarchy.")
  * )
  */
 class Taxonomy extends AccessControlHierarchyBase {
+
+  /**
+   * Field manager.
+   *
+   * @var \Drupal\Core\Entity\EntityFieldManagerInterface
+   */
+  protected $entityFieldManager;
+
+  /**
+   * Bundle info.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
+   */
+  protected $bundleInfo;
+
+  /**
+   * Constructs a new AccessControlHierarchyBase object.
+   *
+   * @param array $configuration
+   *   Configuration.
+   * @param string $plugin_id
+   *   Plugin ID.
+   * @param mixed $plugin_definition
+   *   Plugin definition.
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
+   *   User section storage.
+   * @param \Drupal\Core\Config\ConfigFactoryInterface $configFactory
+   *   Config factory.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   Entity type manager.
+   * @param \Drupal\Core\Entity\EntityFieldManagerInterface $entityFieldManager
+   *   Entity field manager.
+   * @param \Drupal\Core\Entity\EntityTypeBundleInfoInterface $bundleInfo
+   *   Entity type bundle info.
+   */
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, UserSectionStorageInterface $user_section_storage, ConfigFactoryInterface $configFactory, EntityTypeManagerInterface $entityTypeManager, EntityFieldManagerInterface $entityFieldManager, EntityTypeBundleInfoInterface $bundleInfo) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $user_section_storage, $configFactory, $entityTypeManager);
+    $this->entityFieldManager = $entityFieldManager;
+    $this->bundleInfo = $bundleInfo;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('workbench_access.user_section_storage'),
+      $container->get('config.factory'),
+      $container->get('entity_type.manager'),
+      $container->get('entity_field.manager'),
+      $container->get('entity_type.bundle.info')
+    );
+  }
 
   /**
    * @inheritdoc
@@ -146,12 +208,12 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, array $user_sections = []) {
+  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
     $element = $field;
     if (isset($element['widget']['#options'])) {
       foreach ($element['widget']['#options'] as $id => $data) {
         $sections = [$id];
-        if (empty(WorkbenchAccessManager::checkTree($sections, $user_sections, $this->getTree()))) {
+        if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
           unset($element['widget']['#options'][$id]);
         }
       }
@@ -244,6 +306,46 @@ class Taxonomy extends AccessControlHierarchyBase {
       }
       $form_state->setValue($field_name, $values);
     }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form['vocabularies'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Vocabularies'),
+      '#description' => $this->t('Select the vocabularies to use for access control'),
+      '#default_value' => $this->configuration['vocabularies'],
+      '#options' => array_map(function (VocabularyInterface $vocabulary) {
+        return $vocabulary->label();
+      }, $this->entityTypeManager->getStorage('taxonomy_vocabulary')->loadMultiple()),
+    ];
+    $entity_reference_fields = $this->entityFieldManager->getFieldMapByFieldType('entity_reference');
+    $taxonomy_fields = [];
+    foreach ($entity_reference_fields as $entity_type_id => $fields) {
+      foreach ($fields as $field_name => $details) {
+        foreach ($details['bundles'] as $bundle) {
+          $field_definitions = $this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle);
+          if (isset($field_definitions[$field_name]) && $field_definitions[$field_name]->getFieldStorageDefinition()->getSetting('target_type') === 'taxonomy_term') {
+            $taxonomy_fields[$entity_type_id][$bundle][$field_name] = $field_definitions[$field_name]->getLabel();
+          }
+        }
+      }
+    }
+    if (!$taxonomy_fields) {
+      $form['fields'] = ['#markup' => $this->t('There are no configured taxonomy fields, please create a new term reference field to continue')];
+      return $form;
+    }
+    $form['fields'] = [];
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    return parent::submitConfigurationForm($form, $form_state); // TODO: Change the autogenerated stub
   }
 
 }

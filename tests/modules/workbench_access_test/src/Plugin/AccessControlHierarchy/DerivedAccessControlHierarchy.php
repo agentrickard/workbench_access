@@ -5,6 +5,7 @@ namespace Drupal\workbench_access_test\Plugin\AccessControlHierarchy;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -30,7 +31,7 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, array $user_sections = []) {
+  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
     return $field;
   }
 

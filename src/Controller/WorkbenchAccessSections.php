@@ -4,6 +4,7 @@ namespace Drupal\workbench_access\Controller;
 
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Link;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
@@ -67,18 +68,17 @@ class WorkbenchAccessSections extends ControllerBase implements ContainerInjecti
   /**
    * Returns the section assignment page.
    */
-  public function page() {
+  public function page(AccessSchemeInterface $scheme) {
     $config = $this->config('workbench_access.settings');
     $rows = [];
     if ($scheme_id = $config->get('scheme')) {
-      $parents = $config->get('parents');
-      $tree = $this->manager->getActiveTree();
-      foreach ($parents as $id => $label) {
+      $tree = $scheme->getAccessScheme()->getTree();
+      foreach (array_keys($tree) as $id) {
         // @TODO: Move to a theme function?
         // @TODO: format plural
         foreach ($tree[$id] as $iid => $item) {
-          $editor_count = count($this->userSectionStorage->getEditors($iid));
-          $role_count = count($this->roleSectionStorage->getRoles($iid));
+          $editor_count = count($this->userSectionStorage->getEditors($scheme, $iid));
+          $role_count = count($this->roleSectionStorage->getRoles($scheme, $iid));
           $row = [];
           $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
           $row[] = Link::fromTextAndUrl($this->t('@count editors', ['@count' => $editor_count]), Url::fromRoute('workbench_access.by_user', ['id' => $iid]));

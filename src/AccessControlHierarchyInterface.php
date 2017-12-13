@@ -32,14 +32,6 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   public function label();
 
   /**
-   * Gets the options for a hierarchy.
-   *
-   * @return array
-   *   In the format id => label.
-   */
-  public function options();
-
-  /**
    * Gets the entire hierarchy tree.
    *
    * @return array
@@ -71,6 +63,8 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   /**
    * Responds to request for node access.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
    * @param EntityInterface $entity
    *   The node being checked. In future this may handle other entity types.
    * @param AccountInterface $account
@@ -83,11 +77,13 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *
    * @see workbench_access_node_access()
    */
-  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
+  public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
 
   /**
    * Alters the selection options provided for an access control field.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
    * @param $field
    *   The field element from a node form.
    * @param array $user_sections
@@ -96,7 +92,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    * @return $element
    *   The field element, after restricting selection options.
    */
-  public function alterOptions($field, array $user_sections = []);
+  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []);
 
   /**
    * Gets any options that are set but cannot be changed by the editor.

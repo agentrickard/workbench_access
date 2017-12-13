@@ -73,7 +73,7 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
     $account = \Drupal::currentUser();
     // If the user cannot access the form element or is a superuser, ignore.
     if (!empty($form[$field]['#access']) && !$account->hasPermission('bypass workbench access')) {
-      $form[$field] = $scheme->alterOptions($form[$field], \Drupal::service('workbench_access.user_section_storage')->getUserSections($account->id()));
+      $form[$field] = $scheme->alterOptions($access_scheme, $form[$field], \Drupal::service('workbench_access.user_section_storage')->getUserSections($account->id()));
       // Add the options hidden from the user silently to the form.
       $options_diff = $scheme->disallowedOptions($form[$field]);
       if (!empty($options_diff)) {
@@ -157,7 +157,7 @@ function workbench_access_entity_access(EntityInterface $entity, $op, AccountInt
   // access, then it is granted.
   $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
   return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResultInterface $carry, AccessSchemeInterface $scheme) use ($manager, $entity, $op, $account) {
-    return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($entity, $op, $account, $manager));
+    return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account, $manager));
   }, AccessResult::neutral());
 }
 

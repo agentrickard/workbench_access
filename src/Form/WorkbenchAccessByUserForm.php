@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access\Form;
 
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Form\FormBase;
@@ -28,6 +29,13 @@ class WorkbenchAccessByUserForm extends FormBase {
    * @var \Drupal\workbench_access\UserSectionStorageInterface
    */
   protected $userSectionStorage;
+
+  /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
 
   /**
    * Constructs a new WorkbenchAccessConfigForm.
@@ -62,9 +70,10 @@ class WorkbenchAccessByUserForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
-    $element = $this->manager->getElement($id);
-    $existing_editors = $this->userSectionStorage->getEditors($id);
+  public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $scheme = NULL, $id = NULL) {
+    $this->scheme = $scheme;
+    $element = $scheme->getAccessScheme()->load($id);
+    $existing_editors = $this->userSectionStorage->getEditors($scheme, $id);
     $potential_editors = $this->userSectionStorage->getPotentialEditors($id);
 
     $form['existing_editors'] = ['#type' => 'value', '#value' => $existing_editors];
@@ -209,14 +218,16 @@ class WorkbenchAccessByUserForm extends FormBase {
   /**
    * Returns a dynamic page title for the route.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
    * @param string $id
    *   The section id.
    *
    * @return string
    *   A page title.
    */
-  public function pageTitle($id) {
-    $element = $this->manager->getElement($id);
+  public function pageTitle(AccessSchemeInterface $scheme, $id) {
+    $element = $scheme->getAccessScheme()->load($id);
     return $this->t('Editors assigned to %label', ['%label' => $element['label']]);
   }
 
@@ -238,7 +249,7 @@ class WorkbenchAccessByUserForm extends FormBase {
     foreach ($users as $uid => $user) {
       // Add user to section.
       if (!isset($existing_editors[$uid])) {
-        $this->userSectionStorage->addUser($uid, [$section_id]);
+        $this->userSectionStorage->addUser($this->scheme, $uid, [$section_id]);
         $editors_added[] = $user->getDisplayName();
       }
     }
@@ -247,7 +258,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         'User @user added.',
         'Users added: @user',
         ['@user' => implode(', ', $editors_added)]
-      )->__toString();
+      );
       drupal_set_message($text);
     }
   }
@@ -268,7 +279,7 @@ class WorkbenchAccessByUserForm extends FormBase {
     $editors_removed = [];
     foreach ($uids as $user_id) {
       if (isset($existing_editors[$user_id])) {
-        $this->userSectionStorage->removeUser($user_id, [$section_id]);
+        $this->userSectionStorage->removeUser($this->scheme, $user_id, [$section_id]);
         $editors_removed[] = $existing_editors[$user_id];
       }
     }
@@ -277,7 +288,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         'User @user removed.',
         'Users removed: @user',
         ['@user' => implode(', ', $editors_removed)]
-      )->__toString();
+      );
       drupal_set_message($text);
     }
   }

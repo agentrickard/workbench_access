@@ -103,12 +103,11 @@ class Section extends ManyToOne {
     $this->valueOptions = [];
     if (!empty($this->scheme)) {
       $scheme = $this->scheme->getAccessScheme();
-      $tree = $scheme->getTree();
-      if ($this->manager->userInAll($tree)) {
-        $list = WorkbenchAccessManager::getAllSections(FALSE, $tree);
+      if ($this->manager->userInAll($this->scheme)) {
+        $list = WorkbenchAccessManager::getAllSections($this->scheme, FALSE);
       }
       else {
-        $list = $this->userSectionStorage->getUserSections();
+        $list = $this->userSectionStorage->getUserSections($this->scheme);
       }
       foreach($list as $id) {
         if ($section = $scheme->load($id)) {
@@ -227,12 +226,12 @@ class Section extends ManyToOne {
     $helper = new ManyToOneHelper($this);
     // The 'All' selection must be filtered by user sections.
     if (empty($this->value) || strtolower(current($this->value)) == 'all') {
-      if ($this->manager->userInAll()) {
+      if ($this->manager->userInAll($this->scheme)) {
         return;
       }
       else {
         // This method will get all user sections and children.
-        $values = $this->userSectionStorage->getUserSections();
+        $values = $this->userSectionStorage->getUserSections($this->scheme);
       }
     }
     if (!empty($this->table)) {
@@ -258,7 +257,7 @@ class Section extends ManyToOne {
       }
       // If values, add our standard where clause.
       if (!empty($values)) {
-        $this->scheme->addWhere($this, $values);
+        $this->scheme->getAccessScheme()->addWhere($this, $values);
       }
       // Else add a failing where clause.
       else {
@@ -274,7 +273,7 @@ class Section extends ManyToOne {
    *   An array of section ids that this user may see.
    */
   protected function getChildren() {
-    $tree = $this->manager->getActiveTree();
+    $tree = $this->scheme->getAccessScheme()->getTree();
     $children = [];
     foreach ($this->value as $id) {
       foreach ($tree as $key => $data) {

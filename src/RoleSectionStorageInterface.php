@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access;
 
 use Drupal\Core\Session\AccountInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
  * Defines an interface for storing and retrieving sections for a role.
@@ -17,22 +18,26 @@ interface RoleSectionStorageInterface {
   /**
    * Adds a set of sections to a role.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
    * @param int $role_id
    *   A role id.
    * @param array $sections
    *   An array of section ids to assign to this role.
    */
-  public function addRole($role_id, $sections = []);
+  public function addRole(AccessSchemeInterface $scheme, $role_id, $sections = []);
 
   /**
    * Reomves a set of sections to a role.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
    * @param int $role_id
    *   A role id.
    * @param array $sections
    *   An array of section ids to assign to this role.
    */
-  public function removeRole($role_id, $sections = []);
+  public function removeRole(AccessSchemeInterface $scheme, $role_id, $sections = []);
 
   /**
    * Gets a list of potential roles.
@@ -59,31 +64,40 @@ interface RoleSectionStorageInterface {
   /**
    * Gets a list of roles assigned to a section.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
    * @param string $id
    *   The section id.
    *
    * @return array
    *   An array of role ids.
    */
-  public function getRoles($id);
+  public function getRoles(AccessSchemeInterface $scheme, $id);
 
   /**
    * Removes all role assignments.
    *
    * This method should be triggered when changing access schemes. If possible,
    * let the administrator choose to run this.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   *
+   * @todo is this still used?
    */
-  public function flushRoles();
+  public function flushRoles(AccessSchemeInterface $scheme);
 
   /**
    * Gets the sections assigned to a user by way of their roles.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The account to retrieve sections for by way of their roles.
    *
    * @return array
    *   Array of section IDs.
    */
-  public function getRoleSections(AccountInterface $account);
+  public function getRoleSections(AccessSchemeInterface $scheme, AccountInterface $account);
 
 }

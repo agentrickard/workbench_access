@@ -62,20 +62,14 @@ class TaxonomyHierarchySelection extends TermSelection {
     $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
     $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
     $user_sections = $user_section_storage->getUserSections($account->id());
-    $tree = array_reduce($this->entityManager->getStorage('access_scheme')->loadMultiple(), function (array $items = [], AccessSchemeInterface $scheme) {
-      if ($scheme->getAccessScheme()->id() === 'taxonomy') {
-        return $items;
-      };
-      return array_unique(array_merge($items, $scheme->getAccessScheme()->getTree()));
-    });
 
     foreach ($options as $key => $values) {
-      if (WorkbenchAccessManager::checkTree([$key], $user_sections, $tree)) {
+      if (WorkbenchAccessManager::checkTree($this->scheme, [$key], $user_sections)) {
         continue;
       }
       else {
         foreach ($values as $id => $value) {
-          if (!WorkbenchAccessManager::checkTree([$id], $user_sections, $tree)) {
+          if (!WorkbenchAccessManager::checkTree($this->scheme, [$id], $user_sections)) {
             unset($options[$key][$id]);
           }
         }

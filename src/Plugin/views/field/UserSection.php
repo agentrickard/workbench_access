@@ -45,10 +45,11 @@ class UserSection extends Section {
       $all = array_reduce($schemes, function (array $items, AccessSchemeInterface $scheme) {
         // @todo this needs to retain keys.
         // @todo this needs to respect IDs in each scheme.
+        // @todo this needs to be derivative based
         return array_unique(array_merge($items, $scheme->getAccessScheme()->getTree()));
       }, []);
       if ($manager->userInAll($uid)) {
-        $sections = WorkbenchAccessManager::getAllSections(TRUE, $all);
+        $sections = WorkbenchAccessManager::getAllSections($this->scheme, TRUE);
       }
       else {
         $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');

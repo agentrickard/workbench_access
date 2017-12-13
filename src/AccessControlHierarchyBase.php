@@ -54,6 +54,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   protected $config;
 
   /**
+   * Entity type manager.
+   *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
    */
   protected $entityTypeManager;
@@ -135,18 +137,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function calculateDependencies() {
-    return [];
-  }
-
-  /**
-   * @inheritdoc
-   */
-  public function options() {
-    if ($entity_type = $this->pluginDefinition['base_entity']) {
-      return array_map(function (EntityInterface $entity) {
-        return $entity->label();
-      }, $this->entityTypeManager->getStorage($entity_type)->loadMultiple());
-    }
     return [];
   }
 
@@ -260,7 +250,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function checkEntityAccess(EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
+  public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager) {
     // @TODO: Check for super-admin?
     // We don't care about the View operation right now.
     if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
@@ -268,16 +258,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       return AccessResult::neutral();
     }
 
-    if (!$this->applies($entity, $op, $account)) {
+    if (!$this->applies($entity->getEntityTypeId(), $entity->bundle())) {
       return AccessResult::neutral();
     }
 
     if ($fields = $this->fields($entity->getEntityTypeId(), $entity->bundle())) {
       // Discover the field and check status.
-      $entity_sections = [];
-      foreach ($fields as $field) {
-        $entity_sections = array_unique(array_merge($this->getEntityValues($entity, $field), $entity_sections));
-      }
+      $entity_sections = $this->getEntityValues($entity);
       // If no value is set on the entity, ignore.
       // @TODO: Is this the correct logic? It is helpful for new installs.
       $deny_on_empty = $this->config->get('deny_on_empty');
@@ -285,13 +272,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       if (!$deny_on_empty && empty($entity_sections)) {
         return AccessResult::neutral();
       }
-      $user_sections = $this->userSectionStorage->getUserSections($account->id());
+      $user_sections = $this->userSectionStorage->getUserSections($scheme, $account->id());
       if (empty($user_sections)) {
         return AccessResult::forbidden();
       }
       // Check the tree status of the $entity against the $user.
       // Return neutral if in tree, forbidden if not.
-      if (WorkbenchAccessManager::checkTree($entity_sections, $user_sections, $this->getTree())) {
+      if (WorkbenchAccessManager::checkTree($scheme, $entity_sections, $user_sections)) {
         return AccessResult::neutral();
       }
       return AccessResult::forbidden();
