@@ -100,13 +100,6 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  protected function getFields($entity_type, $bundle) {
-    return ['menu' => 'Menu field'];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
     $element = $field;
     $menu_check = [];
@@ -187,6 +180,13 @@ class Menu extends AccessControlHierarchyBase {
   public function applies($entity_type_id, $bundle) {
     // @todo change configuration
     return $entity_type_id === 'node' && in_array($bundle, $this->configuration['bundles']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    // TODO: Implement submitConfigurationForm() method.
   }
 
 }

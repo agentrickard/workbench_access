@@ -169,82 +169,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
-    $node_types = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
-    $form = [];
-    /** @var \Drupal\node\NodeTypeInterface $type */
-    foreach ($node_types as $id => $type) {
-      $form['workbench_access_status_' . $id] = [
-        '#type' => 'checkbox',
-        '#title' => $this->t('Enable Workbench Access control for @type content.', ['@type' => $type->label()]),
-        '#description' => $this->t('If selected, all @type content will be subject to editorial access restrictions.', ['@type' => $type->label()]),
-        '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
-      ];
-      $options = ['' => $this->t('No field set')];
-      $options += $this->getFields('node', $type->id());
-      if (!empty($options)) {
-        $form['field_' . $id] = [
-          '#type' => 'select',
-          '#title' => $this->t('Access control field'),
-          '#options' => $options,
-          '#default_value' => $this->fields('node', $type->id()),
-        ];
-      }
-      else {
-        $form['field_' . $id] = [
-          '#type' => 'markup',
-          '#markup' => $this->t('There are no eligible fields on this content type.'),
-        ];
-      }
-    }
-    return $form;
-  }
-
-  /**
-   * Gets the fields that may be used for a plugin type.
-   *
-   * This method informs the system what fields are eligible to use for
-   * access controls. For instance, with taxonomy, it returns all taxonomy
-   * reference fields.
-   *
-   * @param $entity_type
-   *   The type of entity access control is being tested for (e.g. 'node').
-   * @param $bundle
-   *   The entity bundle being tested (e.g. 'article').
-   *
-   * @return array
-   *   An array of fields in the format id => label, for use in a form.
-   */
-  abstract protected function getFields($entity_type, $bundle);
-
-  /**
-   * {@inheritdoc}
-   */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     // Default implementation is empty.
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
-    $fields = $this->config->get('fields');
-
-    $node_types = $this->entityTypeManager->getStorage('node_type')->loadMultiple();
-    /** @var \Drupal\node\NodeTypeInterface $type */
-    foreach ($node_types as $id => $type) {
-      $field = $form_state->getValue('field_' . $id);
-      if (!empty($field)) {
-        $type->setThirdPartySetting('workbench_access', 'workbench_access_status', $form_state->getValue('workbench_access_status_' . $id));
-        $fields['node'][$id] = $field;
-      }
-      else {
-        $type->setThirdPartySetting('workbench_access', 'workbench_access_status', 0);
-        $fields['node'][$id] = '';
-      }
-      $type->save();
-    }
-    return ['fields' => $fields];
   }
 
   /**

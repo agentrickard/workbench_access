@@ -99,7 +99,7 @@ class AccessSchemeForm extends EntityForm {
     $access_scheme = $this->entity;
     if ($access_scheme->getAccessScheme()->hasFormClass('configure')) {
       $subform_state = SubformState::createForSubform($form['scheme_settings'], $form, $form_state);
-      $form['scheme_settings'] += $access_scheme->getAccessScheme()
+      $access_scheme->getAccessScheme()
         ->validateConfigurationForm($form['scheme_settings'], $subform_state);
     }
   }
@@ -112,7 +112,7 @@ class AccessSchemeForm extends EntityForm {
 
     if ($access_scheme->getAccessScheme()->hasFormClass('configure')) {
       $subform_state = SubformState::createForSubform($form['scheme_settings'], $form, $form_state);
-      $form['scheme_settings'] += $access_scheme->getAccessScheme()
+      $access_scheme->getAccessScheme()
         ->submitConfigurationForm($form['scheme_settings'], $subform_state);
     }
     $access_scheme->save();

@@ -117,7 +117,7 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
   function assertAdminCanSelectVocabularies(AccessSchemeInterface $scheme) {
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->submitForm([
-      'scheme_settings[vocabularies]' => ['workbench_access'],
+      'scheme_settings[vocabularies][workbench_access]' => 1,
     ], 'Save');
     $updated = $this->loadUnchangedScheme($scheme->id());
     $this->assertEquals(['workbench_access'], $updated->getAccessScheme()->getConfiguration()['vocabularies']);
@@ -132,9 +132,8 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
   protected function assertAdminCanAddPageNodeTypeToScheme(AccessSchemeInterface $scheme) {
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->submitForm([
-      'new_field' => 'node:page:field_workbench_access',
-    ], 'Use for access control');
-    $this->submitForm([], 'Save');
+      'scheme_settings[fields][node:page:field_workbench_access]' => 1,
+    ], 'Save');
     $updated = $this->loadUnchangedScheme($scheme->id());
     $this->assertTrue($updated->getAccessScheme()->applies('node', 'page'));
   }
@@ -147,7 +146,7 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
    */
   protected function assertAdminCannotAddArticleNodeTypeToScheme(AccessSchemeInterface $scheme) {
     $this->drupalGet($scheme->toUrl('edit-form'));
-    $this->assertSession()->optionNotExists('new_field', 'node:article:field_workbench_access');
+    $this->assertSession()->fieldNotExists('scheme_settings[fields][node:article:field_workbench_access]');
     $this->assertFalse($scheme->getAccessScheme()->applies('node', 'article'));
   }
 
@@ -160,9 +159,8 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
   protected function assertAdminCanAddEntityTestAccessControlledBundleToScheme(AccessSchemeInterface $scheme) {
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->submitForm([
-      'new_field' => 'entity_test:access_controlled:field_workbench_access',
-    ], 'Use for access control');
-    $this->submitForm([], 'Save');
+      'scheme_settings[fields][entity_test:access_controlled:field_workbench_access]' => 1,
+    ], 'Save');
     $updated = $this->loadUnchangedScheme($scheme->id());
     $this->assertTrue($updated->getAccessScheme()->applies('entity_test', 'access_controlled'));
   }
@@ -175,7 +173,7 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
    */
   protected function assertAdminCannotAddEntityTestAccessAccessControlledBundleToScheme(AccessSchemeInterface $scheme) {
     $this->drupalGet($scheme->toUrl('edit-form'));
-    $this->assertSession()->optionNotExists('new_field', 'entity_test:not_access_controlled:field_workbench_access');
+    $this->assertSession()->fieldNotExists('scheme_settings[fields][entity_test:not_access_controlled:field_workbench_access]');
     $this->assertFalse($scheme->getAccessScheme()->applies('entity_test', 'not_access_controlled'));
   }
 

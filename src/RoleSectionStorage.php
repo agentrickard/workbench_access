@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\DependencyInjection\DependencySerializationTrait;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\State\StateInterface;
@@ -11,6 +12,8 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
  * Defines a role-section storage that uses the State API.
  */
 class RoleSectionStorage implements RoleSectionStorageInterface {
+
+  use DependencySerializationTrait;
 
   /**
    * @var \Drupal\Core\State\StateInterface

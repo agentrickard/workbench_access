@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access_test\Plugin\AccessControlHierarchy;
 
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -24,13 +25,6 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  protected function getFields($entity_type, $bundle) {
-    return ['uid' => 'User'];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
     return $field;
   }
@@ -40,6 +34,19 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
    */
   public function applies($entity_type_id, $bundle) {
     return TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    return [];
   }
 
 }
