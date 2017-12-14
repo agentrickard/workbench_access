@@ -28,6 +28,13 @@ class EntityTestAccessTest extends KernelTestBase {
   protected $vocabulary;
 
   /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
    * {@inheritdoc}
    */
   protected static $modules = [
@@ -58,7 +65,7 @@ class EntityTestAccessTest extends KernelTestBase {
     entity_test_create_bundle('access_controlled');
     entity_test_create_bundle('not_access_controlled');
     $this->installConfig(['filter', 'entity_test', 'workbench_access']);
-    $scheme = AccessScheme::create([
+    $this->scheme = AccessScheme::create([
       'id' => 'editorial_section',
       'label' => 'Editorial section',
       'plural_label' => 'Editorial sections',
@@ -74,7 +81,7 @@ class EntityTestAccessTest extends KernelTestBase {
         ],
       ],
     ]);
-    $scheme->save();
+    $this->scheme->save();
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
     $this->installSchema('system', ['key_value', 'sequences']);
@@ -180,6 +187,12 @@ class EntityTestAccessTest extends KernelTestBase {
     ]);
     $this->assertFalse($this->accessHandler->access($entity3, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($entity3, 'update', $editor_with_no_access));
+
+    // Delete the scheme.
+    $this->scheme->delete();
+    // Should now allow access.
+    $this->accessHandler->resetCache();
+    $this->assertTrue($this->accessHandler->access($entity2, 'update', $editor_with_no_access));
   }
 
 }
