@@ -63,6 +63,7 @@ class MenuSchemeUiTest extends BrowserTestBase {
     $scheme = $this->assertCreatingAnAccessSchemeAsAdmin('menu');
     $this->assertAdminCanSelectMenus($scheme);
     $this->assertAdminCanAddNodeTypes($scheme);
+    $this->assertSectionsOperation($scheme);
   }
 
   /**
@@ -95,6 +96,19 @@ class MenuSchemeUiTest extends BrowserTestBase {
     $updated = $this->loadUnchangedScheme($scheme->id());
     $this->assertTrue($updated->getAccessScheme()->applies('node', 'page'));
     $this->assertTrue($updated->getAccessScheme()->applies('node', 'article'));
+  }
+
+  /**
+   * Asserts there is an operations link for sections in a scheme.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   The scheme.
+   */
+  protected function assertSectionsOperation($scheme) {
+    $this->drupalGet(Url::fromRoute('entity.access_scheme.collection'));
+    $assert = $this->assertSession();
+    $assert->linkExists('Sections');
+    $assert->linkByHrefExists($scheme->toUrl('sections')->setAbsolute()->toString());
   }
 
 }
