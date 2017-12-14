@@ -1,0 +1,144 @@
+<?php
+
+namespace Drupal\Tests\workbench_access\Functional;
+
+use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\menu_link_content\MenuLinkContentInterface;
+use Drupal\node\Entity\Node;
+use Drupal\Tests\BrowserTestBase;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+
+/**
+ * Defines a class for testing workbench access views
+ *
+ * @group workbench_access
+ */
+class ViewsFieldMenuTest extends BrowserTestBase {
+
+  /**
+   * Test links.
+   *
+   * @var \Drupal\menu_link_content\MenuLinkContentInterface[]
+   */
+  protected $links = [];
+
+  /**
+   * Test nodes.
+   *
+   * @var \Drupal\node\NodeInterface[]
+   */
+  protected $nodes = [];
+
+  /**
+   * Test user.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $user;
+
+  /**
+   * Test user.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $user2;
+
+  /**
+   * {@inheritdoc}
+   */
+  protected static $modules = [
+    'workbench_access',
+    'views',
+    'node',
+    'taxonomy',
+    'menu_link_content',
+    'menu_ui',
+    'system',
+    'user',
+    'filter',
+    'workbench_access_test',
+  ];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+    // Create some sections and some nodes in them.
+    $sections = [
+      'Some section',
+      'Another section',
+      'More sections',
+    ];
+    foreach ($sections as $section) {
+      $this->links[$section] = MenuLinkContent::create([
+        'title' => $section,
+        'link' => [['uri' => 'route:<front>']],
+        'menu_name' => 'main',
+      ]);
+      $this->links[$section]->save();
+      foreach ([' node 1', ' node 2'] as $stub) {
+        $title = $section . $stub;
+        $this->nodes[$title] = Node::create([
+          'type' => 'article',
+          'title' => $title,
+          'status' => 1,
+        ]);
+        $this->nodes[$title]->save();
+        _menu_ui_node_save($this->nodes[$title], [
+          'title' => $title,
+          'menu_name' => 'main',
+          'description' => 'view bar',
+          'parent' => $this->links[$section]->getPluginId(),
+        ]);
+      }
+    }
+
+    // Create a user who can access content etc.
+    $permissions = [
+      'create article content',
+      'edit any article content',
+      'access content',
+      'delete any article content',
+      'administer nodes',
+    ];
+    $this->user = $this->createUser($permissions);
+    $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (MenuLinkContentInterface $link) {
+      return 'menu:' . $link->getPluginId();
+    }, $this->links)));
+    $this->user->save();
+
+    $this->user2 = $this->createUser($permissions);
+    $this->user2->set(WorkbenchAccessManagerInterface::FIELD_NAME, ['menu:' . reset($this->links)->id()]);
+    $this->user2->save();
+  }
+
+  /**
+   * Tests field and filter.
+   */
+  public function testFieldAndFilter() {
+    $this->drupalLogin($this->user);
+    $this->drupalGet('admin/content/sections/menu');
+    $assert = $this->assertSession();
+    foreach ($this->links as $section => $link) {
+      $row = $assert->elementExists('css', '.views-row:contains("' . $link->label() . '")');
+      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
+    }
+    // Now filter the page.
+    $this->drupalGet('admin/content/sections/menu', ['query' => [
+      'section' => $this->links['Some section']->getPluginId(),
+    ]]);
+    $assert->pageTextContains('Some section node 1');
+    $assert->pageTextContains('Some section node 2');
+    $assert->elementNotExists('css', '.views-row:contains("Another section")');
+    $assert->elementNotExists('css', '.views-row:contains("More sections")');
+    // Now test as user 2 who only has access to the first section.
+    $this->drupalLogin($this->user2);
+    $this->drupalGet('admin/content/sections/menu');
+    $assert->pageTextContains('Some section node 1');
+    $assert->pageTextContains('Some section node 2');
+    $assert->elementNotExists('css', '.views-row:contains("Another section")');
+    $assert->elementNotExists('css', '.views-row:contains("More sections")');
+  }
+
+}
