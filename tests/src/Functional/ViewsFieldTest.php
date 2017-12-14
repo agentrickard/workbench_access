@@ -94,6 +94,7 @@ class ViewsFieldTest extends BrowserTestBase {
       'access content',
       'delete any article content',
       'administer nodes',
+      'access user profiles',
     ];
     $this->user = $this->createUser($permissions);
     $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (TermInterface $term) {
@@ -125,6 +126,31 @@ class ViewsFieldTest extends BrowserTestBase {
     $assert->pageTextContains('Some section node 2');
     $assert->elementNotExists('css', '.views-row:contains("Another section")');
     $assert->elementNotExists('css', '.views-row:contains("More sections")');
+
+    $this->drupalGet('admin/people/sections');
+    $row = $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
+
+    // User 1 has all sections.
+    foreach ($this->terms as $section => $term) {
+      $assert->elementExists('css', '.views-row:contains("' . $section . '")', $row);
+    }
+
+    // User 2 only has one.
+    $row = $assert->elementExists('css', '.views-row:contains("' . $this->user2->label() . '")');
+    $assert->elementExists('css', '.views-row:contains("Some section")', $row);
+
+    // Now filter.
+    $this->drupalGet('admin/content/sections', ['query' => [
+      'section' => $this->terms['Some section']->id(),
+    ]]);
+    $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
+    $assert->elementExists('css', '.views-row:contains("' . $this->user2->label() . '")');
+    $this->drupalGet('admin/content/sections', ['query' => [
+      'section' => $this->terms['Another section']->id(),
+    ]]);
+    $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
+    $assert->elementNotExists('css', '.views-row:contains("' . $this->user2->label() . '")');
+
     // Now test as user 2 who only has access to the first section.
     $this->drupalLogin($this->user2);
     $this->drupalGet('admin/content/sections');

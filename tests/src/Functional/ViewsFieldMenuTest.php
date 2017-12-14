@@ -133,6 +133,31 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     $assert->pageTextContains('Some section node 2');
     $assert->elementNotExists('css', '.views-row:contains("Another section")');
     $assert->elementNotExists('css', '.views-row:contains("More sections")');
+
+    $this->drupalGet('admin/people/sections/menu');
+    $row = $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
+
+    // User 1 has all sections.
+    foreach ($this->links as $section => $link) {
+      $assert->elementExists('css', '.views-row:contains("' . $section . '")', $row);
+    }
+
+    // User 2 only has one.
+    $row = $assert->elementExists('css', '.views-row:contains("' . $this->user2->label() . '")');
+    $assert->elementExists('css', '.views-row:contains("Some section")', $row);
+
+    // Now filter.
+    $this->drupalGet('admin/content/sections', ['query' => [
+      'section' => $this->links['Some section']->getPluginId(),
+    ]]);
+    $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
+    $assert->elementExists('css', '.views-row:contains("' . $this->user2->label() . '")');
+    $this->drupalGet('admin/content/sections', ['query' => [
+      'section' => $this->links['Another section']->getPluginId(),
+    ]]);
+    $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
+    $assert->elementNotExists('css', '.views-row:contains("' . $this->user2->label() . '")');
+
     // Now test as user 2 who only has access to the first section.
     $this->drupalLogin($this->user2);
     $this->drupalGet('admin/content/sections/menu');
