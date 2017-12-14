@@ -265,17 +265,19 @@ class Taxonomy extends AccessControlHierarchyBase {
     foreach (array_column($this->configuration['fields'], 'entity_type') as $entity_type_id) {
       $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
       if ($base_table = $entity_type->getBaseTable()) {
-        $data[$base_table]['workbench_access_section'] = [
+        $data[$base_table]['workbench_access_section__' . $scheme->id()] = [
           'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
           'help' => t('The sections to which this content belongs in the @name scheme.', [
             '@name' => $scheme->label(),
           ]),
           'field' => [
-            'id' => 'workbench_access_section:' . $scheme->id(),
+            'scheme' => $scheme->id(),
+            'id' => 'workbench_access_section',
           ],
           'filter' => [
             'field' => 'nid',
-            'id' => 'workbench_access_section:' . $scheme->id(),
+            'scheme' => $scheme->id(),
+            'id' => 'workbench_access_section',
           ],
         ];
       }

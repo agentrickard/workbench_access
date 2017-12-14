@@ -20,7 +20,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @ViewsField(
  *   id = "workbench_access_section",
- *   deriver = "\Drupal\workbench_access\Plugin\Deriver\SectionViewsPluginDeriver"
  * )
  */
 class Section extends FieldPluginBase {
