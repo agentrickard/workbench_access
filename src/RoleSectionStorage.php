@@ -123,9 +123,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
     foreach ($roles as $rid => $role) {
       $this->deleteRoleSections($scheme, $rid);
     }
-    // @TODO clear cache?
   }
-
 
   /**
    * Loads the saved role sections for a given role ID.

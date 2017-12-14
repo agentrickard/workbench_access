@@ -88,11 +88,11 @@ interface UserSectionStorageInterface {
   public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE);
 
   /**
-   * Removes all user assignments.
+   * Removes all user assignments for a given scheme.
    *
-   * This method should be triggered when changing access schemes. If possible,
-   * let the administrator choose to run this.
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   The scheme.
    */
-  public function flushUsers();
+  public function flushUsers(AccessSchemeInterface $scheme);
 
 }

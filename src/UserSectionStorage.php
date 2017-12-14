@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -140,19 +141,24 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * @inheritdoc
    */
-  public function flushUsers() {
-    // We might want to use purgeFieldData() or similar for this, but the data
-    // is currently not revisioned, so a simple table flush will do. Wrap the
-    // statement in a try/catch just in case it isn't portable.
-    try {
-      $database = \Drupal::getContainer()->get('database');
-      $database->truncate('user__' . WorkbenchAccessManagerInterface::FIELD_NAME)->execute();
+  public function flushUsers(AccessSchemeInterface $scheme) {
+    $users = $this->userStorage->loadMultiple($this->userStorage->getQuery()
+      ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, Database::getConnection()
+          ->escapeLike(sprintf('%s:', $scheme->id())) . '%', 'LIKE')
+      ->sort('name')
+      ->execute());
+    foreach ($users as $user) {
+      $values = array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
+      $updated_values = array_filter($values, function ($item) use ($scheme) {
+        list($scheme_id) = explode(':', $item, 2);
+        return $scheme_id !== $scheme->id();
+      });
+      if ($values !== $updated_values) {
+        $user->set(WorkbenchAccessManagerInterface::FIELD_NAME, $updated_values);
+        $user->save();
+      }
     }
-    catch (\Exception $e) {
-      // @todo return FALSE instead here, let UI handle it.
-      drupal_set_message($this->t('Failed to delete user assignments.'));
-    }
-    // @TODO clear cache?
+    unset($this->userSectionCache[$scheme->id()]);
   }
 
   /**
