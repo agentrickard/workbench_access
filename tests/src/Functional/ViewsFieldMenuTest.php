@@ -102,6 +102,7 @@ class ViewsFieldMenuTest extends BrowserTestBase {
       'delete any article content',
       'administer nodes',
       'use workbench access',
+      'access user profiles',
     ];
     $this->user = $this->createUser($permissions);
     $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (MenuLinkContentInterface $link) {
@@ -147,12 +148,12 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     $assert->elementExists('css', '.views-row:contains("Some section")', $row);
 
     // Now filter.
-    $this->drupalGet('admin/content/sections', ['query' => [
+    $this->drupalGet('admin/people/sections/menu', ['query' => [
       'section' => $this->links['Some section']->getPluginId(),
     ]]);
     $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
     $assert->elementExists('css', '.views-row:contains("' . $this->user2->label() . '")');
-    $this->drupalGet('admin/content/sections', ['query' => [
+    $this->drupalGet('admin/people/sections/menu', ['query' => [
       'section' => $this->links['Another section']->getPluginId(),
     ]]);
     $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');

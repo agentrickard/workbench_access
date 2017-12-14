@@ -54,15 +54,6 @@ class Section extends FieldPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
-    parent::init($view, $display, $options);
-
-    $this->additional_fields['nid'] = 'nid';
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
     $form['separator'] = [

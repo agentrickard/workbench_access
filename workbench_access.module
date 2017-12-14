@@ -207,18 +207,24 @@ function workbench_access_views_data_alter(array &$data) {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
     foreach ($schemes as $id => $scheme) {
       $scheme->getAccessScheme()->viewsData($data, $scheme);
+      $data['users']['workbench_access_section__' . $scheme->id()] = [
+        'title' => t('Workbench Section: @name', [
+          '@name' => $scheme->label(),
+        ]),
+        'help' => t('The sections to which this user belongs for the @name scheme.', [
+          '@name' => $scheme->label(),
+          ]),
+        'field' => [
+          'id' => 'workbench_access_user_section',
+          'scheme' => $scheme->id(),
+        ],
+        'filter' => [
+          'field' => 'uid',
+          'scheme' => $scheme->id(),
+          'id' => 'workbench_access_section',
+        ],
+      ];
     }
-    $data['users']['workbench_access_section'] = [
-      'title' => t('Workbench Section'),
-      'help' => t('The sections to which this user belongs.'),
-      'field' => [
-        'id' => 'workbench_access_user_section',
-      ],
-      'filter' => [
-        'field' => 'uid',
-        'id' => 'workbench_access_section',
-      ],
-    ];
   }
 }
 

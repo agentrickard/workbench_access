@@ -140,12 +140,12 @@ class ViewsFieldTest extends BrowserTestBase {
     $assert->elementExists('css', '.views-row:contains("Some section")', $row);
 
     // Now filter.
-    $this->drupalGet('admin/content/sections', ['query' => [
+    $this->drupalGet('admin/people/sections', ['query' => [
       'section' => $this->terms['Some section']->id(),
     ]]);
     $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
     $assert->elementExists('css', '.views-row:contains("' . $this->user2->label() . '")');
-    $this->drupalGet('admin/content/sections', ['query' => [
+    $this->drupalGet('admin/people/sections', ['query' => [
       'section' => $this->terms['Another section']->id(),
     ]]);
     $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');

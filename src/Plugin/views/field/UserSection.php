@@ -10,6 +10,7 @@ use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ResultRow;
 use Drupal\views\ViewExecutable;
 use Drupal\workbench_access\WorkbenchAccessManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Field handler to present the section assigned to the user.
@@ -24,12 +25,76 @@ use Drupal\workbench_access\WorkbenchAccessManager;
 class UserSection extends Section {
 
   /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * Manager.
+   *
+   * @var \Drupal\workbench_access\WorkbenchAccessManagerInterface
+   */
+  protected $manager;
+
+  /**
+   * User storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
+   */
+  protected $userSectionStorage;
+
+  /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
-    FieldPluginBase::init($view, $display, $options);
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    $instance->additional_fields['uid'] = 'uid';
+    $instance->aliases['uid'] = 'uid';
+    return $instance->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($configuration['scheme']))
+      ->setManager($container->get('plugin.manager.workbench_access.scheme'))
+      ->setUserSectionStorage($container->get('workbench_access.user_section_storage'));
+  }
 
-    $this->additional_fields['uid'] = 'uid';
+  /**
+   * Sets manager.
+   *
+   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface $manager
+   *   Manager.
+   *
+   * @return $this
+   */
+  public function setManager($manager) {
+    $this->manager = $manager;
+    return $this;
+  }
+
+  /**
+   * Sets access scheme.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   *
+   * @return $this
+   */
+  public function setScheme(AccessSchemeInterface $scheme) {
+    $this->scheme = $scheme;
+    return $this;
+  }
+
+  /**
+   * Sets user section storage.
+   *
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   *   User section storage.
+   *
+   * @return $this
+   */
+  public function setUserSectionStorage($userSectionStorage) {
+    $this->userSectionStorage = $userSectionStorage;
+    return $this;
   }
 
   /**
@@ -37,35 +102,22 @@ class UserSection extends Section {
    */
   public function render(ResultRow $values) {
     $uid = $this->getValue($values, 'uid');
-    $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-    $schemes = \Drupal::entityTypeManager()
-      ->getStorage('access_scheme')
-      ->loadMultiple();
-    if ($schemes) {
-      $all = array_reduce($schemes, function (array $items, AccessSchemeInterface $scheme) {
-        // @todo this needs to retain keys.
-        // @todo this needs to respect IDs in each scheme.
-        // @todo this needs to be derivative based
-        return array_unique(array_merge($items, $scheme->getAccessScheme()->getTree()));
-      }, []);
-      if ($manager->userInAll($uid)) {
-        $sections = WorkbenchAccessManager::getAllSections($this->scheme, TRUE);
-      }
-      else {
-        $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
-        $sections = $user_section_storage->getUserSections($uid);
-      }
-      $output = [];
-      foreach ($sections as $id) {
-        foreach ($all as $root => $data) {
-          if (isset($data[$id])) {
-            $output[] = $this->sanitizeValue($data[$id]['label']);
-          }
+    $all = $this->scheme->getAccessScheme()->getTree();
+    if ($this->manager->userInAll($this->scheme, $uid)) {
+      $sections = WorkbenchAccessManager::getAllSections($this->scheme, TRUE);
+    }
+    else {
+      $sections = $this->userSectionStorage->getUserSections($this->scheme, $uid);
+    }
+    $output = [];
+    foreach ($sections as $id) {
+      foreach ($all as $root => $data) {
+        if (isset($data[$id])) {
+          $output[] = $this->sanitizeValue($data[$id]['label']);
         }
       }
-      return trim(implode($this->options['separator'], $output), $this->options['separator']);
     }
-    return '';
+    return trim(implode($this->options['separator'], $output), $this->options['separator']);
   }
 
 }

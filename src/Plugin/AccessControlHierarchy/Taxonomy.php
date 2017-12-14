@@ -431,6 +431,18 @@ class Taxonomy extends AccessControlHierarchyBase {
    * {@inheritdoc}
    */
   public function getViewsJoin($entity_type, $key, $alias = NULL) {
+    if ($entity_type == 'user') {
+      $configuration['taxonomy'] = [
+        'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
+        'field' => 'entity_id',
+        'left_table' => 'users',
+        'left_field' => $key,
+        'operator' => '=',
+        'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
+        'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
+      ];
+      return $configuration;
+    }
     $fields = array_column(array_filter($this->configuration['fields'], function ($field) use ($entity_type) {
       return isset($field['entity_type']) && $field['entity_type'] === $entity_type;
     }), 'field');

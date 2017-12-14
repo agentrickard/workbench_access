@@ -255,7 +255,12 @@ class Section extends ManyToOne {
       }
       // If values, add our standard where clause.
       if (!empty($values)) {
-        $this->scheme->getAccessScheme()->addWhere($this, $values, $alias);
+        if ($this->getEntityType() === 'user') {
+          $values = array_map(function ($item) {
+            return sprintf('%s:%s', $this->scheme->id(), $item);
+          }, $values);
+        }
+        $this->scheme->getAccessScheme()->addWhere($this, $values);
       }
       // Else add a failing where clause.
       else {
