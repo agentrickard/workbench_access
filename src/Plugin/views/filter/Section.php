@@ -248,16 +248,14 @@ class Section extends ManyToOne {
       }
       // If 'All' was not selected, fetch the query values.
       if (!isset($values)) {
-        if (!empty($this->options['section_filter']['show_hierarchy'])) {
-          $values = $this->getChildren();
-        }
-        else {
-          $values = $this->value;
-        }
+        $values = $this->value;
+      }
+      if (!empty($this->options['section_filter']['show_hierarchy'])) {
+        $values = $this->getChildren($values);
       }
       // If values, add our standard where clause.
       if (!empty($values)) {
-        $this->scheme->getAccessScheme()->addWhere($this, $values);
+        $this->scheme->getAccessScheme()->addWhere($this, $values, $alias);
       }
       // Else add a failing where clause.
       else {
@@ -269,13 +267,16 @@ class Section extends ManyToOne {
   /**
    * Gets the child sections of a base section.
    *
+   * @param array $values
+   *   Defined or selected values.
+   *
    * @return array
    *   An array of section ids that this user may see.
    */
-  protected function getChildren() {
+  protected function getChildren($values) {
     $tree = $this->scheme->getAccessScheme()->getTree();
     $children = [];
-    foreach ($this->value as $id) {
+    foreach ($values as $id) {
       foreach ($tree as $key => $data) {
         if ($id == $key) {
           $children += array_keys($data);

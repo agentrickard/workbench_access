@@ -101,6 +101,7 @@ class ViewsFieldMenuTest extends BrowserTestBase {
       'access content',
       'delete any article content',
       'administer nodes',
+      'use workbench access',
     ];
     $this->user = $this->createUser($permissions);
     $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (MenuLinkContentInterface $link) {
@@ -109,7 +110,7 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     $this->user->save();
 
     $this->user2 = $this->createUser($permissions);
-    $this->user2->set(WorkbenchAccessManagerInterface::FIELD_NAME, ['menu:' . reset($this->links)->id()]);
+    $this->user2->set(WorkbenchAccessManagerInterface::FIELD_NAME, ['menu:' . reset($this->links)->getPluginId()]);
     $this->user2->save();
   }
 
@@ -126,7 +127,7 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     }
     // Now filter the page.
     $this->drupalGet('admin/content/sections/menu', ['query' => [
-      'section' => $this->links['Some section']->getPluginId(),
+      'workbench_access_section' => $this->links['Some section']->getPluginId(),
     ]]);
     $assert->pageTextContains('Some section node 1');
     $assert->pageTextContains('Some section node 2');

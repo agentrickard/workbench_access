@@ -177,12 +177,12 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {inheritdoc}
    */
-  public function getViewsJoin($table, $key, $alias = NULL) {
-    if ($table == 'users') {
+  public function getViewsJoin($entity_type, $key, $alias = NULL) {
+    if ($entity_type == 'user') {
       $configuration['menu'] = [
        'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
        'field' => 'entity_id',
-       'left_table' => $table,
+       'left_table' => 'users',
        'left_field' => $key,
        'operator' => '=',
        'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
@@ -193,15 +193,36 @@ class Menu extends AccessControlHierarchyBase {
       $configuration['menu'] = [
        'table' => 'menu_tree',
        'field' => 'route_param_key',
-       'left_table' => $table,
+       'left_table' => 'node',
        'left_field' => $key,
-       'left_query' => "CONCAT('{$table}=', {$alias}.{$key})",
+       'left_query' => "CONCAT('node=', {$alias}.{$key})",
        'operator' => '=',
        'table_alias' => 'menu_tree',
        'real_field' => 'id',
       ];
     }
     return $configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function viewsData(&$data, AccessSchemeInterface $scheme) {
+    $data['node']['workbench_access_section'] = [
+      'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
+      'help' => t('The sections to which this content belongs in the @name scheme.', [
+        '@name' => $scheme->label(),
+      ]),
+      'field' => [
+        'scheme' => $scheme->id(),
+        'id' => 'workbench_access_section',
+      ],
+      'filter' => [
+        'scheme' => $scheme->id(),
+        'field' => 'nid',
+        'id' => 'workbench_access_section',
+      ],
+    ];
   }
 
   /**

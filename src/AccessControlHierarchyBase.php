@@ -273,19 +273,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function viewsData(&$data, AccessSchemeInterface $scheme) {
-    $data['node']['workbench_access_section'] = [
-      'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
-      'help' => t('The sections to which this content belongs in the @name scheme.', [
-        '@name' => $scheme->label(),
-      ]),
-      'field' => [
-        'id' => 'workbench_access_section:' . $scheme->id(),
-      ],
-      'filter' => [
-        'field' => 'nid',
-        'id' => 'workbench_access_section:' . $scheme->id(),
-      ],
-    ];
+    // Null op.
   }
 
   /**
