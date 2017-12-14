@@ -1,0 +1,10 @@
+uuid: a5a0af57-404d-43d3-b429-ce1103628446
+langcode: en
+status: true
+name: 'Article'
+type: article
+description: ''
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

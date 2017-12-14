@@ -1,0 +1,19 @@
+uuid: 7bcc4e70-23b6-4300-ad2a-d1eddffe1cf6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.article.field_workbench_access
+    - taxonomy.vocabulary.editorial_section
+id: editorial_section
+label: 'Editorial section'
+plural_label: 'Editorial sections'
+scheme: taxonomy
+scheme_settings:
+  vocabularies:
+    - editorial_Section
+  fields:
+    -
+      entity_type: node
+      bundle: field_workbench_access
+      field: article
