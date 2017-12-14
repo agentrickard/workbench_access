@@ -58,7 +58,7 @@ class AccessByRoleFormTest extends BrowserTestBase {
   public function testAccessByRoleFormMenu() {
     // Set up test scheme.
     $node_type = $this->createContentType(['type' => 'page']);
-    $scheme = $this->setUpMenuScheme($node_type, ['main']);
+    $scheme = $this->setUpMenuScheme([$node_type->id()], ['main']);
 
     // Create a menu link.
     $link = MenuLinkContent::create([

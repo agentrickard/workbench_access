@@ -57,7 +57,7 @@ class AccessByUserFormTest extends BrowserTestBase {
   public function testAccessByUserFormMenu() {
     // Set up test scheme.
     $node_type = $this->createContentType(['type' => 'page']);
-    $this->setUpMenuScheme($node_type, ['main']);
+    $this->setUpMenuScheme([$node_type->id()], ['main']);
 
     // Create a menu link.
     $link = MenuLinkContent::create([

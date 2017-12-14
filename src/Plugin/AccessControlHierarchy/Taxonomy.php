@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
@@ -10,6 +11,7 @@ use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\field\FieldConfigInterface;
 use Drupal\taxonomy\VocabularyInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -250,7 +252,7 @@ class Taxonomy extends AccessControlHierarchyBase {
       $field += [
         'entity_type' => NULL,
         'bundle' => NULL,
-        'field_name' => '',
+        'field' => '',
       ];
       return $field['entity_type'] === $entity_type && $field['bundle'] === $bundle;
     });
@@ -332,9 +334,9 @@ class Taxonomy extends AccessControlHierarchyBase {
       $field += [
         'entity_type' => NULL,
         'bundle' => NULL,
-        'field_name' => '',
+        'field' => '',
       ];
-      return sprintf('%s:%s:%s', $field['entity_type'], $field['bundle'], $field['field_name']);
+      return sprintf('%s:%s:%s', $field['entity_type'], $field['bundle'], $field['field']);
     }, $this->configuration['fields']);
     $form['fields'] = [
       '#type' => 'tableselect',
@@ -360,10 +362,67 @@ class Taxonomy extends AccessControlHierarchyBase {
       return [
         'entity_type' => $entity_type,
         'bundle' => $bundle,
-        'field_name' => $field_name,
+        'field' => $field_name,
       ];
     }, array_filter($settings['fields'])));
     $this->configuration = $settings;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $dependent_entities = $this->entityTypeManager->getStorage('taxonomy_vocabulary')->loadMultiple($this->configuration['vocabularies']);
+    $dependent_entities = array_merge($dependent_entities, $this->entityTypeManager->getStorage('field_config')->loadMultiple(array_map(function (array $field) {
+      $field += [
+        'entity_type' => NULL,
+        'bundle' => NULL,
+        'field' => '',
+      ];
+      return sprintf('%s.%s.%s', $field['entity_type'], $field['bundle'], $field['field']);
+    }, $this->configuration['fields'])));
+    return array_reduce($dependent_entities, function (array $carry, ConfigEntityInterface $entity) {
+      $carry[$entity->getConfigDependencyKey()][] = $entity->getConfigDependencyName();
+      return $carry;
+    }, []);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onDependencyRemoval(array $dependencies) {
+    $fields = array_udiff($this->configuration['fields'], array_reduce($dependencies['config'], function (array $carry, $item) {
+      if (!$item instanceof FieldConfigInterface) {
+        return $carry;
+      }
+      $carry[] = [
+        'field' => $item->getName(),
+        'entity_type' => $item->getTargetEntityTypeId(),
+        'bundle' => $item->getTargetBundle()
+      ];
+      return $carry;
+    }, []), function ($array1, $array2) {
+      $key1 = sprintf('%s.%s.%s', $array1['field'], $array1['entity_type'], $array1['bundle']);
+      $key2 = sprintf('%s.%s.%s', $array2['field'], $array2['entity_type'], $array2['bundle']);
+      if ($key1 < $key2) {
+        return -1;
+      } elseif ($key1 > $key2) {
+        return 1;
+      } else {
+        return 0;
+      }
+    });
+    $vocabularies = array_diff($this->configuration['vocabularies'], array_reduce($dependencies['config'], function (array $carry, $item) {
+      if (!$item instanceof VocabularyInterface) {
+        return $carry;
+      }
+      $carry[] = $item->id();
+      return $carry;
+    }, []));
+    $changed = ($fields != $this->configuration['fields']) || ($vocabularies != $this->configuration['vocabularies']);
+    $this->configuration['fields'] = $fields;
+    $this->configuration['vocabularies'] = $vocabularies;
+    return $changed;
   }
 
 }

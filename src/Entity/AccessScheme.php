@@ -135,4 +135,16 @@ class AccessScheme extends ConfigEntityBase implements AccessSchemeInterface, En
     \Drupal::service('plugin.manager.entity_reference_selection')->clearCachedDefinitions();
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function onDependencyRemoval(array $dependencies) {
+    // Give the parent method and the access scheme type plugin a chance to
+    // react to removed dependencies and report if either of these two made a
+    // change.
+    $parent_changed_entity = parent::onDependencyRemoval($dependencies);
+    $plugin_changed_entity = $this->getAccessScheme()->onDependencyRemoval($dependencies);
+    return $plugin_changed_entity || $parent_changed_entity;
+  }
+
 }

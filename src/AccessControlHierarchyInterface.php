@@ -190,4 +190,19 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    */
   public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values);
 
+  /**
+   * Informs the plugin that a dependency of the scheme will be deleted.
+   *
+   * @param array $dependencies
+   *   An array of dependencies that will be deleted keyed by dependency type.
+   *
+   * @return bool
+   *   TRUE if the workflow settings have been changed, FALSE if not.
+   *
+   * @see \Drupal\Core\Config\ConfigEntityInterface::onDependencyRemoval()
+   *
+   * @todo https://www.drupal.org/node/2579743 make part of a generic interface.
+   */
+  public function onDependencyRemoval(array $dependencies);
+
 }

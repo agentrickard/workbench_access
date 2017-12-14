@@ -2,7 +2,9 @@
 
 namespace Drupal\Tests\workbench_access\Unit;
 
+use Drupal\field\Entity\FieldConfig;
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\node\Entity\NodeType;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Plugin\views\field\Section;
@@ -64,11 +66,20 @@ class ConfigDependenciesTest extends KernelTestBase {
     module_load_install('workbench_access');
     workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
-    $this->createContentType(['type' => 'article']);
+    $node_type2 = $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id(), 'field_section');
     $this->scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
-    $this->menuScheme = $this->setUpMenuScheme($node_type, ['main'], 'menu_scheme');
+    $configuration = $this->scheme->getAccessScheme()->getConfiguration();
+    $configuration['fields'][] = [
+      'field' => 'field_section',
+      'entity_type' => 'node',
+      'bundle' => 'page',
+    ];
+    $this->scheme->getAccessScheme()->setConfiguration($configuration);
+    $this->scheme->save();
+    $this->menuScheme = $this->setUpMenuScheme([$node_type->id(), $node_type2->id()], ['main'], 'menu_scheme');
   }
 
   /**
@@ -90,16 +101,36 @@ class ConfigDependenciesTest extends KernelTestBase {
   public function testSchemeDependencies() {
     $this->assertEquals([
       'config' => [
-        'field.field.node.field_workbench_access',
-        'node.type.page',
+        'field.field.node.page.field_section',
+        'field.field.node.page.field_workbench_access',
+        'taxonomy.vocabulary.workbench_access',
       ],
     ], $this->scheme->getDependencies());
     $this->assertEquals([
       'config' => [
-        'system.menu.main',
+        'node.type.article',
         'node.type.page',
+        'system.menu.main',
       ],
     ], $this->menuScheme->getDependencies());
+    // Delete the article content type.
+    NodeType::load('article')->delete();
+    $this->menuScheme = $this->loadUnchangedScheme($this->menuScheme->id());
+    $this->assertEquals([
+      'config' => [
+        'node.type.page',
+        'system.menu.main',
+      ],
+    ], $this->menuScheme->getDependencies());
+    $this->assertEquals(['page'], $this->menuScheme->getAccessScheme()->getConfiguration()['bundles']);
+    FieldConfig::load('node.page.field_section')->delete();
+    $this->scheme = $this->loadUnchangedScheme($this->scheme->id());
+    $this->assertEquals([
+      'config' => [
+        'field.field.node.page.field_workbench_access',
+        'taxonomy.vocabulary.workbench_access',
+      ],
+    ], $this->scheme->getDependencies());
   }
 
 }

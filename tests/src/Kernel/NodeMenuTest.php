@@ -74,7 +74,7 @@ class NodeMenuTest extends KernelTestBase {
       ->getAccessControlHandler('node');
     $node_type->setThirdPartySetting('menu_ui', 'available_menus', ['main']);
     $node_type->save();
-    $this->setupMenuScheme($node_type, ['main']);
+    $this->setupMenuScheme([$node_type->id()], ['main']);
   }
 
   /**

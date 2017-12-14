@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
+use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\system\MenuInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
@@ -251,6 +252,48 @@ class Menu extends AccessControlHierarchyBase {
       'menus' => [],
       'bundles' => [],
     ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $entity_type_map = [
+      'menu' => 'menus',
+      'node_type' => 'bundles',
+    ];
+    $dependencies = [];
+    foreach ($entity_type_map as $entity_type => $configuration_key) {
+      $dependencies = array_merge($dependencies, $this->entityTypeManager->getStorage($entity_type)->loadMultiple($this->configuration[$configuration_key]));
+    }
+    return array_reduce($dependencies, function (array $carry, ConfigEntityInterface $entity) {
+      $carry[$entity->getConfigDependencyKey()][] = $entity->getConfigDependencyName();
+      return $carry;
+    }, []);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onDependencyRemoval(array $dependencies) {
+    $bundles = array_diff($this->configuration['bundles'], array_reduce($dependencies['config'], function (array $carry, $item) {
+      if (!$item instanceof NodeTypeInterface) {
+        return $carry;
+      }
+      $carry[] = $item->id();
+      return $carry;
+    }, []));
+    $menus = array_diff($this->configuration['menus'], array_reduce($dependencies['config'], function (array $carry, $item) {
+      if (!$item instanceof NodeTypeInterface) {
+        return $carry;
+      }
+      $carry[] = $item->id();
+      return $carry;
+    }, []));
+    $changed = ($menus != $this->configuration['menus']) || ($bundles != $this->configuration['bundles']);
+    $this->configuration['menus'] = $menus;
+    $this->configuration['bundles'] = $bundles;
+    return $changed;
   }
 
 }

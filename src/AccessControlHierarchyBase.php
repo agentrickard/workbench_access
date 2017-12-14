@@ -336,4 +336,11 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     // Default implementation is empty.
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function onDependencyRemoval(array $dependencies) {
+    return FALSE;
+  }
+
 }
