@@ -26,4 +26,17 @@ class AccessSchemeListBuilder extends ConfigEntityListBuilder {
     return $row + parent::buildRow($entity);
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getDefaultOperations(EntityInterface $entity) {
+    return parent::getDefaultOperations($entity) + [
+      'sections' => [
+        'title' => $this->t('Sections'),
+        'weight' => 0,
+        'url' => $entity->toUrl('sections'),
+      ],
+    ];
+  }
+
 }

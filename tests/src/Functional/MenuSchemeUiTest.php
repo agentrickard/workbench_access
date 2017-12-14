@@ -108,7 +108,7 @@ class MenuSchemeUiTest extends BrowserTestBase {
     $this->drupalGet(Url::fromRoute('entity.access_scheme.collection'));
     $assert = $this->assertSession();
     $assert->linkExists('Sections');
-    $assert->linkByHrefExists($scheme->toUrl('sections')->setAbsolute()->toString());
+    $assert->linkByHrefExists($scheme->toUrl('sections')->toString());
   }
 
 }
