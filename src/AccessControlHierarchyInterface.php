@@ -125,7 +125,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   /**
    * Returns information about how to join this section data to a base view table.
    *
-   * @param $table
+   * @param string $entity_type
    *   The base table of the view.
    * @param $key
    *   The primary key of the base table.
@@ -135,7 +135,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    * @return array
    *   The configuration array for adding a views JOIN statement.
    */
-  public function getViewsJoin($table, $key, $alias = NULL);
+  public function getViewsJoin($entity_type, $key, $alias = NULL);
 
   /**
    * Adds a where clause to a view when using a section filter.

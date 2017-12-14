@@ -18,9 +18,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @ingroup views_field_handlers
  *
- * @ViewsField(
- *   id = "workbench_access_section",
- * )
+ * @ViewsField("workbench_access_section")
  */
 class Section extends FieldPluginBase {
 
@@ -37,7 +35,7 @@ class Section extends FieldPluginBase {
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     /** @var self $instance */
     $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
-    return $instance->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($plugin_definition['scheme']));
+    return $instance->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($configuration['scheme']));
   }
 
   /**

@@ -179,8 +179,8 @@ display:
           entity_field: type
           plugin_id: bundle
           group: 1
-        workbench_access_section__editorial_section_3:
-          id: workbench_access_section__editorial_section_3
+        workbench_access_section__editorial_section:
+          id: workbench_access_section__editorial_section
           table: node
           field: workbench_access_section__editorial_section
           relationship: none
@@ -191,11 +191,11 @@ display:
           group: 1
           exposed: true
           expose:
-            operator_id: workbench_access_section__editorial_section_3_op
+            operator_id: workbench_access_section__editorial_section_op
             label: 'Workbench access Editorial section'
             description: ''
             use_operator: false
-            operator: workbench_access_section__editorial_section_3_op
+            operator: workbench_access_section__editorial_section_op
             identifier: section
             required: false
             remember: false
@@ -205,7 +205,7 @@ display:
               anonymous: '0'
               administrator: '0'
               editor: '0'
-            reduce: 1
+            reduce: 0
           is_grouped: false
           group_info:
             label: ''

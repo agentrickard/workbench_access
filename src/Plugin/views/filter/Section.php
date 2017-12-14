@@ -17,9 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @ingroup views_filter_handlers
  *
- * @ViewsFilter(
- *   id = "workbench_access_section",
- * )
+ * @ViewsFilter("workbench_access_section")
  */
 class Section extends ManyToOne {
 
@@ -50,7 +48,10 @@ class Section extends ManyToOne {
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     /** @var self $instance */
     $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
-    return $instance->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($plugin_definition['scheme']));
+    return $instance
+      ->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($configuration['scheme']))
+      ->setManager($container->get('plugin.manager.workbench_access.scheme'))
+      ->setUserSectionStorage($container->get('workbench_access.user_section_storage'));
   }
 
   /**
@@ -72,7 +73,7 @@ class Section extends ManyToOne {
    * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
    *   User section storage.
    *
-   * @return $tjos
+   * @return $this
    */
   public function setUserSectionStorage($userSectionStorage) {
     $this->userSectionStorage = $userSectionStorage;
@@ -235,7 +236,7 @@ class Section extends ManyToOne {
     }
     if (!empty($this->table)) {
       $alias = $this->query->ensureTable($this->table);
-      foreach ($this->scheme->getViewsJoin($this->table, $this->realField, $alias) as $configuration) {
+      foreach ($this->scheme->getAccessScheme()->getViewsJoin($this->getEntityType(), $this->realField, $alias) as $configuration) {
         // Allow subquery JOINs, which Menu uses.
         $type = 'standard';
         if (isset($configuration['left_query'])) {

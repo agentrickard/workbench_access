@@ -4,7 +4,9 @@ namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\TermInterface;
 use Drupal\Tests\BrowserTestBase;
+use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -29,11 +31,18 @@ class ViewsFieldTest extends BrowserTestBase {
   protected $nodes = [];
 
   /**
-   * Logged in user.
+   * Test user.
    *
    * @var \Drupal\user\UserInterface
    */
   protected $user;
+
+  /**
+   * Test user.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $user2;
 
   /**
    * {@inheritdoc}
@@ -62,8 +71,8 @@ class ViewsFieldTest extends BrowserTestBase {
     ];
     foreach ($sections as $section) {
       $this->terms[$section] = Term::create([
-        'vid' => 'editorial_Section',
-        'name' => $section,
+        'vid' => 'editorial_section',
+        'name' => $section . ' term',
       ]);
       $this->terms[$section]->save();
       foreach ([' node 1', ' node 2'] as $stub) {
@@ -87,22 +96,26 @@ class ViewsFieldTest extends BrowserTestBase {
       'administer nodes',
     ];
     $this->user = $this->createUser($permissions);
-    $this->user->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $this->terms['Some section']->id();
+    $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (TermInterface $term) {
+      return 'editorial_section:' . $term->id();
+    }, $this->terms)));
     $this->user->save();
-    $this->drupalLogin($this->user);
+
+    $this->user2 = $this->createUser($permissions);
+    $this->user2->set(WorkbenchAccessManagerInterface::FIELD_NAME, ['editorial_section:' . reset($this->terms)->id()]);
+    $this->user2->save();
   }
 
   /**
    * Tests field and filter.
    */
   public function testFieldAndFilter() {
+    $this->drupalLogin($this->user);
     $this->drupalGet('admin/content/sections');
     $assert = $this->assertSession();
-    foreach ($this->nodes as $node) {
-      $assert->pageTextContains($node->label());
-    }
-    foreach ($this->terms as $term) {
-      $assert->pageTextContains($term->label());
+    foreach ($this->terms as $section => $term) {
+      $row = $assert->elementExists('css', '.views-row:contains("' . $term->label() . '")');
+      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
     }
     // Now filter the page.
     $this->drupalGet('admin/content/sections', ['query' => [
@@ -110,8 +123,15 @@ class ViewsFieldTest extends BrowserTestBase {
     ]]);
     $assert->pageTextContains('Some section node 1');
     $assert->pageTextContains('Some section node 2');
-    $assert->pageTextNotContains('Another section');
-    $assert->pageTextNotContains('More sections');
+    $assert->elementNotExists('css', '.views-row:contains("Another section")');
+    $assert->elementNotExists('css', '.views-row:contains("More sections")');
+    // Now test as user 2 who only has access to the first section.
+    $this->drupalLogin($this->user2);
+    $this->drupalGet('admin/content/sections');
+    $assert->pageTextContains('Some section node 1');
+    $assert->pageTextContains('Some section node 2');
+    $assert->elementNotExists('css', '.views-row:contains("Another section")');
+    $assert->elementNotExists('css', '.views-row:contains("More sections")');
   }
 
 }

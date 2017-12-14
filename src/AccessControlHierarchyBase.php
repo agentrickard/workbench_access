@@ -244,30 +244,10 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
-  public function getViewsJoin($table, $key, $alias = NULL) {
-    $fields = $this->fieldsByEntityType($table);
-    $table_prefix = $table;
-    $field_suffix = '_target_id';
-    if ($table == 'users') {
-      $table_prefix = 'user';
-      $field_suffix = '_value';
-    }
-    foreach ($fields as $field) {
-      if (!empty($field)) {
-        $configuration[$field] = [
-         'table' => $table_prefix . '__' . $field,
-         'field' => 'entity_id',
-         'left_table' => $table,
-         'left_field' => $key,
-         'operator' => '=',
-         'table_alias' => $field,
-         'real_field' => $field . $field_suffix,
-        ];
-      }
-    }
-    return $configuration;
+  public function getViewsJoin($entity_type, $key, $alias = NULL) {
+    return [];
   }
 
   /**
@@ -275,7 +255,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public function addWhere(Section $filter, $values) {
     // The JOIN data tells us if we have multiple tables to deal with.
-    $join_data = $this->getViewsJoin($filter->table, $filter->realField);
+    $join_data = $this->getViewsJoin($filter->getEntityType(), $filter->realField);
     if (count($join_data) == 1) {
       $filter->query->addWhere($filter->options['group'], "$filter->tableAlias.$filter->realField", array_values($values), $filter->operator);
     }

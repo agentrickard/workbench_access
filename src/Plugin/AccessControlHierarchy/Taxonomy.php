@@ -264,9 +264,9 @@ class Taxonomy extends AccessControlHierarchyBase {
   public function viewsData(&$data, AccessSchemeInterface $scheme) {
     foreach (array_column($this->configuration['fields'], 'entity_type') as $entity_type_id) {
       $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
-      if ($base_table = $entity_type->getBaseTable()) {
+      if (($base_table = $entity_type->getBaseTable()) && ($id = $entity_type->getKey('id'))) {
         $data[$base_table]['workbench_access_section__' . $scheme->id()] = [
-          'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
+          'title' => t('Workbench access @name', ['@name' => $scheme->label()]),
           'help' => t('The sections to which this content belongs in the @name scheme.', [
             '@name' => $scheme->label(),
           ]),
@@ -275,7 +275,7 @@ class Taxonomy extends AccessControlHierarchyBase {
             'id' => 'workbench_access_section',
           ],
           'filter' => [
-            'field' => 'nid',
+            'field' => $id,
             'scheme' => $scheme->id(),
             'id' => 'workbench_access_section',
           ],
@@ -425,6 +425,33 @@ class Taxonomy extends AccessControlHierarchyBase {
     $this->configuration['fields'] = $fields;
     $this->configuration['vocabularies'] = $vocabularies;
     return $changed;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getViewsJoin($entity_type, $key, $alias = NULL) {
+    $fields = array_column(array_filter($this->configuration['fields'], function ($field) use ($entity_type) {
+      return isset($field['entity_type']) && $field['entity_type'] === $entity_type;
+    }), 'field');
+    $table_prefix = $entity_type;
+    $field_suffix = '_target_id';
+    if ($entity_type == 'user') {
+      $field_suffix = '_value';
+    }
+    $configuration = [];
+    foreach ($fields as $field) {
+      $configuration[$field] = [
+        'table' => $table_prefix . '__' . $field,
+        'field' => 'entity_id',
+        'left_table' => $entity_type,
+        'left_field' => $key,
+        'operator' => '=',
+        'table_alias' => $field,
+        'real_field' => $field . $field_suffix,
+      ];
+    }
+    return $configuration;
   }
 
 }

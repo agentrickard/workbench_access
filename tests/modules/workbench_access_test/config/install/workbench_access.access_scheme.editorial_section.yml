@@ -11,9 +11,9 @@ plural_label: 'Editorial sections'
 scheme: taxonomy
 scheme_settings:
   vocabularies:
-    - editorial_Section
+    - editorial_section
   fields:
     -
       entity_type: node
-      bundle: field_workbench_access
-      field: article
+      bundle: article
+      field: field_workbench_access
