@@ -118,4 +118,13 @@ class Section extends FieldPluginBase {
     return '';
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $dependencies = [];
+    $dependencies[$this->scheme->getConfigDependencyKey()][] = $this->scheme->getConfigDependencyName();
+    return $dependencies;
+  }
+
 }
