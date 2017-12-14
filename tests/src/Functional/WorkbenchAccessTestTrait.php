@@ -190,13 +190,15 @@ trait WorkbenchAccessTestTrait {
    *   Node type.
    * @param array $menu_ids
    *   Menu IDs.
+   * @param string $id
+   *   Scheme ID.
    *
    * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
    *   Created scheme.
    */
-  public function setUpMenuScheme(NodeType $node_type, array $menu_ids) {
+  public function setUpMenuScheme(NodeType $node_type, array $menu_ids, $id = 'editorial_section') {
     $scheme = AccessScheme::create([
-      'id' => 'editorial_section',
+      'id' => $id,
       'label' => 'Editorial section',
       'plural_label' => 'Editorial sections',
       'scheme' => 'menu',

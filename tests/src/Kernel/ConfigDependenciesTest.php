@@ -38,12 +38,26 @@ class ConfigDependenciesTest extends KernelTestBase {
   ];
 
   /**
+   * Access scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * Access scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $menuScheme;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
     parent::setUp();
     $this->installEntitySchema('node');
-    $this->installConfig(['filter', 'node', 'workbench_access']);
+    $this->installConfig(['filter', 'node', 'workbench_access', 'system']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
     $this->installSchema('system', ['key_value', 'sequences']);
@@ -53,7 +67,8 @@ class ConfigDependenciesTest extends KernelTestBase {
     $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
-    $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $this->scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $this->menuScheme = $this->setUpMenuScheme($node_type, ['main'], 'menu_scheme');
   }
 
   /**
@@ -67,6 +82,24 @@ class ConfigDependenciesTest extends KernelTestBase {
 
     $dependencies = $handler->calculateDependencies();
     $this->assertEquals(['config' => ['workbench_access.access_scheme.editorial_section']], $dependencies);
+  }
+
+  /**
+   * Tests scheme dependencies.
+   */
+  public function testSchemeDependencies() {
+    $this->assertEquals([
+      'config' => [
+        'field.field.node.field_workbench_access',
+        'node.type.page',
+      ],
+    ], $this->scheme->getDependencies());
+    $this->assertEquals([
+      'config' => [
+        'system.menu.main',
+        'node.type.page',
+      ],
+    ], $this->menuScheme->getDependencies());
   }
 
 }
