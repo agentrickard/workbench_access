@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\workbench_access\Unit;
+namespace Drupal\Tests\workbench_access\Kernel;
 
 use Drupal\field\Entity\FieldConfig;
 use Drupal\KernelTests\KernelTestBase;
