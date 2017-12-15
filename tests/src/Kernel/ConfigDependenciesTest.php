@@ -88,10 +88,10 @@ class ConfigDependenciesTest extends KernelTestBase {
    * Tests views field dependencies.
    */
   public function testViewsFieldDependencies() {
-    $definition = [
+    $configuration = [
       'scheme' => 'editorial_section',
     ];
-    $handler = Section::create($this->container, [], 'section:editorial_section', $definition);
+    $handler = Section::create($this->container, $configuration, 'section:editorial_section', []);
 
     $dependencies = $handler->calculateDependencies();
     $this->assertEquals(['config' => ['workbench_access.access_scheme.editorial_section']], $dependencies);
