@@ -17,8 +17,7 @@ class UpdatePathTest extends UpdatePathTestBase {
    */
   protected function setDatabaseDumpFiles() {
     $this->databaseDumpFiles = [
-      DRUPAL_ROOT . '/core/modules/system/tests/fixtures/update/drupal-8.bare.standard.php.gz',
-      __DIR__ . '/../../fixtures/workbench_access.update-hook-test.php',
+      __DIR__ . '/../../fixtures/workbench_access.update-hook-test.php.gz',
     ];
   }
 
@@ -26,6 +25,7 @@ class UpdatePathTest extends UpdatePathTestBase {
    * Tests workbench_access_update_8002().
    */
   public function testUpdatePath() {
+    $this->drupalLogin($this->rootUser);
     $this->runUpdates();
     $this->assertEquals('default', $this->container->get('state')->get('workbench_access_upgraded_scheme_id'));
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
@@ -36,16 +36,18 @@ class UpdatePathTest extends UpdatePathTestBase {
     $this->assertEquals('taxonomy', $scheme->getAccessScheme()->getPluginId());
     $this->assertEquals([
       'fields' => [
+        [
         'entity_type' => 'node',
         'bundle' => 'article',
         'field' => 'field_tags',
+        ],
       ],
       'vocabularies' => ['tags'],
     ], $scheme->getAccessScheme()->getConfiguration());
     $user_storage = $this->container->get('workbench_access.user_section_storage');
     $role_storage = $this->container->get('workbench_access.role_section_storage');
     $terms = $entity_type_manager->getStorage('taxonomy_term')->loadByProperties([
-      'title' => 'section 1',
+      'name' => 'section 1',
     ]);
     $term = reset($terms);
     $users = $entity_type_manager->getStorage('user')->loadByProperties([
@@ -54,7 +56,7 @@ class UpdatePathTest extends UpdatePathTestBase {
     $user = reset($users);
     $editors = $user_storage->getEditors($scheme, $term->id());
     $this->assertNotEmpty($editors);
-    $this->assertEquals([$user->id()], $editors);
+    $this->assertEquals([$user->id() => 'robbo'], $editors);
     $sections = $user_storage->getUserSections($scheme, $user->id());
     $this->assertNotEmpty($sections);
     $this->assertContains($term->id(), $sections);

@@ -203,7 +203,8 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
  * Implements hook_views_data_alter().
  */
 function workbench_access_views_data_alter(array &$data) {
-  if ($schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple()) {
+  $scheme_storage = \Drupal::entityTypeManager()->getStorage('access_scheme');
+  if ($schemes = $scheme_storage->loadMultiple()) {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
     foreach ($schemes as $id => $scheme) {
       $scheme->getAccessScheme()->viewsData($data, $scheme);
@@ -224,6 +225,35 @@ function workbench_access_views_data_alter(array &$data) {
           'id' => 'workbench_access_section',
         ],
       ];
+    }
+  }
+  // Legacy support.
+  // @todo Remove in 8.x-2.x.
+  if ($default = \Drupal::state()->get('workbench_access_upgraded_scheme_id')) {
+    @trigger_error(sprintf('This site was updated from an alpha version of workbench_access. Please edit any views using the Legacy filter or fields . When you are done, remove the "workbench_access_upgraded_scheme_id" state entry and this message will disappear e.g `drush sdel workbench_access_upgraded_scheme_id`.'), E_USER_DEPRECATED);
+    $scheme = $scheme_storage->load($default);
+    $data['users']['workbench_access_section'] = [
+      'title' => t('Workbench Section: @name (legacy)', [
+        '@name' => $scheme->label(),
+      ]),
+      'help' => t('The sections to which this user belongs for the @name scheme.', [
+        '@name' => $scheme->label(),
+        ]),
+      'field' => [
+        'id' => 'workbench_access_user_section',
+        'scheme' => $scheme->id(),
+      ],
+      'filter' => [
+        'field' => 'uid',
+        'scheme' => $scheme->id(),
+        'id' => 'workbench_access_section',
+      ],
+    ];
+    if (isset($data['node']['workbench_access_section__default'])) {
+      $data['node']['workbench_access_section'] = $data['node']['workbench_access_section__default'];
+      $data['node']['workbench_access_section']['title'] = t('Workbench Section: @name (legacy)', [
+        '@name' => $scheme->label(),
+      ]);
     }
   }
 }
