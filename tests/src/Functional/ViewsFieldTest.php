@@ -6,7 +6,6 @@ use Drupal\node\Entity\Node;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\TermInterface;
 use Drupal\Tests\BrowserTestBase;
-use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**

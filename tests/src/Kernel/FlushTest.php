@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\workbench_access\Kernel;
 
-
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
@@ -10,6 +9,11 @@ use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
 
+/**
+ * Defines a class for testing that deleting schemes flushes privileges.
+ *
+ * @group workbench_access
+ */
 class FlushTest extends KernelTestBase {
 
   use WorkbenchAccessTestTrait;

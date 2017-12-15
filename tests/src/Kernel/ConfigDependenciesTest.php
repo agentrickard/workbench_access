@@ -11,6 +11,8 @@ use Drupal\workbench_access\Plugin\views\field\Section;
 
 /**
  * Defines a class for testing config dependencies.
+ *
+ * @group workbench_access
  */
 class ConfigDependenciesTest extends KernelTestBase {
 
