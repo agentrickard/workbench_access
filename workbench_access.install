@@ -4,12 +4,14 @@
  * @file
  * Install, update and uninstall functions for the Workbench Access module.
  */
+
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Implements hook_install().
  *
  * Installs the default on users.
+ *
  * @TODO: Can we do this via schema?
  */
 function workbench_access_install() {
@@ -26,9 +28,9 @@ function workbench_access_install() {
  * Removes access control fields on uninstall.
  */
 function workbench_access_uninstall() {
-  foreach (array('user') as $type) {
+  foreach (['user'] as $type) {
     $id = $type . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
-    if ($field = \Drupal::entityManager()->getStorage('field_storage_config')->load($id)) {
+    if ($field = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($id)) {
       $field->delete();
     }
   }
@@ -43,4 +45,3 @@ function workbench_access_update_8001() {
   $config->set('deny_on_empty', 0);
   $config->save(TRUE);
 }
-

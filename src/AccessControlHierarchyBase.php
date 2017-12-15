@@ -25,11 +25,12 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   use PluginWithFormsTrait;
   use StringTranslationTrait;
 
-  /*
+  /**
    * A configuration factory object to store configuration.
    *
    * @var ConfigFactory
    */
+
   protected $configFactory;
 
   /**
@@ -203,7 +204,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
   protected function fieldsByEntityType($entity_type) {
     // User/users do not name the data table consistently.
@@ -217,7 +218,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
   public function disallowedOptions($field) {
     $options = [];
@@ -228,7 +229,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state) {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
@@ -251,9 +252,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
-  public function addWhere(Section $filter, $values) {
+  public function addWhere(Section $filter, array $values) {
     // The JOIN data tells us if we have multiple tables to deal with.
     $join_data = $this->getViewsJoin($filter->getEntityType(), $filter->realField);
     if (count($join_data) == 1) {
@@ -272,7 +273,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function viewsData(&$data, AccessSchemeInterface $scheme) {
+  public function viewsData(array &$data, AccessSchemeInterface $scheme) {
     // Null op.
   }
 

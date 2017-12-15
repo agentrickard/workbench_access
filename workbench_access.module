@@ -13,6 +13,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
@@ -99,9 +100,9 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
 /**
  * Creates our fields for an entity bundle.
  *
- * @param $entity_type
+ * @param string $entity_type
  *   The entity type being created. Users are supported.
- * @param $bundle
+ * @param string $bundle
  *   The bundle being created.
  */
 function workbench_access_confirm_fields($entity_type, $bundle) {
@@ -110,32 +111,34 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
     $text = [
       'user' => [
         'type' => 'user',
-        'label' => 'Sections', // @TODO tie to config
+    // @TODO tie to config
+        'label' => 'Sections',
         'description' => 'Assign the editorial sections that this user belongs to.',
       ],
       'node' => [
         'type' => $bundle,
-        'label' => 'Sections', // @TODO tie to config
+      // @TODO tie to config
+        'label' => 'Sections',
         'description' => 'The editorial section for this content.',
       ],
     ];
     $id = $entity_type . '.' . $bundle . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
 
-    if (!$field = \Drupal::entityManager()->getStorage('field_config')->load($id)) {
-      $field = array(
+    if (!$field = \Drupal::entityTypeManager()->getStorage('field_config')->load($id)) {
+      $field = [
         'field_name' => WorkbenchAccessManagerInterface::FIELD_NAME,
         'entity_type' => $entity_type,
         'label' => $text[$entity_type]['label'],
         'bundle' => $bundle,
         'required' => FALSE,
         'description' => $text[$entity_type]['description'],
-      );
+      ];
       if ($entity_type == 'node') {
         $field['settings']['handler_settings']['target_bundles'] = ['workbench_access' => 'workbench_access'];
         $field['settings']['handler_settings']['auto_create'] = FALSE;
         $field['settings']['handler_settings']['sort'] = ['field' => '_none'];
       }
-      $field_config = \Drupal::entityManager()->getStorage('field_config')->create($field);
+      $field_config = \Drupal::entityTypeManager()->getStorage('field_config')->create($field);
       $field_config->save();
     }
     // Installing without setting form display leaves the field hidden, which is
@@ -214,7 +217,7 @@ function workbench_access_views_data_alter(array &$data) {
         ]),
         'help' => t('The sections to which this user belongs for the @name scheme.', [
           '@name' => $scheme->label(),
-          ]),
+        ]),
         'field' => [
           'id' => 'workbench_access_user_section',
           'scheme' => $scheme->id(),
@@ -238,7 +241,7 @@ function workbench_access_views_data_alter(array &$data) {
       ]),
       'help' => t('The sections to which this user belongs for the @name scheme.', [
         '@name' => $scheme->label(),
-        ]),
+      ]),
       'field' => [
         'id' => 'workbench_access_user_section',
         'scheme' => $scheme->id(),
@@ -269,10 +272,10 @@ function workbench_access_views_data_alter(array &$data) {
  * @return array
  *   A form element.
  */
-function workbench_access_hidden_field($options_diff, $scheme) {
-  $element = array(
+function workbench_access_hidden_field(array $options_diff, AccessControlHierarchyInterface $scheme) {
+  $element = [
     '#type' => 'value',
     '#value' => $options_diff,
-  );
+  ];
   return $element;
 }

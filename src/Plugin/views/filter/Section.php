@@ -4,12 +4,12 @@ namespace Drupal\workbench_access\Plugin\views\filter;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\filter\ManyToOne;
-use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\Views;
-use Drupal\views\ViewExecutable;
 use Drupal\views\ManyToOneHelper;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -62,7 +62,7 @@ class Section extends ManyToOne {
    *
    * @return $this
    */
-  public function setManager($manager) {
+  public function setManager(WorkbenchAccessManagerInterface $manager) {
     $this->manager = $manager;
     return $this;
   }
@@ -75,7 +75,7 @@ class Section extends ManyToOne {
    *
    * @return $this
    */
-  public function setUserSectionStorage($userSectionStorage) {
+  public function setUserSectionStorage(UserSectionStorageInterface $userSectionStorage) {
     $this->userSectionStorage = $userSectionStorage;
     return $this;
   }
@@ -109,7 +109,7 @@ class Section extends ManyToOne {
       else {
         $list = $this->userSectionStorage->getUserSections($this->scheme);
       }
-      foreach($list as $id) {
+      foreach ($list as $id) {
         if ($section = $scheme->load($id)) {
           $this->valueOptions[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
         }
@@ -143,7 +143,7 @@ class Section extends ManyToOne {
   /**
    * {@inheritdoc}
    */
-  function operators() {
+  public function operators() {
     $operators = [
       'in' => [
         'title' => $this->t('Is one of'),
@@ -278,7 +278,7 @@ class Section extends ManyToOne {
    * @return array
    *   An array of section ids that this user may see.
    */
-  protected function getChildren($values) {
+  protected function getChildren(array $values) {
     $tree = $this->scheme->getAccessScheme()->getTree();
     $children = [];
     foreach ($values as $id) {

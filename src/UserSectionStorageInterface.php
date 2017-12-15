@@ -19,7 +19,7 @@ interface UserSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this user.
    */
-  public function addUser(AccessSchemeInterface $scheme, $user_id, $sections = []);
+  public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
 
   /**
    * Removes a set of sections to a user.
@@ -31,7 +31,7 @@ interface UserSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this user.
    */
-  public function removeUser(AccessSchemeInterface $scheme, $user_id, $sections = []);
+  public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
 
   /**
    * Gets a list of editors assigned to a section.
@@ -40,7 +40,7 @@ interface UserSectionStorageInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param $id
+   * @param string $id
    *   The section id.
    *
    * @return array
@@ -53,7 +53,7 @@ interface UserSectionStorageInterface {
    *
    * This method does not remove editors already assigned to a section.
    *
-   * @param $id
+   * @param string $id
    *   The section id.
    *
    * @return array
@@ -64,7 +64,7 @@ interface UserSectionStorageInterface {
   /**
    * Gets a list of editors roles who may be assigned to a section.
    *
-   * @param $id
+   * @param string $id
    *   The section id.
    *
    * @return array
@@ -77,12 +77,12 @@ interface UserSectionStorageInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param $uid
+   * @param int $uid
    *   An optional user id. If not provided, the active user is returned.
-   * @param $add_roles
+   * @param bool $add_roles
    *   Whether to add the role-based assignments to the user. Defaults to true.
    *
-   * @return
+   * @return array
    *   An array of section ids that the user is assigned to.
    */
   public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE);

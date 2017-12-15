@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\workbench_access\Functional;
 
-
 use Drupal\FunctionalTests\Update\UpdatePathTestBase;
 
 /**
@@ -37,9 +36,9 @@ class UpdatePathTest extends UpdatePathTestBase {
     $this->assertEquals([
       'fields' => [
         [
-        'entity_type' => 'node',
-        'bundle' => 'article',
-        'field' => 'field_tags',
+          'entity_type' => 'node',
+          'bundle' => 'article',
+          'field' => 'field_tags',
         ],
       ],
       'vocabularies' => ['tags'],

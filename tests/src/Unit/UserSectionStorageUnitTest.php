@@ -2,18 +2,14 @@
 
 namespace Drupal\Tests\workbench_access\Unit;
 
-use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Field\FieldItemListInterface;
-use Drupal\Core\State\StateInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\user\UserInterface;
 use Drupal\user\UserStorageInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\UserSectionStorage;
-use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**

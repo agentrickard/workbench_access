@@ -9,7 +9,7 @@ use Drupal\Tests\BrowserTestBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
- * Defines a class for testing workbench access views
+ * Defines a class for testing workbench access views.
  *
  * @group workbench_access
  */
@@ -127,9 +127,11 @@ class ViewsFieldMenuTest extends BrowserTestBase {
       $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
     }
     // Now filter the page.
-    $this->drupalGet('admin/content/sections/menu', ['query' => [
-      'workbench_access_section' => $this->links['Some section']->getPluginId(),
-    ]]);
+    $this->drupalGet('admin/content/sections/menu', [
+      'query' => [
+        'workbench_access_section' => $this->links['Some section']->getPluginId(),
+      ],
+    ]);
     $assert->pageTextContains('Some section node 1');
     $assert->pageTextContains('Some section node 2');
     $assert->elementNotExists('css', '.views-row:contains("Another section")');
@@ -148,14 +150,18 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     $assert->elementExists('css', '.views-row:contains("Some section")', $row);
 
     // Now filter.
-    $this->drupalGet('admin/people/sections/menu', ['query' => [
-      'section' => $this->links['Some section']->getPluginId(),
-    ]]);
+    $this->drupalGet('admin/people/sections/menu', [
+      'query' => [
+        'section' => $this->links['Some section']->getPluginId(),
+      ],
+    ]);
     $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
     $assert->elementExists('css', '.views-row:contains("' . $this->user2->label() . '")');
-    $this->drupalGet('admin/people/sections/menu', ['query' => [
-      'section' => $this->links['Another section']->getPluginId(),
-    ]]);
+    $this->drupalGet('admin/people/sections/menu', [
+      'query' => [
+        'section' => $this->links['Another section']->getPluginId(),
+      ],
+    ]);
     $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
     $assert->elementNotExists('css', '.views-row:contains("' . $this->user2->label() . '")');
 

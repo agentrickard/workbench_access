@@ -16,11 +16,15 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   use DependencySerializationTrait;
 
   /**
+   * State.
+   *
    * @var \Drupal\Core\State\StateInterface
    */
   protected $state;
 
   /**
+   * Role storage.
+   *
    * @var \Drupal\Core\Entity\EntityStorageInterface
    */
   protected $roleStorage;
@@ -41,7 +45,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function addRole(AccessSchemeInterface $scheme, $role_id, $sections = []) {
+  public function addRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     $settings = $this->loadRoleSections($scheme, $role_id);
     foreach ($sections as $id) {
       $settings[$id] = 1;
@@ -52,7 +56,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function removeRole(AccessSchemeInterface $scheme, $role_id, $sections = []) {
+  public function removeRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     $settings = $this->loadRoleSections($scheme, $role_id);
     foreach ($sections as $id) {
       if (isset($settings[$id])) {
@@ -116,7 +120,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function flushRoles(AccessSchemeInterface $scheme) {
     $roles = $this->roleStorage->loadMultiple();

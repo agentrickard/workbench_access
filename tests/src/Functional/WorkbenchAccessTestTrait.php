@@ -63,7 +63,7 @@ trait WorkbenchAccessTestTrait {
           'target_type' => 'taxonomy_term',
         ],
       ]);
-    $field_storage->save();
+      $field_storage->save();
     }
     if (!$field = FieldConfig::load("$entity_type_id.$bundle.$field_name")) {
       // Create an instance of the access field on the bundle.
@@ -126,7 +126,7 @@ trait WorkbenchAccessTestTrait {
    * @return \Drupal\user\Entity\User
    *   The user entity.
    */
-  protected function setUpAdminUser($additional_permissions = []) {
+  protected function setUpAdminUser(array $additional_permissions = []) {
     $admin_rid = $this->createRole(array_merge($additional_permissions, [
       'access administration pages',
       'assign workbench access',
@@ -139,7 +139,7 @@ trait WorkbenchAccessTestTrait {
    * Sets up a user with a given role and saves it.
    *
    * @param string $rid
-   *    The role id.
+   *   The role id.
    *
    * @return \Drupal\user\Entity\User
    *   The user entity.
@@ -186,7 +186,7 @@ trait WorkbenchAccessTestTrait {
   /**
    * Sets up a menu scheme for a given node type.
    *
-   * @param \Drupal\node\Entity\NodeType $node_type
+   * @param array $node_type_ids
    *   Node type.
    * @param array $menu_ids
    *   Menu IDs.
@@ -226,8 +226,8 @@ trait WorkbenchAccessTestTrait {
    * @param string $scheme_id
    *   Scheme plugin ID.
    *
-   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface Created scheme.
-   * Created scheme.
+   * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
+   *   Created scheme.
    */
   protected function assertCreatingAnAccessSchemeAsAdmin($scheme_id = 'taxonomy') {
     $this->drupalLogin($this->admin);
@@ -252,7 +252,7 @@ trait WorkbenchAccessTestTrait {
   }
 
   /**
-   * Loads the given scheme
+   * Loads the given scheme.
    *
    * @param string $scheme_id
    *   Scheme ID.

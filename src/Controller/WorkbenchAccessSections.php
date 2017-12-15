@@ -92,7 +92,11 @@ class WorkbenchAccessSections extends ControllerBase implements ContainerInjecti
     }
     return [
       '#type' => 'table',
-      '#header' => [$access_scheme->getPluralLabel(), $this->t('Editors'), $this->t('Roles')],
+      '#header' => [
+        $access_scheme->getPluralLabel(),
+        $this->t('Editors'),
+        $this->t('Roles'),
+      ],
       '#rows' => $rows,
       '#empty' => $this->t('No sections are available.'),
     ];

@@ -27,7 +27,7 @@ class SectionCacheTest extends KernelTestBase {
   protected $vocabulary;
 
   /**
-   * User storage handler
+   * User storage handler.
    *
    * @var \Drupal\workbench_access\UserSectionStorageInterface
    */
@@ -95,7 +95,7 @@ class SectionCacheTest extends KernelTestBase {
     $term->save();
     // Create one user and assign to the section.
     $permissions = [
-      'use workbench access'
+      'use workbench access',
     ];
     $editor = $this->createUser($permissions);
     $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $this->scheme->id() . ':' . $term->id();
@@ -126,4 +126,5 @@ class SectionCacheTest extends KernelTestBase {
 
     $this->assertEquals([$editor->id() => $editor->label()], $this->userSectionStorage->getEditors($this->scheme, $term->id()));
   }
+
 }

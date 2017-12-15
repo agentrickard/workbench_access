@@ -3,15 +3,10 @@
 namespace Drupal\workbench_access\Plugin\EntityReferenceSelection;
 
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Database\Query\SelectInterface;
-use Drupal\Core\Entity\EntityManagerInterface;
-use Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection;
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\taxonomy\Plugin\EntityReferenceSelection\TermSelection;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -73,7 +68,7 @@ class TaxonomyHierarchySelection extends TermSelection {
    *
    * @return $this
    */
-  public function setCurrentUser($currentUser) {
+  public function setCurrentUser(AccountInterface $currentUser) {
     $this->currentUser = $currentUser;
     return $this;
   }
@@ -86,11 +81,10 @@ class TaxonomyHierarchySelection extends TermSelection {
    *
    * @return $this
    */
-  public function setUserSectionStorage($userSectionStorage) {
+  public function setUserSectionStorage(UserSectionStorageInterface $userSectionStorage) {
     $this->userSectionStorage = $userSectionStorage;
     return $this;
   }
-
 
   /**
    * Sets access scheme.
@@ -111,7 +105,7 @@ class TaxonomyHierarchySelection extends TermSelection {
   public function getReferenceableEntities($match = NULL, $match_operator = 'CONTAINS', $limit = 0) {
     // Get the base options list from the normal handler. We will filter later.
     if ($match || $limit) {
-      $options = parent::getReferenceableEntities($match , $match_operator, $limit);
+      $options = parent::getReferenceableEntities($match, $match_operator, $limit);
     }
     else {
       $options = [];

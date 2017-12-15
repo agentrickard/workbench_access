@@ -7,7 +7,7 @@ use Drupal\Component\Annotation\Plugin;
 /**
  * Defines a hierarchical access control annotation object.
  *
- * Plugin Namespace: Plugin\AccessControlHierarchy
+ * Plugin Namespace: Plugin\AccessControlHierarchy.
  *
  * For a working example, see
  * \Drupal\workbench_access\Plugin\AccessControlHierarchy\Taxonomy.
@@ -46,6 +46,15 @@ class AccessControlHierarchy extends Plugin {
   public $base_entity;
 
   /**
+   * The human-readable name of the hierarchy system.
+   *
+   * @var \Drupal\Core\Annotation\Translation
+   *
+   * @ingroup plugin_translatable
+   */
+  public $label;
+
+  /**
    * The entity that defines an access control item. (Optional)
    *
    * @var string
@@ -53,22 +62,13 @@ class AccessControlHierarchy extends Plugin {
   public $entity;
 
   /**
-   * The human-readable name of the hierarchy system.
-   *
-   * @ingroup plugin_translatable
-   *
-   * @var \Drupal\Core\Annotation\Translation
-   */
-  public $label;
-
-  /**
    * A brief description of the hierarchy source.
    *
    * This will be shown when adding or configuring Workbench Access.
    *
-   * @ingroup plugin_translatable
+   * @var \Drupal\Core\Annotation\Translation
    *
-   * @var \Drupal\Core\Annotation\Translation (optional)
+   * @ingroup plugin_translatable
    */
   public $description = '';
 

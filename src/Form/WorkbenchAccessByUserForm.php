@@ -97,8 +97,9 @@ class WorkbenchAccessByUserForm extends FormBase {
         '#description' => $this->t('Search editors to add to this section, separate with comma to add multiple editors.<br>Only users in roles with permission to be assigned can be referenced.') . $toggle,
         '#tags' => TRUE,
       ];
-      // The authenticated user role is not stored in the database, so we cannot query for
-      // it. If 'authenticated user' is present, do not filter on roles at all.
+      // The authenticated user role is not stored in the database, so we cannot
+      // query for it. If 'authenticated user' is present, do not filter on
+      // roles at all.
       $potential_editors_roles = $this->userSectionStorage->getPotentialEditorsRoles($id);
       if (!isset($potential_editors_roles[AccountInterface::AUTHENTICATED_ROLE])) {
         // Add the role filter, which uses the role id stored as array_keys().
@@ -119,7 +120,8 @@ class WorkbenchAccessByUserForm extends FormBase {
       ];
     }
     else {
-      $form['add']['message'] = ['#type' => 'markup',
+      $form['add']['message'] = [
+        '#type' => 'markup',
         '#markup' => '<p>' . $this->t('There are no additional users that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
       ];
     }
@@ -127,7 +129,7 @@ class WorkbenchAccessByUserForm extends FormBase {
     $form['remove'] = [
       '#type' => 'details',
       '#open' => TRUE,
-      '#title' => $this->t('Existing editors in the %label section.', array('%label' => $element['label'])),
+      '#title' => $this->t('Existing editors in the %label section.', ['%label' => $element['label']]),
       '#description' => $this->t('Current editors list. Use the checkboxes to remove editors from this section.'),
     ];
     // Prepare editors list for tableselect.
@@ -181,8 +183,8 @@ class WorkbenchAccessByUserForm extends FormBase {
         $add_editors = preg_split('/[\ \n\,]+/', $add_editors);
         foreach ($add_editors as $uid_or_username) {
           // This is a uid.
-          if ((int)$uid_or_username > 0) {
-            if (!isset($existing_editors[(int)$uid_or_username])) {
+          if ((int) $uid_or_username > 0) {
+            if (!isset($existing_editors[(int) $uid_or_username])) {
               $uids_added[] = $uid_or_username;
             }
           }
@@ -236,14 +238,12 @@ class WorkbenchAccessByUserForm extends FormBase {
    *
    * @param array $uids
    *   User ids to add.
-   *
-   * @param integer $section_id
+   * @param int $section_id
    *   Workbench access section id.
-   *
    * @param array $existing_editors
    *   Existing editors uids.
    */
-  protected function addEditors($uids, $section_id, $existing_editors = []) {
+  protected function addEditors(array $uids, $section_id, array $existing_editors = []) {
     $users = User::loadMultiple($uids);
     $editors_added = [];
     foreach ($users as $uid => $user) {
@@ -268,14 +268,12 @@ class WorkbenchAccessByUserForm extends FormBase {
    *
    * @param array $uids
    *   User ids to add.
-   *
-   * @param integer $section_id
+   * @param int $section_id
    *   Workbench access section id.
-   *
    * @param array $existing_editors
    *   Existing editors uids.
    */
-  protected function removeEditors($uids, $section_id, $existing_editors = []) {
+  protected function removeEditors(array $uids, $section_id, array $existing_editors = []) {
     $editors_removed = [];
     foreach ($uids as $user_id) {
       if (isset($existing_editors[$user_id])) {

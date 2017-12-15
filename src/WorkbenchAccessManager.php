@@ -87,7 +87,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   /**
    * {@inheritdoc}
    */
-  public static function checkTree(AccessSchemeInterface $scheme, $entity_sections, $user_sections) {
+  public static function checkTree(AccessSchemeInterface $scheme, array $entity_sections, array $user_sections) {
     $list = array_flip($user_sections);
     foreach ($entity_sections as $section) {
       // Simple check first: is there an exact match?

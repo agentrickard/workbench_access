@@ -3,19 +3,17 @@
 namespace Drupal\workbench_access\Plugin\views\field;
 
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
-use Drupal\workbench_access\Plugin\views\field\Section;
-use Drupal\views\Plugin\views\field\FieldPluginBase;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ResultRow;
-use Drupal\views\ViewExecutable;
+use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Field handler to present the section assigned to the user.
  *
  * This is a very simple handler, mainly for testing.
+ *
  * @TODO: Convert this to using a proper multi-value handler.
  *
  * @ingroup views_field_handlers
@@ -66,7 +64,7 @@ class UserSection extends Section {
    *
    * @return $this
    */
-  public function setManager($manager) {
+  public function setManager(WorkbenchAccessManagerInterface $manager) {
     $this->manager = $manager;
     return $this;
   }
@@ -92,7 +90,7 @@ class UserSection extends Section {
    *
    * @return $this
    */
-  public function setUserSectionStorage($userSectionStorage) {
+  public function setUserSectionStorage(UserSectionStorageInterface $userSectionStorage) {
     $this->userSectionStorage = $userSectionStorage;
     return $this;
   }

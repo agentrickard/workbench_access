@@ -21,6 +21,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    * Returns the id for a hierarchy.
    *
    * @return string
+   *   Access control ID.
    */
   public function id();
 
@@ -28,6 +29,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    * Returns the label for a hierarchy.
    *
    * @return string
+   *   Label.
    */
   public function label();
 
@@ -35,13 +37,14 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    * Gets the entire hierarchy tree.
    *
    * @return array
+   *   Tree.
    */
   public function getTree();
 
   /**
    * Retrieves the access control values from an entity.
    *
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   A Drupal entity, typically a node or a user.
    *
    * @return array
@@ -52,7 +55,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   /**
    * Loads a hierarchy definition for a single item in the tree.
    *
-   * @param $id
+   * @param string $id
    *   The identifier for the item, such as a term id.
    *
    * @return \Drupal\workbench_access\AccessControlHierarchyInterface
@@ -65,9 +68,11 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The node being checked. In future this may handle other entity types.
-   * @param AccountInterface $account
+   * @param string $op
+   *   The operation, e.g. update, delete.
+   * @param \Drupal\Core\Session\AccountInterface $account
    *   The user requesting access to the node.
    * @param WorkbenchAccessManagerInterface $manager
    *   The access control manager.
@@ -84,12 +89,12 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param $field
+   * @param string $field
    *   The field element from a node form.
    * @param array $user_sections
    *   The user sections.
    *
-   * @return $element
+   * @return array
    *   The field element, after restricting selection options.
    */
   public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []);
@@ -97,7 +102,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   /**
    * Gets any options that are set but cannot be changed by the editor.
    *
-   * @param $field
+   * @param string $field
    *   The field element from a node form, after running through alterOptions().
    *
    * @return array
@@ -117,19 +122,19 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *
    * @param array &$form
    *   A form array.
-   * @param FormStateInterface $form_state
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form_state object.
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state);
 
   /**
-   * Returns information about how to join this section data to a base view table.
+   * Returns information on how to join this section data to a base view table.
    *
    * @param string $entity_type
    *   The base table of the view.
-   * @param $key
+   * @param string $key
    *   The primary key of the base table.
-   * @param $alias (optional)
+   * @param string $alias
    *   The views alias of the base table.
    *
    * @return array
@@ -142,10 +147,10 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *
    * @param \Drupal\workbench_access\Plugin\views\filter\Section $filter
    *   The views filter object provided by Workbench Access.
-   * @param $values
+   * @param array $values
    *   An array of values for the current view.
    */
-  public function addWhere(Section $filter, $values);
+  public function addWhere(Section $filter, array $values);
 
   /**
    * Resets the internal cache of the tree.
@@ -160,7 +165,7 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *
    * @param string $entity_type_id
    *   Entity type ID.
-   * @param $bundle
+   * @param string $bundle
    *   Bundle ID.
    *
    * @return bool
@@ -176,13 +181,13 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme that wraps this plugin.
    */
-  public function viewsData(&$data, AccessSchemeInterface $scheme);
+  public function viewsData(array &$data, AccessSchemeInterface $scheme);
 
   /**
    * Massage form values as appropriate.
    *
    * @param \Drupal\Core\Entity\ContentEntityInterface $entity
-   *   Entity being edited
+   *   Entity being edited.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   Form state.
    * @param array $hidden_values

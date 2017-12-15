@@ -88,6 +88,8 @@ class AccessScheme extends ConfigEntityBase implements AccessSchemeInterface, En
   protected $scheme_settings = [];
 
   /**
+   * Plugin collection.
+   *
    * @var \Drupal\Core\Plugin\DefaultSingleLazyPluginCollection
    */
   protected $accessSchemePluginCollection;
@@ -114,6 +116,7 @@ class AccessScheme extends ConfigEntityBase implements AccessSchemeInterface, En
       'scheme_settings' => $this->getPluginCollection(),
     ];
   }
+
   /**
    * Encapsulates the creation of the access scheme plugin collection.
    *

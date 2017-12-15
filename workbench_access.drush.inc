@@ -12,22 +12,22 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  * Implements hook_drush_command().
  */
 function workbench_access_drush_command() {
-  $items = array();
+  $items = [];
 
-  $items['workbench-access-test'] = array(
+  $items['workbench-access-test'] = [
     'description' => 'Install test configuration of Workbench Access.',
-    'aliases' => array('wa-test'),
-  );
-  $items['workbench-access-flush'] = array(
+    'aliases' => ['wa-test'],
+  ];
+  $items['workbench-access-flush'] = [
     'description' => 'Flush section assignments for users and roles.',
-    'aliases' => array('wa-flush'),
-  );
+    'aliases' => ['wa-flush'],
+  ];
 
   return $items;
 }
 
 /**
- * Implement hook_drush_help().
+ * Implements hook_drush_help().
  */
 function workbench_access_drush_help($section) {
   $items = workbench_access_drush_command();
@@ -43,45 +43,45 @@ function workbench_access_drush_help($section) {
 function drush_workbench_access_test() {
   try {
     // Create a vocabulary.
-    $vocabulary = entity_create('taxonomy_vocabulary', array(
+    $vocabulary = entity_create('taxonomy_vocabulary', [
       'name' => 'Workbench Access',
       'description' => 'Test taxonomy for Workbench Access',
       'vid' => 'workbench_access',
       'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
       'weight' => 100,
-    ));
+    ]);
     $vocabulary->save();
     // Create some terms.
-    $terms = array(
-     'Alumni',
-     'Faculty',
-     'Staff',
-     'Students',
-    );
-    $children = array(
-     'Directory',
-     'Information',
-    );
+    $terms = [
+      'Alumni',
+      'Faculty',
+      'Staff',
+      'Students',
+    ];
+    $children = [
+      'Directory',
+      'Information',
+    ];
 
     $filter_formats = filter_formats();
     $format = array_pop($filter_formats);
     foreach ($terms as $name) {
-      $term = entity_create('taxonomy_term', array(
+      $term = entity_create('taxonomy_term', [
         'name' => $name,
-        'description' => array(),
+        'description' => [],
         'vid' => $vocabulary->id(),
         'parent' => 0,
         'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-      ));
+      ]);
       $term->save();
       foreach ($children as $child) {
-        $child = entity_create('taxonomy_term', array(
+        $child = entity_create('taxonomy_term', [
           'name' => "$name $child",
-          'description' => array(),
+          'description' => [],
           'vid' => $vocabulary->id(),
           'parent' => $term->id(),
           'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-        ));
+        ]);
         $child->save();
       }
     }
@@ -152,15 +152,18 @@ function _workbench_access_create_node_storage() {
 
 }
 
+/**
+ * Sets up form display.
+ */
 function _workbench_access_form_display($entity_type, $bundle) {
   // Tell the form system how to behave. Default to radio buttons.
   // @TODO: This function is deprecated, but using the OO syntax is causing
   // test fails.
   entity_get_form_display($entity_type, $bundle, 'default')
-    ->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, array(
+    ->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, [
       'type' => 'options_select',
       'weight' => 0,
-    ))
+    ])
     ->save();
 
 }

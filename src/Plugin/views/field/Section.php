@@ -4,9 +4,7 @@ namespace Drupal\workbench_access\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
-use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ResultRow;
-use Drupal\views\ViewExecutable;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -14,6 +12,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * Field handler to present the section assigned to the node.
  *
  * This is a very simple handler, mainly for testing.
+ *
  * @TODO: Convert this to using a proper multi-value handler.
  *
  * @ingroup views_field_handlers
@@ -70,7 +69,7 @@ class Section extends FieldPluginBase {
   protected function defineOptions() {
     $options = parent::defineOptions();
     $options['separator'] = [
-      'default' => ', '
+      'default' => ', ',
     ];
 
     return $options;

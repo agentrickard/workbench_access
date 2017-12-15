@@ -66,7 +66,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     }
     if (!isset($this->userSectionCache[$scheme->id()][$uid])) {
       $user = $this->userStorage->load($uid);
-      $user_sections =  $this->unformatAndFilterSections($scheme, array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value'));
+      $user_sections = $this->unformatAndFilterSections($scheme, array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value'));
       // Merge in role data.
       if ($add_roles) {
         $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $user));
@@ -78,11 +78,10 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   }
 
-
   /**
    * {@inheritdoc}
    */
-  public function addUser(AccessSchemeInterface $scheme, $user_id, $sections = []) {
+  public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     $entity = $this->userStorage->load($user_id);
     $values = array_column($entity->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
     $new = array_merge($values, $this->formatSections($scheme, $sections));
@@ -94,7 +93,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function removeUser(AccessSchemeInterface $scheme, $user_id, $sections = []) {
+  public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     $entity = $this->userStorage->load($user_id);
     $values = array_column($entity->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
     $new = array_flip($values);
@@ -139,12 +138,12 @@ class UserSectionStorage implements UserSectionStorageInterface {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function flushUsers(AccessSchemeInterface $scheme) {
     $users = $this->userStorage->loadMultiple($this->userStorage->getQuery()
       ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, Database::getConnection()
-          ->escapeLike(sprintf('%s:', $scheme->id())) . '%', 'LIKE')
+        ->escapeLike(sprintf('%s:', $scheme->id())) . '%', 'LIKE')
       ->sort('name')
       ->execute());
     foreach ($users as $user) {

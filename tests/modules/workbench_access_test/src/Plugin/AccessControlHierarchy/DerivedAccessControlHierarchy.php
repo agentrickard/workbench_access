@@ -3,11 +3,8 @@
 namespace Drupal\workbench_access_test\Plugin\AccessControlHierarchy;
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines a hierarchy based on an entity hierarchy field.

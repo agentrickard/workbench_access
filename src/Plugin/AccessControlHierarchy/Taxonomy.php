@@ -10,7 +10,6 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\field\FieldConfigInterface;
 use Drupal\taxonomy\VocabularyInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
@@ -18,7 +17,6 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -92,7 +90,7 @@ class Taxonomy extends AccessControlHierarchyBase {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function getTree() {
     if (!isset($this->tree)) {
@@ -135,25 +133,27 @@ class Taxonomy extends AccessControlHierarchyBase {
    *
    * Note: this method is necessary to load all parents to the array.
    *
-   * @param $id
+   * @param string $id
    *   The root id of the section tree.
    * @param array $data
    *   An array of menu tree or subtree data.
    * @param array &$tree
    *   The computed tree array to return.
    *
-   * @return array $tree
+   * @return array
    *   The compiled tree data.
    */
-  protected function buildTree($id, $data, &$tree) {
+  protected function buildTree($id, array $data, array &$tree) {
     foreach ($data as $term) {
       $tree[$id][$term->tid] = [
         'id' => $term->tid,
         'label' => $term->name,
         'depth' => $term->depth + 1,
-        'parents' => $this->convertParents($term, $id), // @TODO: This doesn't return what we want.
+      // @TODO: This doesn't return what we want.
+        'parents' => $this->convertParents($term, $id),
         'weight' => $term->weight,
-        'description' => $term->description__value, // @TODO: security
+      // @TODO: security
+        'description' => $term->description__value,
       ];
       foreach ($tree[$id][$term->tid]['parents'] as $key) {
         if (!empty($tree[$id][$key]['parents'])) {
@@ -167,9 +167,9 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * Coverts the 0 parent id to a string.
    *
-   * @param $term
+   * @param object $term
    *   The term to modify.
-   * @param $id
+   * @param string $id
    *   The root parent id string.
    */
   private function convertParents($term, $id) {
@@ -261,7 +261,7 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function viewsData(&$data, AccessSchemeInterface $scheme) {
+  public function viewsData(array &$data, AccessSchemeInterface $scheme) {
     foreach (array_column($this->configuration['fields'], 'entity_type') as $entity_type_id) {
       $entity_type = $this->entityTypeManager->getDefinition($entity_type_id);
       if (($base_table = $entity_type->getBaseTable()) && ($id = $entity_type->getKey('id'))) {
@@ -400,7 +400,7 @@ class Taxonomy extends AccessControlHierarchyBase {
       $carry[] = [
         'field' => $item->getName(),
         'entity_type' => $item->getTargetEntityTypeId(),
-        'bundle' => $item->getTargetBundle()
+        'bundle' => $item->getTargetBundle(),
       ];
       return $carry;
     }, []), function ($array1, $array2) {
@@ -408,9 +408,11 @@ class Taxonomy extends AccessControlHierarchyBase {
       $key2 = sprintf('%s.%s.%s', $array2['field'], $array2['entity_type'], $array2['bundle']);
       if ($key1 < $key2) {
         return -1;
-      } elseif ($key1 > $key2) {
+      }
+      elseif ($key1 > $key2) {
         return 1;
-      } else {
+      }
+      else {
         return 0;
       }
     });

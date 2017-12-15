@@ -21,9 +21,9 @@ interface WorkbenchAccessManagerInterface extends PluginManagerInterface {
    * @param array $user_sections
    *   The section assignments for the user. An array of section ids.
    *
-   * return boolean
+   *   return boolean.
    */
-  public static function checkTree(AccessSchemeInterface $scheme, $entity_sections, $user_sections);
+  public static function checkTree(AccessSchemeInterface $scheme, array $entity_sections, array $user_sections);
 
   /**
    * Returns a flat array of all active section ids.
@@ -32,10 +32,11 @@ interface WorkbenchAccessManagerInterface extends PluginManagerInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param boolean $root_only
+   * @param bool $root_only
    *   If TRUE, only show the root-level assignments.
    *
    * @return array
+   *   All sections for given scheme.
    */
   public static function getAllSections(AccessSchemeInterface $scheme, $root_only = FALSE);
 
@@ -48,10 +49,11 @@ interface WorkbenchAccessManagerInterface extends PluginManagerInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param $uid
+   * @param int $uid
    *   An optional user id. If not provided, the active user is returned.
    *
-   * @return boolean
+   * @return bool
+   *   TRUE if user is in all schemes.
    */
   public function userInAll(AccessSchemeInterface $scheme, $uid = NULL);
 

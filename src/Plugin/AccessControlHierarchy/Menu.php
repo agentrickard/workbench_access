@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
+use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\node\NodeTypeInterface;
 use Drupal\system\MenuInterface;
@@ -9,16 +10,8 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-use Drupal\menu_link_content\Entity\MenuLinkContent;
-use Drupal\system\Entity\Menu as MenuEntity;
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Menu\MenuLinkInterface;
-use Drupal\Core\Menu\MenuLinkManagerInterface;
-use Drupal\Core\Menu\MenuLinkTreeElement;
-use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -59,13 +52,13 @@ class Menu extends AccessControlHierarchyBase {
    *
    * @return $this
    */
-  public function setMenuTree(\Drupal\Core\Menu\MenuLinkTreeInterface $menuTree) {
+  public function setMenuTree(MenuLinkTreeInterface $menuTree) {
     $this->menuTree = $menuTree;
     return $this;
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
   public function getTree() {
     if (!isset($this->tree)) {
@@ -92,17 +85,17 @@ class Menu extends AccessControlHierarchyBase {
    *
    * Note: this method is necessary because Menu does not auto-load parents.
    *
-   * @param $id
+   * @param string $id
    *   The root id of the section tree.
    * @param array $data
    *   An array of menu tree or subtree data.
    * @param array &$tree
    *   The computed tree array to return.
    *
-   * @return array $tree
+   * @return array
    *   The compiled tree data.
    */
-  protected function buildTree($id, $data, &$tree) {
+  protected function buildTree($id, array $data, array &$tree) {
     foreach ($data as $link_id => $link) {
       $tree[$id][$link_id] = [
         'id' => $link_id,
@@ -166,7 +159,7 @@ class Menu extends AccessControlHierarchyBase {
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
   public function disallowedOptions($field) {
     // On the menu form, we never remove an existing parent item, so there is
@@ -175,30 +168,30 @@ class Menu extends AccessControlHierarchyBase {
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
   public function getViewsJoin($entity_type, $key, $alias = NULL) {
     if ($entity_type == 'user') {
       $configuration['menu'] = [
-       'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
-       'field' => 'entity_id',
-       'left_table' => 'users',
-       'left_field' => $key,
-       'operator' => '=',
-       'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
-       'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
+        'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
+        'field' => 'entity_id',
+        'left_table' => 'users',
+        'left_field' => $key,
+        'operator' => '=',
+        'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
+        'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
       ];
     }
     else {
       $configuration['menu'] = [
-       'table' => 'menu_tree',
-       'field' => 'route_param_key',
-       'left_table' => 'node',
-       'left_field' => $key,
-       'left_query' => "CONCAT('node=', {$alias}.{$key})",
-       'operator' => '=',
-       'table_alias' => 'menu_tree',
-       'real_field' => 'id',
+        'table' => 'menu_tree',
+        'field' => 'route_param_key',
+        'left_table' => 'node',
+        'left_field' => $key,
+        'left_query' => "CONCAT('node=', {$alias}.{$key})",
+        'operator' => '=',
+        'table_alias' => 'menu_tree',
+        'real_field' => 'id',
       ];
     }
     return $configuration;
@@ -207,7 +200,7 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function viewsData(&$data, AccessSchemeInterface $scheme) {
+  public function viewsData(array &$data, AccessSchemeInterface $scheme) {
     $data['node']['workbench_access_section'] = [
       'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
       'help' => t('The sections to which this content belongs in the @name scheme.', [

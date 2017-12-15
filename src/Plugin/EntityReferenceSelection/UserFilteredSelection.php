@@ -4,6 +4,7 @@ namespace Drupal\workbench_access\Plugin\EntityReferenceSelection;
 
 use Drupal\user\Plugin\EntityReferenceSelection\UserSelection;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -54,11 +55,10 @@ class UserFilteredSelection extends UserSelection {
    *
    * @return $this
    */
-  public function setUserSectionStorage($userSectionStorage) {
+  public function setUserSectionStorage(UserSectionStorageInterface $userSectionStorage) {
     $this->userSectionStorage = $userSectionStorage;
     return $this;
   }
-
 
   /**
    * Sets access scheme.

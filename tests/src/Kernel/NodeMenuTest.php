@@ -148,8 +148,8 @@ class NodeMenuTest extends KernelTestBase {
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 
-    // Test a node that is not assigned to a section. Both should be allowed because we
-    // do not assert access control by default.
+    // Test a node that is not assigned to a section. Both should be allowed
+    // because we do not assert access control by default.
     $node1 = $this->createNode(['type' => 'page', 'title' => 'foo']);
     $this->assertTrue($this->accessHandler->access($node1, 'update', $allowed_editor));
     $this->assertTrue($this->accessHandler->access($node1, 'update', $editor_with_no_access));
@@ -169,7 +169,8 @@ class NodeMenuTest extends KernelTestBase {
     $this->assertTrue($this->accessHandler->access($node2, 'delete', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node2, 'delete', $editor_with_no_access));
 
-    // With strict checking, nodes that are not assigned to a section return false.
+    // With strict checking, nodes that are not assigned to a section return
+    // false.
     $this->config('workbench_access.settings')
       ->set('deny_on_empty', 1)
       ->save();

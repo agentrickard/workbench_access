@@ -72,7 +72,7 @@ class MenuSchemeUiTest extends BrowserTestBase {
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
    */
-  function assertAdminCanSelectMenus(AccessSchemeInterface $scheme) {
+  public function assertAdminCanSelectMenus(AccessSchemeInterface $scheme) {
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->submitForm([
       'scheme_settings[menus][main]' => 1,
@@ -104,7 +104,7 @@ class MenuSchemeUiTest extends BrowserTestBase {
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   The scheme.
    */
-  protected function assertSectionsOperation($scheme) {
+  protected function assertSectionsOperation(AccessSchemeInterface $scheme) {
     $this->drupalGet(Url::fromRoute('entity.access_scheme.collection'));
     $assert = $this->assertSession();
     $assert->linkExists('Sections');

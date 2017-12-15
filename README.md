@@ -22,9 +22,9 @@ Tip: It is best if you create your hierarchy (say a Taxonomy Vocabulary called `
 If you want to test how the system works, you can run the drush command `drush wa-test` to install and configure a sample taxonomy hierarchy.
 
 ### Configure
-After assigning the access control scheme, you must save the form. After saving, you will be asked to select the fields you wish to use for access control. You may elect not to place a content type under access control, but to use Workbench Access with a content type, you must first create and select a field that contains the data that will be used to assign access.
+Visit /admin/config/workflow/workbench_access and add a new scheme.
 
-Note that the Menu access scheme only supports one field type, the default menu selection field.
+After choosing a scheme you can pick the vocabularies or menus to use for editorial sections.
 
 ### Assign
 Once you select the fields, it is time to assign users to editorial sections. For each role that should use Workbench Access, give the role either of the following permissions:
@@ -34,7 +34,7 @@ Once you select the fields, it is time to assign users to editorial sections. Fo
 * Allow all members of this role to be assigned to Workbench Access sections
   This permission lets users and roles be assigned to specific editorial sections. It is the default permission for most roles.
 
-After permissions are assigned, go to the Sections overview page `admin/config/workflow/workbench_access/sections`. This page shows a list of all sections in your access hierarchy and provides links for adding roles or users to those sections.
+After permissions are assigned, go to the Sections overview page `admin/config/workflow/workbench_access/{scheme id}/sections`. This page shows a list of all sections in your access hierarchy and provides links for adding roles or users to those sections.
 
 Note that when granting access, the hierarchy is enforced such that if you have the following structure:
 
@@ -84,7 +84,7 @@ All pull requests will automatically run tests in TravisCI. Test coverage runs a
 ## Developer Notes
 
 ### Access controls
-Workbench Access only applies to content (node) editing.
+Workbench Access applies to all content entities if you use the taxonomy scheme, the menu scheme only works for nodes.
 
 By design, Workbench Access never _allows_ access. It only responds with `neutral` or `deny`. The intention is that normal editing permissions should apply, but only within the sections that a user is assigned to.
 
@@ -97,4 +97,4 @@ Access is granted either at the `user` or `role` level. User-level access is sto
 
 This means that base configuration of Workbench Access is config-exportable, but the actual access control assignments are not. This is a limitation of Drupal 8's design.
 
-Content-level data is stored on individual fields, which must be created and assigned via the Workbench Access configuration page at `admin/config/workflow/workbench_access`.
+Content-level data is stored on individual fields, which must be created and assigned via the Workbench Access configuration page at `admin/config/workflow/workbench_access/{scheme name}/edit`.

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\workbench_access\Functional;
 
-use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
@@ -72,14 +71,13 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     $this->assertAdminCannotAddEntityTestAccessAccessControlledBundleToScheme($scheme);
   }
 
-
   /**
    * Assert admin can select vocabularies.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
    */
-  function assertAdminCanSelectVocabularies(AccessSchemeInterface $scheme) {
+  public function assertAdminCanSelectVocabularies(AccessSchemeInterface $scheme) {
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->submitForm([
       'scheme_settings[vocabularies][workbench_access]' => 1,

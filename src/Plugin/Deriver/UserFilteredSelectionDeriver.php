@@ -45,12 +45,13 @@ class UserFilteredSelectionDeriver extends DeriverBase implements ContainerDeriv
   public function getDerivativeDefinitions($base_plugin_definition) {
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $id => $scheme) {
       $this->derivatives[$id] = [
-          'scheme' => $id,
-          'label' => new TranslatableMarkup('Filtered user selection: @name', [
-            '@name' => $scheme->label(),
-          ]),
-        ] + $base_plugin_definition;
+        'scheme' => $id,
+        'label' => new TranslatableMarkup('Filtered user selection: @name', [
+          '@name' => $scheme->label(),
+        ]),
+      ] + $base_plugin_definition;
     }
     return $this->derivatives;
   }
+
 }
