@@ -24,7 +24,6 @@ class UpdatePathTest extends UpdatePathTestBase {
    * Tests workbench_access_update_8002().
    */
   public function testUpdatePath() {
-    $this->drupalLogin($this->rootUser);
     $this->runUpdates();
     $this->assertEquals('default', $this->container->get('state')->get('workbench_access_upgraded_scheme_id'));
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
