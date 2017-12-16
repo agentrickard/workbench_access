@@ -71,21 +71,21 @@ class WorkbenchAccessSections extends ControllerBase implements ContainerInjecti
   public function page(AccessSchemeInterface $access_scheme) {
     $rows = [];
     $tree = $access_scheme->getAccessScheme()->getTree();
-    foreach (array_keys($tree) as $id) {
+    foreach ($tree as $id => $data) {
       // @TODO: Move to a theme function?
       // @TODO: format plural
-      foreach ($tree[$id] as $iid => $item) {
-        $editor_count = count($this->userSectionStorage->getEditors($access_scheme, $iid));
-        $role_count = count($this->roleSectionStorage->getRoles($access_scheme, $iid));
+      foreach ($data as $item_id => $item) {
+        $editor_count = count($this->userSectionStorage->getEditors($access_scheme, $item_id));
+        $role_count = count($this->roleSectionStorage->getRoles($access_scheme, $item_id));
         $row = [];
         $row[] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
         $row[] = Link::fromTextAndUrl($this->t('@count editors', ['@count' => $editor_count]), Url::fromRoute('entity.access_scheme.by_user', [
           'access_scheme' => $access_scheme->id(),
-          'id' => $iid,
+          'id' => $item_id,
         ]));
         $row[] = Link::fromTextAndUrl($this->t('@count roles', ['@count' => $role_count]), Url::fromRoute('entity.access_scheme.by_role', [
           'access_scheme' => $access_scheme->id(),
-          'id' => $iid,
+          'id' => $item_id,
         ]));
         $rows[] = $row;
       }
