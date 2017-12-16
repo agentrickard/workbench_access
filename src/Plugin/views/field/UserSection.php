@@ -14,7 +14,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * This is a very simple handler, mainly for testing.
  *
- * @TODO: Convert this to using a proper multi-value handler.
+ * @TODO: Convert this to use a proper multi-value handler.
  *
  * @ingroup views_field_handlers
  *
