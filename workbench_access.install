@@ -65,5 +65,11 @@ function workbench_access_update_8002() {
  */
 function workbench_access_update_8003() {
   // Install our config entity.
-  \Drupal::entityDefinitionUpdateManager()->applyUpdates();
+  $entity_manager = \Drupal::entityTypeManager();
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+
+  // Install 'access_scheme' config entity.
+  $entity_manager->clearCachedDefinitions();
+  $type = $entity_manager->getDefinition('access_scheme');
+  $update_manager->installEntityType($type);
 }
