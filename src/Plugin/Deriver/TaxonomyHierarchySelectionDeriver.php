@@ -14,6 +14,13 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 class TaxonomyHierarchySelectionDeriver extends DeriverBase implements ContainerDeriverInterface {
 
   /**
+   * Label.
+   *
+   * @var string
+   */
+  protected $label = 'Restricted Taxonomy Term selection: @name';
+
+  /**
    * Entity type manager.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
@@ -46,7 +53,7 @@ class TaxonomyHierarchySelectionDeriver extends DeriverBase implements Container
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $id => $scheme) {
       $this->derivatives[$id] = [
         'scheme' => $id,
-        'label' => new TranslatableMarkup('Restricted Taxonomy Term selection: @name', [
+        'label' => new TranslatableMarkup($this->label, [
           '@name' => $scheme->label(),
         ]),
       ] + $base_plugin_definition;
