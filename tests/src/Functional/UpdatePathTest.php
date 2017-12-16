@@ -8,6 +8,7 @@ use Drupal\FunctionalTests\Update\UpdatePathTestBase;
  * Defines a class for testing the update path to scheme based access.
  *
  * @group workbench_access
+ * @group legacy
  */
 class UpdatePathTest extends UpdatePathTestBase {
 
