@@ -8,7 +8,6 @@ use Drupal\FunctionalTests\Update\UpdatePathTestBase;
  * Defines a class for testing the update path to scheme based access.
  *
  * @group workbench_access
- * @group legacy
  */
 class UpdatePathTest extends UpdatePathTestBase {
 
@@ -23,8 +22,6 @@ class UpdatePathTest extends UpdatePathTestBase {
 
   /**
    * Tests workbench_access_update_8002().
-   *
-   * @expectedDeprecation This site was updated from an alpha version of workbench_access. Please edit any views using the Legacy filter or fields . When you are done, remove the "workbench_access_upgraded_scheme_id" state entry and this message will disappear e.g `drush sdel workbench_access_upgraded_scheme_id`.
    */
   public function testUpdatePath() {
     $this->runUpdates();

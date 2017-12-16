@@ -233,7 +233,6 @@ function workbench_access_views_data_alter(array &$data) {
   // Legacy support.
   // @todo Remove in 8.x-2.x.
   if ($default = \Drupal::state()->get('workbench_access_upgraded_scheme_id')) {
-    @trigger_error(sprintf('This site was updated from an alpha version of workbench_access. Please edit any views using the Legacy filter or fields . When you are done, remove the "workbench_access_upgraded_scheme_id" state entry and this message will disappear e.g `drush sdel workbench_access_upgraded_scheme_id`.'), E_USER_DEPRECATED);
     $scheme = $scheme_storage->load($default);
     $data['users']['workbench_access_section'] = [
       'title' => t('Workbench Section: @name (legacy)', [
