@@ -45,3 +45,25 @@ function workbench_access_update_8001() {
   $config->set('deny_on_empty', 0);
   $config->save(TRUE);
 }
+
+/**
+ * Update to new access-scheme config entity.
+ */
+function workbench_access_update_8002() {
+  // Stash this for later.
+  \Drupal::state()->set('workbench_access_original_configuration', \Drupal::config('workbench_access.settings'));
+  // Alter it to the new format.
+  $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
+  foreach (['scheme', 'label', 'plural_label', 'fields', 'parents'] as $delete) {
+    $config->delete();
+  }
+  $config->save(TRUE);
+}
+
+/**
+ * Create the new entity type.
+ */
+function workbench_access_update_8003() {
+  // Install our config entity.
+  \Drupal::entityDefinitionUpdateManager()->applyUpdates();
+}

@@ -5,6 +5,7 @@
  * Contains post update hooks.
  */
 
+use Drupal\Core\Utility\UpdateException;
 use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
@@ -13,7 +14,11 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  * Convert configuration into a scheme.
  */
 function workbench_access_post_update_convert_to_scheme() {
-  $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
+  $config = \Drupal::state()->get('workbench_access_original_configuration', FALSE);
+  if (!$config) {
+    throw new UpdateException('Did not find expected original configuration');
+  }
+  $settings = [];
   if ($config->get('scheme') === 'taxonomy') {
     $fields = [];
     foreach ($config->get('fields') as $entity_type => $field_info) {
@@ -30,7 +35,7 @@ function workbench_access_post_update_convert_to_scheme() {
       'fields' => $fields,
     ];
   }
-  else {
+  elseif ($config->get('scheme') === 'menu') {
     $settings = [
       'menus' => $config->get('parents'),
       'bundles' => array_keys($config->get('fields')['node']),
@@ -45,17 +50,11 @@ function workbench_access_post_update_convert_to_scheme() {
   ]);
   $scheme->save();
   \Drupal::state()->set('workbench_access_upgraded_scheme_id', 'default');
-  foreach (['scheme', 'label', 'plural_label', 'fields', 'parents'] as $delete) {
-    $config->delete();
-  }
-  $config->save(TRUE);
   /** @var \Drupal\node\NodeTypeInterface $node_type */
   foreach (\Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple() as $node_type) {
     $node_type->unsetThirdPartySetting('workbench_access', 'workbench_access_status');
     $node_type->save();
   }
-  // Install our config entity.
-  \Drupal::entityDefinitionUpdateManager()->applyUpdates();
 }
 
 /**
