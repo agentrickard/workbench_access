@@ -6,6 +6,7 @@ use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Url;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\workbench_access\Entity\AccessScheme;
@@ -15,6 +16,8 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  * Contains helper classes for tests to set up various configuration.
  */
 trait WorkbenchAccessTestTrait {
+
+  use EntityReferenceTestTrait;
 
   /**
    * Set up a content type with workbench access enabled.
@@ -53,39 +56,17 @@ trait WorkbenchAccessTestTrait {
    *   Field name.
    */
   protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME) {
-    if (!$field_storage = FieldStorageConfig::load("$entity_type_id.$field_name")) {
-      $field_storage = FieldStorageConfig::create([
-        'field_name' => $field_name,
-        'entity_type' => $entity_type_id,
-        'type' => 'entity_reference',
-        'cardinality' => 1,
-        'settings' => [
-          'target_type' => 'taxonomy_term',
-        ],
-      ]);
-      $field_storage->save();
+    // Create an instance of the access field on the bundle.
+    $handler_id = 'workbench_access:taxonomy_term:editorial_section';
+    if (!AccessScheme::load('editorial_section')) {
+      // The scheme doesn't exist yet so there is no plugin yet.
+      $handler_id = 'default:taxonomy_term';
     }
-    if (!$field = FieldConfig::load("$entity_type_id.$bundle.$field_name")) {
-      // Create an instance of the access field on the bundle.
-      $handler_id = 'workbench_access:taxonomy_term:editorial_section';
-      if (!AccessScheme::load('editorial_section')) {
-        // The scheme doesn't exist yet so there is no plugin yet.
-        $handler_id = 'default:taxonomy_term';
-      }
-      $field = FieldConfig::create([
-        'field_storage' => $field_storage,
-        'bundle' => $bundle,
-        'settings' => [
-          'handler' => $handler_id,
-          'handler_settings' => [
-            'target_bundles' => [
-              $vocabulary_id => $vocabulary_id,
-            ],
-          ],
-        ],
-      ]);
-      $field->save();
-    }
+    $this->createEntityReferenceField($entity_type_id, $bundle, $field_name, 'Section', 'taxonomy_term', $handler_id, [
+      'target_bundles' => [
+        $vocabulary_id => $vocabulary_id,
+      ],
+    ]);
     // Set the field to display as a dropdown on the form.
     if (!$form_display = EntityFormDisplay::load("$entity_type_id.$bundle.default")) {
       $form_display = EntityFormDisplay::create([
