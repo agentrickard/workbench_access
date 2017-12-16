@@ -22,8 +22,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   base_plugin_label = @Translation("Workbench Access: Restricted term selection"),
  *   deriver = "\Drupal\workbench_access\Plugin\Deriver\TaxonomyHierarchySelectionDeriver",
  * )
- * @todo investigate if this can be applied happen in the widget settings, not
- *   in an alter hook.
+ * @todo Investigate if this can be enforced in the field settings instead of
+ *   via an alter hook.
  */
 class TaxonomyHierarchySelection extends TermSelection {
 
