@@ -32,7 +32,7 @@ class WorkbenchAccessConfigForm extends ConfigFormBase {
     $form['deny_on_empty'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Deny access to unassigned content'),
-      '#default_value' => $config->get('deny_on_empty', 0),
+      '#default_value' => $config->get('deny_on_empty'),
       '#description' => $this->t('For content under access control, deny access for any content not assigned to a section. This setting is off by default so that installing the module does not break existing site behavior.'),
     ];
 

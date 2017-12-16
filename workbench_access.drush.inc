@@ -5,7 +5,10 @@
  * Drush commands for Workbench Access.
  */
 
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -43,7 +46,7 @@ function workbench_access_drush_help($section) {
 function drush_workbench_access_test() {
   try {
     // Create a vocabulary.
-    $vocabulary = entity_create('taxonomy_vocabulary', [
+    $vocabulary = Vocabulary::create([
       'name' => 'Workbench Access',
       'description' => 'Test taxonomy for Workbench Access',
       'vid' => 'workbench_access',
@@ -66,7 +69,7 @@ function drush_workbench_access_test() {
     $filter_formats = filter_formats();
     $format = array_pop($filter_formats);
     foreach ($terms as $name) {
-      $term = entity_create('taxonomy_term', [
+      $term = Term::create([
         'name' => $name,
         'description' => [],
         'vid' => $vocabulary->id(),
@@ -75,7 +78,7 @@ function drush_workbench_access_test() {
       ]);
       $term->save();
       foreach ($children as $child) {
-        $child = entity_create('taxonomy_term', [
+        $child = Term::create([
           'name' => "$name $child",
           'description' => [],
           'vid' => $vocabulary->id(),
@@ -156,14 +159,22 @@ function _workbench_access_create_node_storage() {
  * Sets up form display.
  */
 function _workbench_access_form_display($entity_type, $bundle) {
-  // Tell the form system how to behave. Default to radio buttons.
-  // @TODO: This function is deprecated, but using the OO syntax is causing
-  // test fails.
-  entity_get_form_display($entity_type, $bundle, 'default')
-    ->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, [
-      'type' => 'options_select',
-      'weight' => 0,
-    ])
-    ->save();
+  // Try loading the entity from configuration.
+  $entity_form_display = EntityFormDisplay::load($entity_type . '.' . $bundle . '.default');
 
+  if (!$entity_form_display) {
+    $entity_form_display = EntityFormDisplay::create([
+      'targetEntityType' => $entity_type,
+      'bundle' => $bundle,
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  }
+
+  $entity_form_display->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, [
+    'type' => 'options_select',
+    'weight' => 0,
+  ])->save();
+
+  return $entity_form_display;
 }

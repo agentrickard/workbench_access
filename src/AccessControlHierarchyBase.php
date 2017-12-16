@@ -11,6 +11,7 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\Plugin\views\filter\Section;
 use Drupal\Component\Plugin\PluginBase;
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Database\Query\Condition;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
@@ -261,7 +262,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       $filter->query->addWhere($filter->options['group'], "$filter->tableAlias.$filter->realField", array_values($values), $filter->operator);
     }
     else {
-      $or = db_or();
+      $or = new Condition('OR');
       foreach ($join_data as $field => $data) {
         $alias = $data['table_alias'] . '.' . $data['real_field'];
         $or->condition($alias, array_values($values), $filter->operator);
