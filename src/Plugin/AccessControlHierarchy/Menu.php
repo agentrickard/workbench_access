@@ -2,19 +2,18 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
+use Drupal\Core\Menu\MenuLinkTreeInterface;
+use Drupal\Core\Config\Entity\ConfigEntityInterface;
+use Drupal\node\NodeTypeInterface;
+use Drupal\system\MenuInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-use Drupal\menu_link_content\Entity\MenuLinkContent;
-use Drupal\system\Entity\Menu as MenuEntity;
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Menu\MenuLinkInterface;
-use Drupal\Core\Menu\MenuLinkManagerInterface;
-use Drupal\Core\Menu\MenuLinkTreeElement;
-use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Defines a hierarchy based on a Menu.
@@ -22,7 +21,6 @@ use Drupal\Core\Menu\MenuTreeParameters;
  * @AccessControlHierarchy(
  *   id = "menu",
  *   module = "menu_ui",
- *   base_entity = "menu",
  *   entity = "menu_link_content",
  *   label = @Translation("Menu"),
  *   description = @Translation("Uses a menu as an access control hierarchy.")
@@ -31,26 +29,52 @@ use Drupal\Core\Menu\MenuTreeParameters;
 class Menu extends AccessControlHierarchyBase {
 
   /**
-   * @inheritdoc
+   * Menu link tree service.
+   *
+   * @var \Drupal\Core\Menu\MenuLinkTreeInterface
+   */
+  protected $menuTree;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    return $instance->setMenuTree($container->get('menu.link_tree'));
+  }
+
+  /**
+   * Sets menu tree service.
+   *
+   * @param \Drupal\Core\Menu\MenuLinkTreeInterface $menuTree
+   *   Menu tree service.
+   *
+   * @return $this
+   */
+  public function setMenuTree(MenuLinkTreeInterface $menuTree) {
+    $this->menuTree = $menuTree;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public function getTree() {
     if (!isset($this->tree)) {
-      $parents = $this->config->get('parents');
       $tree = [];
-      $this->menuTree = \Drupal::getContainer()->get('menu.link_tree');
-      foreach ($parents as $id => $label) {
-        if ($menu = MenuEntity::load($id)) {
-          $tree[$id][$id] = [
-            'label' => $menu->label(),
-            'depth' => 0,
-            'parents' => [],
-            'weight' => 0,
-            'description' => $menu->label(),
-          ];
-          $params = new MenuTreeParameters();
-          $data = $this->menuTree->load($id, $params);
-          $this->tree = $this->buildTree($id, $data, $tree);
-        }
+      $menuStorage = $this->entityTypeManager->getStorage('menu');
+      foreach ($menuStorage->loadMultiple($this->configuration['menus']) as $menu_id => $menu) {
+        $tree[$menu_id][$menu_id] = [
+          'label' => $menu->label(),
+          'depth' => 0,
+          'parents' => [],
+          'weight' => 0,
+          'description' => $menu->label(),
+        ];
+        $params = new MenuTreeParameters();
+        $data = $this->menuTree->load($menu_id, $params);
+        $this->tree = $this->buildTree($menu_id, $data, $tree);
       }
     }
     return $this->tree;
@@ -61,17 +85,17 @@ class Menu extends AccessControlHierarchyBase {
    *
    * Note: this method is necessary because Menu does not auto-load parents.
    *
-   * @param $id
+   * @param string $id
    *   The root id of the section tree.
    * @param array $data
    *   An array of menu tree or subtree data.
    * @param array &$tree
    *   The computed tree array to return.
    *
-   * @return array $tree
+   * @return array
    *   The compiled tree data.
    */
-  protected function buildTree($id, $data, &$tree) {
+  protected function buildTree($id, array $data, array &$tree) {
     foreach ($data as $link_id => $link) {
       $tree[$id][$link_id] = [
         'id' => $link_id,
@@ -97,16 +121,9 @@ class Menu extends AccessControlHierarchyBase {
   }
 
   /**
-   * @inheritdoc
-   */
-  public function getFields($entity_type, $bundle, $parents) {
-    return ['menu' => 'Menu field'];
-  }
-
-  /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []) {
+  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
     $element = $field;
     $menu_check = [];
     foreach ($element['link']['menu_parent']['#options'] as $id => $data) {
@@ -115,12 +132,12 @@ class Menu extends AccessControlHierarchyBase {
       $menu = array_shift($parts);
       $sections = [implode(':', $parts)];
       // Remove unusable elements, except the existing parent.
-      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty($manager->checkTree($sections, $user_sections))) {
+      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($sections, $user_sections, $this->getTree()))) {
         unset($element['link']['menu_parent']['#options'][$id]);
       }
       // Check for the root menu item.
       if (!isset($menu_check[$menu]) && isset($element['link']['menu_parent']['#options'][$menu . ':'])) {
-        if (empty($manager->checkTree([$menu], $user_sections))) {
+        if (empty(WorkbenchAccessManager::checkTree($scheme, [$menu], $user_sections))) {
           unset($element['link']['menu_parent']['#options'][$menu . ':']);
         }
         $menu_check[$menu] = TRUE;
@@ -132,7 +149,7 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function getEntityValues(EntityInterface $entity, $field) {
+  public function getEntityValues(EntityInterface $entity) {
     $values = [];
     $defaults = menu_ui_get_menu_link_defaults($entity);
     if (!empty($defaults['id'])) {
@@ -142,7 +159,7 @@ class Menu extends AccessControlHierarchyBase {
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
   public function disallowedOptions($field) {
     // On the menu form, we never remove an existing parent item, so there is
@@ -151,33 +168,146 @@ class Menu extends AccessControlHierarchyBase {
   }
 
   /**
-   * {inheritdoc}
+   * {@inheritdoc}
    */
-  public function getViewsJoin($table, $key, $alias = NULL) {
-    if ($table == 'users') {
+  public function getViewsJoin($entity_type, $key, $alias = NULL) {
+    if ($entity_type == 'user') {
       $configuration['menu'] = [
-       'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
-       'field' => 'entity_id',
-       'left_table' => $table,
-       'left_field' => $key,
-       'operator' => '=',
-       'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
-       'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
+        'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
+        'field' => 'entity_id',
+        'left_table' => 'users',
+        'left_field' => $key,
+        'operator' => '=',
+        'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
+        'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
       ];
     }
     else {
       $configuration['menu'] = [
-       'table' => 'menu_tree',
-       'field' => 'route_param_key',
-       'left_table' => $table,
-       'left_field' => $key,
-       'left_query' => "CONCAT('{$table}=', {$alias}.{$key})",
-       'operator' => '=',
-       'table_alias' => 'menu_tree',
-       'real_field' => 'id',
+        'table' => 'menu_tree',
+        'field' => 'route_param_key',
+        'left_table' => 'node',
+        'left_field' => $key,
+        'left_query' => "CONCAT('node=', {$alias}.{$key})",
+        'operator' => '=',
+        'table_alias' => 'menu_tree',
+        'real_field' => 'id',
       ];
     }
     return $configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function viewsData(array &$data, AccessSchemeInterface $scheme) {
+    $data['node']['workbench_access_section'] = [
+      'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
+      'help' => t('The sections to which this content belongs in the @name scheme.', [
+        '@name' => $scheme->label(),
+      ]),
+      'field' => [
+        'scheme' => $scheme->id(),
+        'id' => 'workbench_access_section',
+      ],
+      'filter' => [
+        'scheme' => $scheme->id(),
+        'field' => 'nid',
+        'id' => 'workbench_access_section',
+      ],
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function applies($entity_type_id, $bundle) {
+    return $entity_type_id === 'node' && in_array($bundle, $this->configuration['bundles']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $this->configuration['menus'] = array_values(array_filter($form_state->getValue('menus')));
+    $this->configuration['bundles'] = array_values(array_filter($form_state->getValue('bundles')));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
+    $form['menus'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Menus'),
+      '#description' => $this->t('Select the menus to use.'),
+      '#options' => array_map(function (MenuInterface $menu) {
+        return $menu->label();
+      }, $this->entityTypeManager->getStorage('menu')->loadMultiple()),
+      '#default_value' => $this->configuration['menus'],
+    ];
+    $form['bundles'] = [
+      '#type' => 'checkboxes',
+      '#title' => $this->t('Content types'),
+      '#description' => $this->t('Select the content types to enable access control on.'),
+      '#options' => array_map(function (NodeTypeInterface $node_type) {
+        return $node_type->label();
+      }, $this->entityTypeManager->getStorage('node_type')->loadMultiple()),
+      '#default_value' => $this->configuration['bundles'],
+    ];
+    return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultConfiguration() {
+    return [
+      'menus' => [],
+      'bundles' => [],
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $entity_type_map = [
+      'menu' => 'menus',
+      'node_type' => 'bundles',
+    ];
+    $dependencies = [];
+    foreach ($entity_type_map as $entity_type => $configuration_key) {
+      $dependencies = array_merge($dependencies, $this->entityTypeManager->getStorage($entity_type)->loadMultiple($this->configuration[$configuration_key]));
+    }
+    return array_reduce($dependencies, function (array $carry, ConfigEntityInterface $entity) {
+      $carry[$entity->getConfigDependencyKey()][] = $entity->getConfigDependencyName();
+      return $carry;
+    }, []);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function onDependencyRemoval(array $dependencies) {
+    $bundles = array_diff($this->configuration['bundles'], array_reduce($dependencies['config'], function (array $carry, $item) {
+      if (!$item instanceof NodeTypeInterface) {
+        return $carry;
+      }
+      $carry[] = $item->id();
+      return $carry;
+    }, []));
+    $menus = array_diff($this->configuration['menus'], array_reduce($dependencies['config'], function (array $carry, $item) {
+      if (!$item instanceof NodeTypeInterface) {
+        return $carry;
+      }
+      $carry[] = $item->id();
+      return $carry;
+    }, []));
+    $changed = ($menus != $this->configuration['menus']) || ($bundles != $this->configuration['bundles']);
+    $this->configuration['menus'] = $menus;
+    $this->configuration['bundles'] = $bundles;
+    return $changed;
   }
 
 }

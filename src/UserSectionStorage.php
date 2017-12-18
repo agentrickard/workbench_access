@@ -2,8 +2,10 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
  * Defines a class for storing and retrieving sections assigned to a user.
@@ -57,63 +59,59 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function getUserSections($uid = NULL, $add_roles = TRUE) {
+  public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE) {
     // Get the information from the account.
     if (is_null($uid)) {
       $uid = $this->currentUser->id();
     }
-    if (!isset($this->userSectionCache[$uid])) {
-      $user_sections = [];
+    if (!isset($this->userSectionCache[$scheme->id()][$uid])) {
       $user = $this->userStorage->load($uid);
-      $sections = $user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue();
-      foreach ($sections as $data) {
-        $user_sections[] = $data['value'];
-      }
+      $user_sections = $this->unformatAndFilterSections($scheme, array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value'));
       // Merge in role data.
       if ($add_roles) {
-        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($user));
+        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $user));
       }
 
-      $this->userSectionCache[$uid] = array_unique($user_sections);
+      $this->userSectionCache[$scheme->id()][$uid] = array_unique($user_sections);
     }
-    return $this->userSectionCache[$uid];
+    return $this->userSectionCache[$scheme->id()][$uid];
 
   }
-
 
   /**
    * {@inheritdoc}
    */
-  public function addUser($user_id, $sections = []) {
+  public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     $entity = $this->userStorage->load($user_id);
-    $values = $this->getUserSections($user_id, FALSE);
-    $new = array_merge($values, $sections);
+    $values = array_column($entity->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
+    $new = array_merge($values, $this->formatSections($scheme, $sections));
     $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, $new);
     $entity->save();
-    $this->userSectionCache[$user_id] = $new;
+    $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, $new);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function removeUser($user_id, $sections = []) {
+  public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     $entity = $this->userStorage->load($user_id);
-    $values = $this->getUserSections($user_id, FALSE);
+    $values = array_column($entity->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
     $new = array_flip($values);
+    $sections = $this->formatSections($scheme, $sections);
     foreach ($sections as $id) {
       unset($new[$id]);
     }
     $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_keys($new));
     $entity->save();
-    $this->userSectionCache[$user_id] = array_keys($new);
+    $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, array_keys($new));
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getEditors($id) {
+  public function getEditors(AccessSchemeInterface $scheme, $id) {
     $users = $this->userStorage->getQuery()
-      ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, $id)
+      ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, sprintf('%s:%s', $scheme->id(), $id))
       ->condition('status', 1)
       ->sort('name')
       ->execute();
@@ -140,21 +138,26 @@ class UserSectionStorage implements UserSectionStorageInterface {
   }
 
   /**
-   * @inheritdoc
+   * {@inheritdoc}
    */
-  public function flushUsers() {
-    // We might want to use purgeFieldData() or similar for this, but the data
-    // is currently not revisioned, so a simple table flush will do. Wrap the
-    // statement in a try/catch just in case it isn't portable.
-    try {
-      $database = \Drupal::getContainer()->get('database');
-      $database->truncate('user__' . WorkbenchAccessManagerInterface::FIELD_NAME)->execute();
+  public function flushUsers(AccessSchemeInterface $scheme) {
+    $users = $this->userStorage->loadMultiple($this->userStorage->getQuery()
+      ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, Database::getConnection()
+        ->escapeLike(sprintf('%s:', $scheme->id())) . '%', 'LIKE')
+      ->sort('name')
+      ->execute());
+    foreach ($users as $user) {
+      $values = array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
+      $updated_values = array_filter($values, function ($item) use ($scheme) {
+        list($scheme_id) = explode(':', $item, 2);
+        return $scheme_id !== $scheme->id();
+      });
+      if ($values !== $updated_values) {
+        $user->set(WorkbenchAccessManagerInterface::FIELD_NAME, $updated_values);
+        $user->save();
+      }
     }
-    catch (\Exception $e) {
-      // @todo return FALSE instead here, let UI handle it.
-      drupal_set_message($this->t('Failed to delete user assignments.'));
-    }
-    // @TODO clear cache?
+    unset($this->userSectionCache[$scheme->id()]);
   }
 
   /**
@@ -169,6 +172,45 @@ class UserSectionStorage implements UserSectionStorageInterface {
       }
     }
     return $list;
+  }
+
+  /**
+   * Formats sections in {scheme_id}:{section_id} format.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   * @param array $sections
+   *   Sections to format.
+   *
+   * @return array
+   *   Formatted sections.
+   */
+  protected function formatSections(AccessSchemeInterface $scheme, array $sections) {
+    return array_map(function ($section) use ($scheme) {
+      return sprintf('%s:%s', $scheme->id(), $section);
+    }, $sections);
+  }
+
+  /**
+   * Unformats sections from {scheme_id}:{section_id} format and filters.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   * @param array $sections
+   *   Values to unformat and filter.
+   *
+   * @return array
+   *   Unformatted and filtered sections.
+   */
+  protected function unformatAndFilterSections(AccessSchemeInterface $scheme, array $sections) {
+    return array_reduce($sections, function ($carry, $section) use ($scheme) {
+      list($scheme_id, $section_id) = explode(':', $section, 2);
+      if ($scheme_id !== $scheme->id()) {
+        return $carry;
+      }
+      $carry[] = $section_id;
+      return $carry;
+    }, []);
   }
 
 }

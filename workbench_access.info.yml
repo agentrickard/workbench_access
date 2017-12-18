@@ -4,8 +4,9 @@ description: Hierarchical access control module.
 core: 8.x
 configure: workbench_access.admin
 package: Workbench
-
 dependencies:
   - node
   - taxonomy
   - options
+  - menu_ui
+  - menu_link_content

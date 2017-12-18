@@ -3,10 +3,10 @@
 namespace Drupal\Tests\workbench_access\Kernel;
 
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\simpletest\ContentTypeCreationTrait;
-use Drupal\simpletest\NodeCreationTrait;
-use Drupal\simpletest\UserCreationTrait;
 use Drupal\taxonomy\Entity\Term;
+use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
+use Drupal\Tests\node\Traits\NodeCreationTrait;
+use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
@@ -63,11 +63,12 @@ class NodeAccessTest extends KernelTestBase {
     $this->installSchema('system', ['key_value', 'sequences']);
     module_load_install('workbench_access');
     workbench_access_install();
-    $node_type = $this->setUpContentType();
+    $node_type = $this->createContentType(['type' => 'page']);
+    $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('node');
-    $this->setUpTaxonomyField($node_type, $this->vocabulary);
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
     $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
   }
 
@@ -94,7 +95,7 @@ class NodeAccessTest extends KernelTestBase {
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -127,22 +128,31 @@ class NodeAccessTest extends KernelTestBase {
       'delete any page content',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $term->id();
+    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 
-    // Test a node that is not assigned to a section. Both should be allowed because we
-    // do not assert access control by default.
+    // Test a node that is not assigned to a section. Both should be allowed
+    // because we do not assert access control by default.
     $node1 = $this->createNode(['type' => 'page', 'title' => 'foo']);
     $this->assertTrue($this->accessHandler->access($node1, 'update', $allowed_editor));
     $this->assertTrue($this->accessHandler->access($node1, 'update', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $allowed_editor));
+    $this->assertTrue($this->accessHandler->access($node1, 'delete', $editor_with_no_access));
 
     // Create a node that is assigned to a section.
-    $node2 = $this->createNode(['type' => 'page', 'title' => 'bar', WorkbenchAccessManagerInterface::FIELD_NAME => $term->id()]);
+    $node2 = $this->createNode([
+      'type' => 'page',
+      'title' => 'bar',
+      WorkbenchAccessManagerInterface::FIELD_NAME => $term->id(),
+    ]);
     $this->assertTrue($this->accessHandler->access($node2, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node2, 'update', $editor_with_no_access));
+    $this->assertTrue($this->accessHandler->access($node2, 'delete', $allowed_editor));
+    $this->assertFalse($this->accessHandler->access($node2, 'delete', $editor_with_no_access));
 
-    // With strict checking, nodes that are not assigned to a section return false.
+    // With strict checking, nodes that are not assigned to a section return
+    // false.
     $this->config('workbench_access.settings')
       ->set('deny_on_empty', 1)
       ->save();
@@ -151,7 +161,8 @@ class NodeAccessTest extends KernelTestBase {
     $node3 = $this->createNode(['type' => 'page', 'title' => 'baz']);
     $this->assertFalse($this->accessHandler->access($node3, 'update', $allowed_editor));
     $this->assertFalse($this->accessHandler->access($node3, 'update', $editor_with_no_access));
-
+    $this->assertFalse($this->accessHandler->access($node3, 'delete', $allowed_editor));
+    $this->assertFalse($this->accessHandler->access($node3, 'delete', $editor_with_no_access));
   }
 
 }

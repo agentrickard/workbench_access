@@ -3,11 +3,12 @@
 namespace Drupal\workbench_access\Plugin\EntityReferenceSelection;
 
 use Drupal\Component\Utility\Html;
-use Drupal\Core\Database\Query\SelectInterface;
-use Drupal\Core\Entity\Plugin\EntityReferenceSelection\DefaultSelection;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\taxonomy\Entity\Vocabulary;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\taxonomy\Plugin\EntityReferenceSelection\TermSelection;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
+use Drupal\workbench_access\WorkbenchAccessManager;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides specific access control for the taxonomy_term entity type.
@@ -18,10 +19,85 @@ use Drupal\taxonomy\Plugin\EntityReferenceSelection\TermSelection;
  *   entity_types = {"taxonomy_term"},
  *   group = "workbench_access",
  *   weight = 1,
- *   base_plugin_label = @Translation("Workbench Access: Restricted term selection")
+ *   base_plugin_label = @Translation("Workbench Access: Restricted term selection"),
+ *   deriver = "\Drupal\workbench_access\Plugin\Deriver\TaxonomyHierarchySelectionDeriver",
  * )
+ * @todo Investigate if this can be enforced in the field settings instead of
+ *   via an alter hook.
  */
 class TaxonomyHierarchySelection extends TermSelection {
+
+  /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * Current user.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $currentUser;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
+   */
+  protected $userSectionStorage;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    return $instance
+      ->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($plugin_definition['scheme']))
+      ->setCurrentUser($container->get('current_user'))
+      ->setUserSectionStorage($container->get('workbench_access.user_section_storage'));
+  }
+
+  /**
+   * Sets currentUser.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $currentUser
+   *   New value for currentUser.
+   *
+   * @return $this
+   */
+  public function setCurrentUser(AccountInterface $currentUser) {
+    $this->currentUser = $currentUser;
+    return $this;
+  }
+
+  /**
+   * Sets userSectionStorage.
+   *
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   *   New value for userSectionStorage.
+   *
+   * @return $this
+   */
+  public function setUserSectionStorage(UserSectionStorageInterface $userSectionStorage) {
+    $this->userSectionStorage = $userSectionStorage;
+    return $this;
+  }
+
+  /**
+   * Sets access scheme.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   *
+   * @return $this
+   */
+  public function setScheme(AccessSchemeInterface $scheme) {
+    $this->scheme = $scheme;
+    return $this;
+  }
 
   /**
    * {@inheritdoc}
@@ -29,7 +105,7 @@ class TaxonomyHierarchySelection extends TermSelection {
   public function getReferenceableEntities($match = NULL, $match_operator = 'CONTAINS', $limit = 0) {
     // Get the base options list from the normal handler. We will filter later.
     if ($match || $limit) {
-      $options = parent::getReferenceableEntities($match , $match_operator, $limit);
+      $options = parent::getReferenceableEntities($match, $match_operator, $limit);
     }
     else {
       $options = [];
@@ -39,7 +115,7 @@ class TaxonomyHierarchySelection extends TermSelection {
       $bundle_names = !empty($handler_settings['target_bundles']) ? $handler_settings['target_bundles'] : array_keys($bundles);
 
       foreach ($bundle_names as $bundle) {
-        if ($vocabulary = Vocabulary::load($bundle)) {
+        if ($vocabulary = $this->entityManager->getStorage('taxonomy_vocabulary')->load($bundle)) {
           if ($terms = $this->entityManager->getStorage('taxonomy_term')->loadTree($vocabulary->id(), 0, NULL, TRUE)) {
             foreach ($terms as $term) {
               $options[$vocabulary->id()][$term->id()] = str_repeat('-', $term->depth) . Html::escape($this->entityManager->getTranslationFromContext($term)->label());
@@ -50,21 +126,18 @@ class TaxonomyHierarchySelection extends TermSelection {
     }
     // Now, filter the options by permission.
     // If assigned to the top level or a superuser, no alteration.
-    $account = \Drupal::currentUser();
-    if ($account->hasPermission('bypass workbench access')) {
+    if ($this->currentUser->hasPermission('bypass workbench access')) {
       return $options;
     }
     // Check each section for access.
-    $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-    $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
-    $user_sections = $user_section_storage->getUserSections($account->id());
+    $user_sections = $this->userSectionStorage->getUserSections($this->scheme);
     foreach ($options as $key => $values) {
-      if ($manager->checkTree([$key], $user_sections)) {
+      if (WorkbenchAccessManager::checkTree($this->scheme, [$key], $user_sections)) {
         continue;
       }
       else {
         foreach ($values as $id => $value) {
-          if (!$manager->checkTree([$id], $user_sections)) {
+          if (!WorkbenchAccessManager::checkTree($this->scheme, [$id], $user_sections)) {
             unset($options[$key][$id]);
           }
         }

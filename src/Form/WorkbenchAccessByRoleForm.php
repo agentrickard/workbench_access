@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access\Form;
 
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Form\FormBase;
@@ -26,6 +27,13 @@ class WorkbenchAccessByRoleForm extends FormBase {
    * @var \Drupal\workbench_access\RoleSectionStorageInterface
    */
   protected $roleSectionStorage;
+
+  /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
 
   /**
    * Constructs a new WorkbenchAccessConfigForm.
@@ -60,9 +68,10 @@ class WorkbenchAccessByRoleForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state, $id = NULL) {
-    $element = $this->manager->getElement($id);
-    $existing_roles = $this->roleSectionStorage->getRoles($id);
+  public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $access_scheme = NULL, $id = NULL) {
+    $this->scheme = $access_scheme;
+    $element = $access_scheme->getAccessScheme()->load($id);
+    $existing_roles = $this->roleSectionStorage->getRoles($access_scheme, $id);
     $potential_roles = $this->roleSectionStorage->getPotentialRolesFiltered($id);
 
     $form['existing_roles'] = ['#type' => 'value', '#value' => $existing_roles];
@@ -105,11 +114,11 @@ class WorkbenchAccessByRoleForm extends FormBase {
     foreach ($roles as $role_id => $value) {
       // Add user to section.
       if ($value && !isset($existing_roles[$role_id])) {
-        $this->roleSectionStorage->addRole($role_id, [$id]);
+        $this->roleSectionStorage->addRole($this->scheme, $role_id, [$id]);
       }
       // Remove user from section.
       if (!$value && isset($existing_roles[$role_id])) {
-        $this->roleSectionStorage->removeRole($role_id, [$id]);
+        $this->roleSectionStorage->removeRole($this->scheme, $role_id, [$id]);
       }
     }
   }
@@ -117,14 +126,16 @@ class WorkbenchAccessByRoleForm extends FormBase {
   /**
    * Returns a dynamic page title for the route.
    *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme
+   *   Access scheme.
    * @param string $id
    *   The section id.
    *
    * @return string
    *   A page title.
    */
-  public function pageTitle($id) {
-    $element = $this->manager->getElement($id);
+  public function pageTitle(AccessSchemeInterface $access_scheme, $id) {
+    $element = $access_scheme->getAccessScheme()->load($id);
     return $this->t('Roles assigned to %label', ['%label' => $element['label']]);
   }
 

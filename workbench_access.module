@@ -5,12 +5,16 @@
  * Contains workbench_access.module.
  */
 
-use Drupal\node\NodeTypeInterface;
-use Drupal\node\NodeInterface;
+use Drupal\Core\Entity\ContentEntityInterface;
+use Drupal\Core\Entity\EntityForm;
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\workbench_access\AccessControlHierarchyBase;
+use Drupal\workbench_access\AccessControlHierarchyInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -39,17 +43,27 @@ function workbench_access_help($route_name, RouteMatchInterface $route_match) {
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
+ * Implements hook_form_alter().
  *
  * Restricts selection options for the node form.
  */
-function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_state) {
+function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
   $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-  if ($scheme = $manager->getActiveScheme()) {
-    $node = $form_state->getFormObject()->getEntity();
-
+  $form_object = $form_state->getFormObject();
+  if (!$form_object instanceof EntityForm) {
+    return;
+  }
+  $entity = $form_object->getEntity();
+  if (!$entity instanceof ContentEntityInterface) {
+    return;
+  }
+  $callback = FALSE;
+  /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
+  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
     // If no access field is set, we do nothing.
-    $field = $scheme->fields('node', $node->bundle());
+    $callback = TRUE;
+    $scheme = $access_scheme->getAccessScheme();
+    $field = $scheme->applies($entity->getEntityTypeId(), $entity->bundle());
     if (empty($field)) {
       return;
     }
@@ -57,63 +71,38 @@ function workbench_access_form_node_form_alter(&$form, FormStateInterface $form_
     $account = \Drupal::currentUser();
     // If the user cannot access the form element or is a superuser, ignore.
     if (!empty($form[$field]['#access']) && !$account->hasPermission('bypass workbench access')) {
-      $form[$field] = $scheme->alterOptions($form[$field], $manager, \Drupal::service('workbench_access.user_section_storage')->getUserSections($account->id()));
+      $form[$field] = $scheme->alterOptions($access_scheme, $form[$field], \Drupal::service('workbench_access.user_section_storage')->getUserSections($account->id()));
       // Add the options hidden from the user silently to the form.
       $options_diff = $scheme->disallowedOptions($form[$field]);
       if (!empty($options_diff)) {
         // @TODO: Potentially show this information to users with permission.
-        $form['workbench_access_disallowed'] = workbench_access_hidden_field($options_diff, $scheme);
-        // Call our submitEntity() method to merge in values.
-        // @todo Add tests for this.
-        $class = '\\' . get_class($scheme) . '::submitEntity';
-        // Account for all the submit buttons on the node form.
-        $buttons = ['submit', 'publish', 'unpublish'];
-        foreach ($buttons as $button) {
-          if (isset($form['actions'][$button]['#submit'])) {
-            array_unshift($form['actions'][$button]['#submit'], $class);
-          }
-        }
+        $form['workbench_access_disallowed'] += [
+          '#tree' => TRUE,
+          $access_scheme->id() => workbench_access_hidden_field($options_diff, $scheme),
+        ];
+      }
+    }
+  }
+  if ($callback) {
+    // Call our submitEntity() method to merge in values.
+    // @todo Add tests for this.
+    $class = AccessControlHierarchyBase::class . '::submitEntity';
+    // Account for all the submit buttons on the node form.
+    $buttons = ['submit', 'publish', 'unpublish'];
+    foreach ($buttons as $button) {
+      if (isset($form['actions'][$button]['#submit'])) {
+        array_unshift($form['actions'][$button]['#submit'], $class);
       }
     }
   }
 }
 
 /**
- * Implements hook_form_FORM_ID_alter().
- *
- * Adds Workbench Access options to the node type form.
- *
- * @see NodeTypeForm::form().
- * @see menu_ui_form_node_type_form_builder().
- */
-function workbench_access_form_node_type_form_alter(&$form, FormStateInterface $form_state) {
-  // Add a checkbox to registration form about agreeing to terms of use.
-  $type = $form_state->getFormObject()->getEntity();
-  $form['workflow']['workbench_access_status'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Enable Workbench Access control for @type content.', array('@type' => $type->label())),
-    '#description' => t('If selected, all @type content will be subject to editorial access restrictions.', array('@type' => $type->label())),
-    '#default_value' => $type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0),
-    '#access' => \Drupal::currentUser()->hasPermission('administer workbench access'),
-  );
-  $form['#entity_builders'][] = 'workbench_access_form_node_type_form_builder';
- }
-
-/**
- * Entity builder for the node type form with Workbench Access options.
- *
- * @see workbench_access_form_node_type_form_alter().
- */
-function workbench_access_form_node_type_form_builder($entity_type, NodeTypeInterface $type, &$form, FormStateInterface $form_state) {
-  $type->setThirdPartySetting('workbench_access', 'workbench_access_status', $form_state->getValue('workbench_access_status'));
-}
-
-/**
  * Creates our fields for an entity bundle.
  *
- * @param $entity_type
+ * @param string $entity_type
  *   The entity type being created. Users are supported.
- * @param $bundle
+ * @param string $bundle
  *   The bundle being created.
  */
 function workbench_access_confirm_fields($entity_type, $bundle) {
@@ -122,33 +111,34 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
     $text = [
       'user' => [
         'type' => 'user',
-        'label' => 'Sections', // @TODO tie to config
+    // @TODO tie to config
+        'label' => 'Sections',
         'description' => 'Assign the editorial sections that this user belongs to.',
       ],
       'node' => [
         'type' => $bundle,
-        'label' => 'Sections', // @TODO tie to config
+      // @TODO tie to config
+        'label' => 'Sections',
         'description' => 'The editorial section for this content.',
-      ]
+      ],
     ];
     $id = $entity_type . '.' . $bundle . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
 
-    if (!$field = \Drupal::entityManager()->getStorage('field_config')->load($id)) {
-      $field = array(
+    if (!$field = \Drupal::entityTypeManager()->getStorage('field_config')->load($id)) {
+      $field = [
         'field_name' => WorkbenchAccessManagerInterface::FIELD_NAME,
         'entity_type' => $entity_type,
         'label' => $text[$entity_type]['label'],
         'bundle' => $bundle,
         'required' => FALSE,
         'description' => $text[$entity_type]['description'],
-        'default_value_callback' => 'Drupal\workbench_access\WorkbenchAccessManager::getDefaultValue',
-      );
+      ];
       if ($entity_type == 'node') {
         $field['settings']['handler_settings']['target_bundles'] = ['workbench_access' => 'workbench_access'];
         $field['settings']['handler_settings']['auto_create'] = FALSE;
         $field['settings']['handler_settings']['sort'] = ['field' => '_none'];
       }
-      $field_config = \Drupal::entityManager()->getStorage('field_config')->create($field);
+      $field_config = \Drupal::entityTypeManager()->getStorage('field_config')->create($field);
       $field_config->save();
     }
     // Installing without setting form display leaves the field hidden, which is
@@ -160,15 +150,16 @@ function workbench_access_confirm_fields($entity_type, $bundle) {
 }
 
 /**
- * Implements hook_node_access().
+ * Implements hook_entity_access().
  */
-function workbench_access_node_access(NodeInterface $node, $op, AccountInterface $account) {
-  // Check that our access control is configured.
+function workbench_access_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
+  // Return net result of all enabled access schemes. If one scheme allows
+  // access, then it is granted.
   $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
-  if ($scheme = $manager->getActiveScheme()) {
-    return $scheme->checkEntityAccess($node, $op, $account, $manager);
-  }
-  return AccessResult::neutral();
+  return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResult $carry, AccessSchemeInterface $scheme) use ($manager, $entity, $op, $account) {
+    $carry->addCacheableDependency($scheme)->cachePerPermissions()->addCacheableDependency($entity);
+    return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account, $manager));
+  }, AccessResult::neutral());
 }
 
 /**
@@ -176,29 +167,37 @@ function workbench_access_node_access(NodeInterface $node, $op, AccountInterface
  *
  * @link https://www.drupal.org/node/2348203
  */
-function workbench_access_node_create_access(AccountInterface $account, $context, $entity_bundle) {
+function workbench_access_entity_create_access(AccountInterface $account, $context, $entity_bundle) {
+  // @todo move this to the access schemes.
   $return = AccessResult::neutral();
   // User can bypass.
   if ($account->hasPermission('bypass workbench access')) {
-    return $return;
+    return $return->cachePerPermissions();
   }
 
-  // Check that our access control is configured.
-  $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
-  if (!$manager->getActiveScheme()) {
-    return $return;
-  }
-
-  // Check that access control applies to this content type.
-  $type = \Drupal::entityTypeManager()->getStorage('node_type')->load($entity_bundle);
-  if (!$type->getThirdPartySetting('workbench_access', 'workbench_access_status', 0)) {
-    return $return;
+  // Check that access control applies to this entity type.
+  $entity_type_id = $context['entity_type_id'];
+  $schemes = array_filter(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessSchemeInterface $scheme) use ($entity_type_id, $entity_bundle, $return) {
+    $return->addCacheableDependency($scheme);
+    return $scheme->getAccessScheme()->applies($entity_type_id, $entity_bundle);
+  });
+  if (!$schemes) {
+    return $return->addCacheTags(['access_scheme_list']);
   }
 
   // Check that the user is able to assign content to a section.
   $user_section_storage = \Drupal::service('workbench_access.user_section_storage');
-  if (!$user_section_storage->getUserSections($account->id())) {
-    return AccessResult::forbidden();
+  $forbidden = AccessResult::forbidden();
+  $invalid_schemes = array_reduce($schemes, function ($carry, AccessSchemeInterface $scheme) use ($user_section_storage, $account, $forbidden) {
+    $sections = $user_section_storage->getUserSections($scheme, $account->id());
+    if (!$sections) {
+      $carry[] = $scheme->label();
+    }
+    $forbidden->addCacheableDependency($scheme);
+    return $carry;
+  }, []);
+  if ($invalid_schemes) {
+    return $forbidden->setReason(sprintf('User has no active sections for the following access scheme(s): %s', implode(', ', $invalid_schemes)));
   }
   return $return;
 }
@@ -207,30 +206,57 @@ function workbench_access_node_create_access(AccountInterface $account, $context
  * Implements hook_views_data_alter().
  */
 function workbench_access_views_data_alter(array &$data) {
-  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-  if ($scheme = $manager->getActiveScheme()) {
-    $data['node']['workbench_access_section'] = array(
-      'title' => t('Workbench Section'),
-      'help' => t('The sections to which this content belongs.'),
-      'field' => array(
-        'id' => 'workbench_access_section',
-      ),
-      'filter' => array(
-        'field' => 'nid',
-        'id' => 'workbench_access_section',
-      ),
-    );
-    $data['users']['workbench_access_section'] = array(
-      'title' => t('Workbench Section'),
-      'help' => t('The sections to which this user belongs.'),
-      'field' => array(
+  $scheme_storage = \Drupal::entityTypeManager()->getStorage('access_scheme');
+  if ($schemes = $scheme_storage->loadMultiple()) {
+    /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
+    foreach ($schemes as $id => $scheme) {
+      $scheme->getAccessScheme()->viewsData($data, $scheme);
+      $data['users']['workbench_access_section__' . $scheme->id()] = [
+        'title' => t('Workbench Section: @name', [
+          '@name' => $scheme->label(),
+        ]),
+        'help' => t('The sections to which this user belongs for the @name scheme.', [
+          '@name' => $scheme->label(),
+        ]),
+        'field' => [
+          'id' => 'workbench_access_user_section',
+          'scheme' => $scheme->id(),
+        ],
+        'filter' => [
+          'field' => 'uid',
+          'scheme' => $scheme->id(),
+          'id' => 'workbench_access_section',
+        ],
+      ];
+    }
+  }
+  // Legacy support.
+  // @todo Remove in 8.x-2.x.
+  if ($default = \Drupal::state()->get('workbench_access_upgraded_scheme_id')) {
+    $scheme = $scheme_storage->load($default);
+    $data['users']['workbench_access_section'] = [
+      'title' => t('Workbench Section: @name (legacy)', [
+        '@name' => $scheme->label(),
+      ]),
+      'help' => t('The sections to which this user belongs for the @name scheme.', [
+        '@name' => $scheme->label(),
+      ]),
+      'field' => [
         'id' => 'workbench_access_user_section',
-      ),
-      'filter' => array(
+        'scheme' => $scheme->id(),
+      ],
+      'filter' => [
         'field' => 'uid',
+        'scheme' => $scheme->id(),
         'id' => 'workbench_access_section',
-      ),
-    );
+      ],
+    ];
+    if (isset($data['node']['workbench_access_section__default'])) {
+      $data['node']['workbench_access_section'] = $data['node']['workbench_access_section__default'];
+      $data['node']['workbench_access_section']['title'] = t('Workbench Section: @name (legacy)', [
+        '@name' => $scheme->label(),
+      ]);
+    }
   }
 }
 
@@ -239,16 +265,16 @@ function workbench_access_views_data_alter(array &$data) {
  *
  * @param array $options_diff
  *   An array of section ids that cannot be edited by the current user.
- * @param Drupal\workbench_access\Annotation\AccessControlHierarchy $scheme
+ * @param Drupal\workbench_access\AccessControlHierarchyInterface $scheme
  *   The active access control scheme.
  *
  * @return array
  *   A form element.
  */
-function workbench_access_hidden_field($options_diff, $scheme) {
-  $element = array(
+function workbench_access_hidden_field(array $options_diff, AccessControlHierarchyInterface $scheme) {
+  $element = [
     '#type' => 'value',
     '#value' => $options_diff,
-  );
+  ];
   return $element;
 }

@@ -5,29 +5,32 @@
  * Drush commands for Workbench Access.
  */
 
+use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Language\LanguageInterface;
+use Drupal\taxonomy\Entity\Term;
+use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Implements hook_drush_command().
  */
 function workbench_access_drush_command() {
-  $items = array();
+  $items = [];
 
-  $items['workbench-access-test'] = array(
+  $items['workbench-access-test'] = [
     'description' => 'Install test configuration of Workbench Access.',
-    'aliases' => array('wa-test'),
-  );
-  $items['workbench-access-flush'] = array(
+    'aliases' => ['wa-test'],
+  ];
+  $items['workbench-access-flush'] = [
     'description' => 'Flush section assignments for users and roles.',
-    'aliases' => array('wa-flush'),
-  );
+    'aliases' => ['wa-flush'],
+  ];
 
   return $items;
 }
 
 /**
- * Implement hook_drush_help().
+ * Implements hook_drush_help().
  */
 function workbench_access_drush_help($section) {
   $items = workbench_access_drush_command();
@@ -43,45 +46,45 @@ function workbench_access_drush_help($section) {
 function drush_workbench_access_test() {
   try {
     // Create a vocabulary.
-    $vocabulary = entity_create('taxonomy_vocabulary', array(
+    $vocabulary = Vocabulary::create([
       'name' => 'Workbench Access',
       'description' => 'Test taxonomy for Workbench Access',
       'vid' => 'workbench_access',
       'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
       'weight' => 100,
-    ));
+    ]);
     $vocabulary->save();
     // Create some terms.
-    $terms = array(
-     'Alumni',
-     'Faculty',
-     'Staff',
-     'Students',
-    );
-    $children = array(
-     'Directory',
-     'Information',
-    );
+    $terms = [
+      'Alumni',
+      'Faculty',
+      'Staff',
+      'Students',
+    ];
+    $children = [
+      'Directory',
+      'Information',
+    ];
 
     $filter_formats = filter_formats();
     $format = array_pop($filter_formats);
     foreach ($terms as $name) {
-      $term = entity_create('taxonomy_term', array(
+      $term = Term::create([
         'name' => $name,
-        'description' => array(),
+        'description' => [],
         'vid' => $vocabulary->id(),
         'parent' => 0,
         'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-      ));
+      ]);
       $term->save();
       foreach ($children as $child) {
-        $child = entity_create('taxonomy_term', array(
+        $child = Term::create([
           'name' => "$name $child",
-          'description' => array(),
+          'description' => [],
           'vid' => $vocabulary->id(),
           'parent' => $term->id(),
           'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
-        ));
+        ]);
         $child->save();
       }
     }
@@ -119,13 +122,14 @@ function drush_workbench_access_test() {
  * Flushes assigned user permissions.
  */
 function drush_workbench_access_flush() {
-  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
   $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
   $role_section_storage = \Drupal::getContainer()->get('workbench_access.role_section_storage');
   $role_section_storage->flushRoles();
   $user_section_storage->flushUsers();
-  $manager->flushFields();
-  drush_print('User and role assignments cleared. Field assigments reset.');
+  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $scheme) {
+    $scheme->delete();
+  }
+  drush_print('User and role assignments cleared. Access schemes deleted.');
 }
 
 /**
@@ -151,15 +155,26 @@ function _workbench_access_create_node_storage() {
 
 }
 
+/**
+ * Sets up form display.
+ */
 function _workbench_access_form_display($entity_type, $bundle) {
-  // Tell the form system how to behave. Default to radio buttons.
-  // @TODO: This function is deprecated, but using the OO syntax is causing
-  // test fails.
-  entity_get_form_display($entity_type, $bundle, 'default')
-    ->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, array(
-      'type' => 'options_select',
-      'weight' => 0,
-    ))
-    ->save();
+  // Try loading the entity from configuration.
+  $entity_form_display = EntityFormDisplay::load($entity_type . '.' . $bundle . '.default');
 
+  if (!$entity_form_display) {
+    $entity_form_display = EntityFormDisplay::create([
+      'targetEntityType' => $entity_type,
+      'bundle' => $bundle,
+      'mode' => 'default',
+      'status' => TRUE,
+    ]);
+  }
+
+  $entity_form_display->setComponent(WorkbenchAccessManagerInterface::FIELD_NAME, [
+    'type' => 'options_select',
+    'weight' => 0,
+  ])->save();
+
+  return $entity_form_display;
 }

@@ -4,12 +4,14 @@
  * @file
  * Install, update and uninstall functions for the Workbench Access module.
  */
+
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Implements hook_install().
  *
  * Installs the default on users.
+ *
  * @TODO: Can we do this via schema?
  */
 function workbench_access_install() {
@@ -26,9 +28,9 @@ function workbench_access_install() {
  * Removes access control fields on uninstall.
  */
 function workbench_access_uninstall() {
-  foreach (array('user') as $type) {
+  foreach (['user'] as $type) {
     $id = $type . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
-    if ($field = \Drupal::entityManager()->getStorage('field_storage_config')->load($id)) {
+    if ($field = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($id)) {
       $field->delete();
     }
   }
@@ -44,3 +46,30 @@ function workbench_access_update_8001() {
   $config->save(TRUE);
 }
 
+/**
+ * Update to new access-scheme config entity.
+ */
+function workbench_access_update_8002() {
+  // Stash this for later.
+  \Drupal::state()->set('workbench_access_original_configuration', \Drupal::config('workbench_access.settings'));
+  // Alter it to the new format.
+  $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
+  foreach (['scheme', 'label', 'plural_label', 'fields', 'parents'] as $delete) {
+    $config->delete();
+  }
+  $config->save(TRUE);
+}
+
+/**
+ * Create the new entity type.
+ */
+function workbench_access_update_8003() {
+  // Install our config entity.
+  $entity_manager = \Drupal::entityTypeManager();
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+
+  // Install 'access_scheme' config entity.
+  $entity_manager->clearCachedDefinitions();
+  $type = $entity_manager->getDefinition('access_scheme');
+  $update_manager->installEntityType($type);
+}

@@ -2,8 +2,9 @@
 
 namespace Drupal\workbench_access_test\Plugin\AccessControlHierarchy;
 
+use Drupal\Core\Entity\EntityInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
  * Defines a hierarchy based on an entity hierarchy field.
@@ -21,15 +22,22 @@ class DerivedAccessControlHierarchy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function getFields($entity_type, $bundle, $parents) {
-    return ['uid' => 'User'];
+  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
+    return $field;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function alterOptions($field, WorkbenchAccessManagerInterface $manager, array $user_sections = []) {
-    return $field;
+  public function applies($entity_type_id, $bundle) {
+    return TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getEntityValues(EntityInterface $entity) {
+    return [];
   }
 
 }

@@ -4,15 +4,16 @@ namespace Drupal\workbench_access\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
-use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ResultRow;
-use Drupal\views\ViewExecutable;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Field handler to present the section assigned to the node.
  *
  * This is a very simple handler, mainly for testing.
- * @TODO: Convert this to using a proper multi-value handler.
+ *
+ * @TODO: Convert this to use a proper multi-value handler.
  *
  * @ingroup views_field_handlers
  *
@@ -21,12 +22,32 @@ use Drupal\views\ViewExecutable;
 class Section extends FieldPluginBase {
 
   /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
-    parent::init($view, $display, $options);
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    return $instance->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($configuration['scheme']));
+  }
 
-    $this->additional_fields['nid'] = 'nid';
+  /**
+   * Sets access scheme.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   *
+   * @return $this
+   */
+  public function setScheme(AccessSchemeInterface $scheme) {
+    $this->scheme = $scheme;
+    return $this;
   }
 
   /**
@@ -48,7 +69,7 @@ class Section extends FieldPluginBase {
   protected function defineOptions() {
     $options = parent::defineOptions();
     $options['separator'] = [
-      'default' => ', '
+      'default' => ', ',
     ];
 
     return $options;
@@ -66,13 +87,10 @@ class Section extends FieldPluginBase {
    * {@inheritdoc}
    */
   public function render(ResultRow $values) {
-    $nid = $this->getValue($values, 'nid');
-    $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-    if ($scheme = $manager->getActiveScheme()) {
-      $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
-      $fields = $scheme->fields('node', $node->bundle());
-      $sections = $scheme->getEntityValues($node, $fields);
-      $tree = $manager->getActiveTree();
+    if ($entity = $this->getEntity($values)) {
+      $scheme = $this->scheme->getAccessScheme();
+      $sections = $scheme->getEntityValues($entity);
+      $tree = $scheme->getTree();
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
           if (isset($data[$id])) {
@@ -85,6 +103,15 @@ class Section extends FieldPluginBase {
       }
     }
     return '';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function calculateDependencies() {
+    $dependencies = [];
+    $dependencies[$this->scheme->getConfigDependencyKey()][] = $this->scheme->getConfigDependencyName();
+    return $dependencies;
   }
 
 }

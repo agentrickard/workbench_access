@@ -4,10 +4,13 @@ namespace Drupal\workbench_access\Plugin\views\filter;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\views\Plugin\views\filter\ManyToOne;
-use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\Views;
-use Drupal\views\ViewExecutable;
 use Drupal\views\ManyToOneHelper;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
+use Drupal\workbench_access\WorkbenchAccessManager;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Filter by assigned section.
@@ -19,13 +22,75 @@ use Drupal\views\ManyToOneHelper;
 class Section extends ManyToOne {
 
   /**
+   * Scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * Manager.
+   *
+   * @var \Drupal\workbench_access\WorkbenchAccessManagerInterface
+   */
+  protected $manager;
+
+  /**
+   * User storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
+   */
+  protected $userSectionStorage;
+
+  /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
-    parent::init($view, $display, $options);
-    $this->manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
-    $this->userSectionStorage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
-    $this->scheme = $this->manager->getActiveScheme();
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    /** @var self $instance */
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    return $instance
+      ->setScheme($container->get('entity_type.manager')->getStorage('access_scheme')->load($configuration['scheme']))
+      ->setManager($container->get('plugin.manager.workbench_access.scheme'))
+      ->setUserSectionStorage($container->get('workbench_access.user_section_storage'));
+  }
+
+  /**
+   * Sets manager.
+   *
+   * @param \Drupal\workbench_access\WorkbenchAccessManagerInterface $manager
+   *   Manager.
+   *
+   * @return $this
+   */
+  public function setManager(WorkbenchAccessManagerInterface $manager) {
+    $this->manager = $manager;
+    return $this;
+  }
+
+  /**
+   * Sets user section storage.
+   *
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $userSectionStorage
+   *   User section storage.
+   *
+   * @return $this
+   */
+  public function setUserSectionStorage(UserSectionStorageInterface $userSectionStorage) {
+    $this->userSectionStorage = $userSectionStorage;
+    return $this;
+  }
+
+  /**
+   * Sets access scheme.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   *
+   * @return $this
+   */
+  public function setScheme(AccessSchemeInterface $scheme) {
+    $this->scheme = $scheme;
+    return $this;
   }
 
   /**
@@ -37,14 +102,15 @@ class Section extends ManyToOne {
     }
     $this->valueOptions = [];
     if (!empty($this->scheme)) {
-      if ($this->manager->userInAll()) {
-        $list = $this->manager->getAllSections();
+      $scheme = $this->scheme->getAccessScheme();
+      if ($this->manager->userInAll($this->scheme)) {
+        $list = WorkbenchAccessManager::getAllSections($this->scheme, FALSE);
       }
       else {
-        $list = $this->userSectionStorage->getUserSections();
+        $list = $this->userSectionStorage->getUserSections($this->scheme);
       }
-      foreach($list as $id) {
-        if ($section = $this->manager->getElement($id)) {
+      foreach ($list as $id) {
+        if ($section = $scheme->load($id)) {
           $this->valueOptions[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
         }
       }
@@ -77,7 +143,7 @@ class Section extends ManyToOne {
   /**
    * {@inheritdoc}
    */
-  function operators() {
+  public function operators() {
     $operators = [
       'in' => [
         'title' => $this->t('Is one of'),
@@ -160,17 +226,17 @@ class Section extends ManyToOne {
     $helper = new ManyToOneHelper($this);
     // The 'All' selection must be filtered by user sections.
     if (empty($this->value) || strtolower(current($this->value)) == 'all') {
-      if ($this->manager->userInAll()) {
+      if ($this->manager->userInAll($this->scheme)) {
         return;
       }
       else {
         // This method will get all user sections and children.
-        $values = $this->userSectionStorage->getUserSections();
+        $values = $this->userSectionStorage->getUserSections($this->scheme);
       }
     }
     if (!empty($this->table)) {
       $alias = $this->query->ensureTable($this->table);
-      foreach ($this->scheme->getViewsJoin($this->table, $this->realField, $alias) as $configuration) {
+      foreach ($this->scheme->getAccessScheme()->getViewsJoin($this->getEntityType(), $this->realField, $alias) as $configuration) {
         // Allow subquery JOINs, which Menu uses.
         $type = 'standard';
         if (isset($configuration['left_query'])) {
@@ -182,16 +248,19 @@ class Section extends ManyToOne {
       }
       // If 'All' was not selected, fetch the query values.
       if (!isset($values)) {
-        if (!empty($this->options['section_filter']['show_hierarchy'])) {
-          $values = $this->getChildren();
-        }
-        else {
-          $values = $this->value;
-        }
+        $values = $this->value;
+      }
+      if (!empty($this->options['section_filter']['show_hierarchy'])) {
+        $values = $this->getChildren($values);
       }
       // If values, add our standard where clause.
       if (!empty($values)) {
-        $this->scheme->addWhere($this, $values);
+        if ($this->getEntityType() === 'user') {
+          $values = array_map(function ($item) {
+            return sprintf('%s:%s', $this->scheme->id(), $item);
+          }, $values);
+        }
+        $this->scheme->getAccessScheme()->addWhere($this, $values);
       }
       // Else add a failing where clause.
       else {
@@ -203,13 +272,16 @@ class Section extends ManyToOne {
   /**
    * Gets the child sections of a base section.
    *
+   * @param array $values
+   *   Defined or selected values.
+   *
    * @return array
    *   An array of section ids that this user may see.
    */
-  protected function getChildren() {
-    $tree = $this->manager->getActiveTree();
+  protected function getChildren(array $values) {
+    $tree = $this->scheme->getAccessScheme()->getTree();
     $children = [];
-    foreach ($this->value as $id) {
+    foreach ($values as $id) {
       foreach ($tree as $key => $data) {
         if ($id == $key) {
           $children += array_keys($data);
