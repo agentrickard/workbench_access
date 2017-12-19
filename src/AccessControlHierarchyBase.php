@@ -312,4 +312,11 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     return FALSE;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, ContentEntityInterface $entity) {
+    // Default implementation is empty.
+  }
+
 }

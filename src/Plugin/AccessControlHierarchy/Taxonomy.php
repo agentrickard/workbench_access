@@ -184,31 +184,34 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
-    $element = $field;
-    if (isset($element['widget']['#options'])) {
-      foreach ($element['widget']['#options'] as $id => $data) {
-        $sections = [$id];
-        if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
-          unset($element['widget']['#options'][$id]);
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, ContentEntityInterface $entity) {
+    foreach (array_column($this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle()), 'field') as $field) {
+      if (!isset($form[$field])) {
+        continue;
+      }
+      $element = &$form[$field];
+      if (isset($element['widget']['#options'])) {
+        foreach ($element['widget']['#options'] as $id => $data) {
+          $sections = [$id];
+          if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+            unset($element['widget']['#options'][$id]);
+          }
+        }
+      }
+      // Check for autocomplete fields. In this case, we replace the selection
+      // handler with our own, which likely breaks Views-based handlers, but
+      // that can be handled later. We swap out the default handler for our own,
+      // since we don't have another way to filter the autocomplete results.
+      // @TODO: test this against views-based handlers.
+      // @see \Drupal\workbench_access\Plugin\EntityReferenceSelection\TaxonomyHierarchySelection
+      else {
+        foreach ($element['widget'] as $key => $item) {
+          if (is_array($item) && isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
+            $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term:' . $scheme->id();
+          }
         }
       }
     }
-    // Check for autocomplete fields. In this case, we replace the selection
-    // handler with our own, which likely breaks Views-based handlers, but that
-    // can be handled later. We swap out the default handler for our own, since
-    // we don't have another way to filter the autocomplete results.
-    // @TODO: test this against views-based handlers.
-    // @see \Drupal\workbench_access\Plugin\EntityReferenceSelection\TaxonomyHierarchySelection
-    else {
-      foreach ($element['widget'] as $key => $item) {
-        if (is_array($item) && isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
-          $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term:' . $scheme->id();
-        }
-      }
-    }
-
-    return $element;
   }
 
   /**

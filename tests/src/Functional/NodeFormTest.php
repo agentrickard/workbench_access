@@ -34,8 +34,8 @@ class NodeFormTest extends BrowserTestBase {
     // Set up a content type, taxonomy field, and taxonomy scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
-    $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
+    $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     // Set up an editor and log in as them.
     $editor = $this->setUpEditorUser();
     $this->drupalLogin($editor);

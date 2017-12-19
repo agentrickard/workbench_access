@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\node\NodeTypeInterface;
@@ -123,16 +124,20 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []) {
-    $element = $field;
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, ContentEntityInterface $entity) {
+    if (!isset($form['menu'])) {
+      return;
+    }
+    $element = &$form['menu'];
     $menu_check = [];
+    $user_sections = $this->userSectionStorage->getUserSections($scheme);
     foreach ($element['link']['menu_parent']['#options'] as $id => $data) {
       // The menu value here prepends the menu name. Remove that.
       $parts = explode(':', $id);
       $menu = array_shift($parts);
       $sections = [implode(':', $parts)];
       // Remove unusable elements, except the existing parent.
-      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($sections, $user_sections, $this->getTree()))) {
+      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
         unset($element['link']['menu_parent']['#options'][$id]);
       }
       // Check for the root menu item.
@@ -143,7 +148,6 @@ class Menu extends AccessControlHierarchyBase {
         $menu_check[$menu] = TRUE;
       }
     }
-    return $element;
   }
 
   /**

@@ -89,15 +89,12 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param string $field
-   *   The field element from a node form.
-   * @param array $user_sections
-   *   The user sections.
-   *
-   * @return array
-   *   The field element, after restricting selection options.
+   * @param array $form
+   *   The content entry form to alter.
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   Content being edited.
    */
-  public function alterOptions(AccessSchemeInterface $scheme, $field, array $user_sections = []);
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, ContentEntityInterface $entity);
 
   /**
    * Gets any options that are set but cannot be changed by the editor.

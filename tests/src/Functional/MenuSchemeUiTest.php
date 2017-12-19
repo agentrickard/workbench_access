@@ -23,13 +23,6 @@ class MenuSchemeUiTest extends BrowserTestBase {
   protected $admin;
 
   /**
-   * Vocabulary.
-   *
-   * @var \Drupal\taxonomy\VocabularyInterface
-   */
-  protected $vocabulary;
-
-  /**
    * {@inheritdoc}
    */
   public static $modules = [
