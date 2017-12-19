@@ -4,8 +4,6 @@ namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Url;
-use Drupal\field\Entity\FieldConfig;
-use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
@@ -91,6 +89,7 @@ trait WorkbenchAccessTestTrait {
       'access administration pages',
       'create page content',
       'edit any page content',
+      'administer menu',
       'delete any page content',
     ], 'editor');
 
