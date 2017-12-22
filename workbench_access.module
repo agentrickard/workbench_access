@@ -278,3 +278,60 @@ function workbench_access_hidden_field(array $options_diff, AccessControlHierarc
   ];
   return $element;
 }
+
+/**
+ * Implements hook_element_info_alter().
+ */
+function workbench_access_element_info_alter(array &$info) {
+  if (isset($info['inline_entity_form'])) {
+    $info['inline_entity_form']['#process'][] = 'workbench_access_process_inline_entity_form';
+  }
+}
+
+/**
+ * Process callback.
+ */
+function workbench_access_process_inline_entity_form(array &$element, FormStateInterface $form_state, &$complete_form) {
+  $entity = $element['#entity'];
+  if (!$entity instanceof ContentEntityInterface) {
+    return $element;
+  }
+  $callback = FALSE;
+  /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
+  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
+    // If no access field is set, we do nothing.
+    $callback = TRUE;
+    $scheme = $access_scheme->getAccessScheme();
+    if (!$scheme->applies($entity->getEntityTypeId(), $entity->bundle())) {
+      continue;
+    }
+    // Load field data that can be edited.
+    $account = \Drupal::currentUser();
+    // If the user cannot access the form element or is a superuser, ignore.
+    if (!$account->hasPermission('bypass workbench access')) {
+      $scheme->alterForm($access_scheme, $element, $entity);
+      // Add the options hidden from the user silently to the form.
+      $options_diff = $scheme->disallowedOptions($element);
+      if (!empty($options_diff)) {
+        // @TODO: Potentially show this information to users with permission.
+        $complete_form['workbench_access_disallowed'] += [
+          '#tree' => TRUE,
+          $access_scheme->id() => workbench_access_hidden_field($options_diff, $scheme),
+        ];
+      }
+    }
+  }
+  if ($callback) {
+    // Call our submitEntity() method to merge in values.
+    // @todo Add tests for this.
+    $class = AccessControlHierarchyBase::class . '::submitEntity';
+    // Account for all the submit buttons on the form.
+    $buttons = ['submit', 'publish', 'unpublish'];
+    foreach ($buttons as $button) {
+      if (isset($form['actions'][$button]['#submit'])) {
+        array_unshift($complete_form['actions'][$button]['#submit'], $class);
+      }
+    }
+  }
+  return $element;
+}

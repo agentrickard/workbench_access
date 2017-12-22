@@ -164,6 +164,12 @@ class InlineEntityFormTest extends KernelTestBase implements FormInterface {
     // Add the staff role and check the option exists.
     $editor->addRole($staff_rid);
     $editor->save();
+    // We need to forcefully clear the user section storage cache.
+    $user_section = $this->container->get('workbench_access.user_section_storage');
+    $reflection = new \ReflectionClass($user_section);
+    $property = $reflection->getProperty('userSectionCache');
+    $property->setAccessible(TRUE);
+    $property->setValue($user_section, []);
     $markup = $this->getRenderedFormAsCrawler();
     $this->assertContains($staff_term->getName(), $markup->filter('option')->extract(['_text']));
   }
