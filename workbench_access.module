@@ -328,7 +328,7 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
     // Account for all the submit buttons on the form.
     $buttons = ['submit', 'publish', 'unpublish'];
     foreach ($buttons as $button) {
-      if (isset($form['actions'][$button]['#submit'])) {
+      if (isset($complete_form['actions'][$button]['#submit'])) {
         array_unshift($complete_form['actions'][$button]['#submit'], $class);
       }
     }
