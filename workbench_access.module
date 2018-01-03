@@ -71,7 +71,7 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
     $account = \Drupal::currentUser();
     // If the user cannot access the form element or is a superuser, ignore.
     if (!$account->hasPermission('bypass workbench access')) {
-      $form[$field] = $scheme->alterForm($access_scheme, $form, $entity);
+      $scheme->alterForm($access_scheme, $form, $entity);
       // Add the options hidden from the user silently to the form.
       $options_diff = $scheme->disallowedOptions($form[$field]);
       if (!empty($options_diff)) {
