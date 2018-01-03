@@ -15,6 +15,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\FormAlterHelper;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -48,7 +49,6 @@ function workbench_access_help($route_name, RouteMatchInterface $route_match) {
  * Restricts selection options for the node form.
  */
 function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
-  $manager = \Drupal::getContainer()->get('plugin.manager.workbench_access.scheme');
   $form_object = $form_state->getFormObject();
   if (!$form_object instanceof EntityForm) {
     return;
@@ -57,44 +57,7 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
   if (!$entity instanceof ContentEntityInterface) {
     return;
   }
-  $callback = FALSE;
-  /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
-  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
-    // If no access field is set, we do nothing.
-    $callback = TRUE;
-    $scheme = $access_scheme->getAccessScheme();
-    $field = $scheme->applies($entity->getEntityTypeId(), $entity->bundle());
-    if (empty($field)) {
-      return;
-    }
-    // Load field data that can be edited.
-    $account = \Drupal::currentUser();
-    // If the user cannot access the form element or is a superuser, ignore.
-    if (!$account->hasPermission('bypass workbench access')) {
-      $scheme->alterForm($access_scheme, $form, $entity);
-      // Add the options hidden from the user silently to the form.
-      $options_diff = $scheme->disallowedOptions($form[$field]);
-      if (!empty($options_diff)) {
-        // @TODO: Potentially show this information to users with permission.
-        $form['workbench_access_disallowed'] += [
-          '#tree' => TRUE,
-          $access_scheme->id() => workbench_access_hidden_field($options_diff, $scheme),
-        ];
-      }
-    }
-  }
-  if ($callback) {
-    // Call our submitEntity() method to merge in values.
-    // @todo Add tests for this.
-    $class = AccessControlHierarchyBase::class . '::submitEntity';
-    // Account for all the submit buttons on the node form.
-    $buttons = ['submit', 'publish', 'unpublish'];
-    foreach ($buttons as $button) {
-      if (isset($form['actions'][$button]['#submit'])) {
-        array_unshift($form['actions'][$button]['#submit'], $class);
-      }
-    }
-  }
+  \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($form, $form, $entity);
 }
 
 /**
@@ -261,25 +224,6 @@ function workbench_access_views_data_alter(array &$data) {
 }
 
 /**
- * Adds a hidden field that stored access information that cannot be edited.
- *
- * @param array $options_diff
- *   An array of section ids that cannot be edited by the current user.
- * @param Drupal\workbench_access\AccessControlHierarchyInterface $scheme
- *   The active access control scheme.
- *
- * @return array
- *   A form element.
- */
-function workbench_access_hidden_field(array $options_diff, AccessControlHierarchyInterface $scheme) {
-  $element = [
-    '#type' => 'value',
-    '#value' => $options_diff,
-  ];
-  return $element;
-}
-
-/**
  * Implements hook_element_info_alter().
  */
 function workbench_access_element_info_alter(array &$info) {
@@ -296,42 +240,5 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
   if (!$entity instanceof ContentEntityInterface) {
     return $element;
   }
-  $callback = FALSE;
-  /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
-  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
-    // If no access field is set, we do nothing.
-    $callback = TRUE;
-    $scheme = $access_scheme->getAccessScheme();
-    if (!$scheme->applies($entity->getEntityTypeId(), $entity->bundle())) {
-      continue;
-    }
-    // Load field data that can be edited.
-    $account = \Drupal::currentUser();
-    // If the user cannot access the form element or is a superuser, ignore.
-    if (!$account->hasPermission('bypass workbench access')) {
-      $scheme->alterForm($access_scheme, $element, $entity);
-      // Add the options hidden from the user silently to the form.
-      $options_diff = $scheme->disallowedOptions($element);
-      if (!empty($options_diff)) {
-        // @TODO: Potentially show this information to users with permission.
-        $complete_form['workbench_access_disallowed'] += [
-          '#tree' => TRUE,
-          $access_scheme->id() => workbench_access_hidden_field($options_diff, $scheme),
-        ];
-      }
-    }
-  }
-  if ($callback) {
-    // Call our submitEntity() method to merge in values.
-    // @todo Add tests for this.
-    $class = AccessControlHierarchyBase::class . '::submitEntity';
-    // Account for all the submit buttons on the form.
-    $buttons = ['submit', 'publish', 'unpublish'];
-    foreach ($buttons as $button) {
-      if (isset($complete_form['actions'][$button]['#submit'])) {
-        array_unshift($complete_form['actions'][$button]['#submit'], $class);
-      }
-    }
-  }
-  return $element;
+  return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $entity);
 }
