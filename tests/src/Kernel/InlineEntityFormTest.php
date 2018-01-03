@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\KernelTests\Core\Element;
+namespace Drupal\Tests\workbench_access\Kernel;
 
 use Drupal\Core\Form\FormInterface;
 use Drupal\Core\Form\FormStateInterface;
