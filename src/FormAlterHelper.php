@@ -5,6 +5,7 @@ namespace Drupal\workbench_access;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -55,14 +56,15 @@ class FormAlterHelper implements ContainerInjectionInterface {
    *   Element to alter. May be the whole form, or a sub-form.
    * @param array $complete_form
    *   Complete form.
-   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
-   *   Entity being edited.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Active form state data.
    *
    * @return array
    *   The altered element.
    */
-  public function alterForm(array &$element, array &$complete_form, ContentEntityInterface $entity) {
+  public function alterForm(array &$element, array &$complete_form, FormStateInterface $form_state) {
     $callback = FALSE;
+    $entity = $form_state->getFormObject()->getEntity();
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
       // If no access field is set, we do nothing.

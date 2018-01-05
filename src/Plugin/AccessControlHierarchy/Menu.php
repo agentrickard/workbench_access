@@ -2,7 +2,6 @@
 
 namespace Drupal\workbench_access\Plugin\AccessControlHierarchy;
 
-use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Menu\MenuLinkTreeInterface;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\node\NodeTypeInterface;
@@ -124,7 +123,7 @@ class Menu extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterForm(AccessSchemeInterface $scheme, array &$form, ContentEntityInterface $entity) {
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, FormStateInterface $form_state) {
     if (!isset($form['menu'])) {
       return;
     }
