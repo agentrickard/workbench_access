@@ -10,3 +10,5 @@ dependencies:
   - options
   - menu_ui
   - menu_link_content
+tests_dependencies:
+  - inline_entity_form:inline_entity_form
