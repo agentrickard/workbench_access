@@ -20,7 +20,7 @@ interface UserSectionStorageInterface {
    *   An array of section ids to assign to this user.
    *
    * @return \Drupal\Core\Session\AccountInterface $user
-   *  The saved user entity.
+   *   The saved user entity.
    */
   public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
 
@@ -35,7 +35,7 @@ interface UserSectionStorageInterface {
    *   An array of section ids to assign to this user.
    *
    * @return \Drupal\Core\Session\AccountInterface $user
-   *  The saved user entity.
+   *   The saved user entity.
    */
   public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
 
