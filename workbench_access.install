@@ -320,3 +320,13 @@ function workbench_access_update_7003() {
   }
   variable_set('workbench_access_taxonomy', $new);
 }
+
+/**
+ * Rebuild menu registry to properly sort menu trees.
+ */
+function workbench_access_update_7004() {
+  $scheme = variable_get('workbench_access');
+  if ($scheme == 'menu') {
+    menu_rebuild();
+  }
+}

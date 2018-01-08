@@ -182,10 +182,24 @@ function _workbench_access_menu_build_tree(&$tree, $link, $mlid = 0) {
   // menu_tree_all_data() returns a nested array, so if we don't start at the
   // top level of the tree, then we must check below links individually.
   if (!empty($link['below'])) {
+    // The elements of the 'below' sub-array are not sorted by weight.
+    uasort($link['below'], '_workbench_access_menu_sort');
     foreach ($link['below'] as $below) {
       _workbench_access_menu_build_tree($tree, $below, $mlid);
     }
   }
+}
+
+/**
+ * Sorts the menu tree by weight.
+ *
+ * @link https://www.drupal.org/project/workbench_access/issues/2933996
+ */
+function _workbench_access_menu_sort($a, $b) {
+  if ($a['link']['weight'] == $b['link']['weight']) {
+    return $a['link']['link_title'] > $b['link']['link_title'];
+  }
+  return $a['link']['weight'] > $b['link']['weight'];
 }
 
 /**
