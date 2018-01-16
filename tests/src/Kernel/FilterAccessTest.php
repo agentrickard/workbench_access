@@ -14,7 +14,7 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  *
  * @group workbench_access
  */
-class EntityTestAccessTest extends KernelTestBase {
+class FilterAccessTest extends KernelTestBase {
 
   use WorkbenchAccessTestTrait;
   use UserCreationTrait;
