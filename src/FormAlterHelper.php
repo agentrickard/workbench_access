@@ -76,7 +76,7 @@ class FormAlterHelper implements ContainerInjectionInterface {
       // Load field data that can be edited.
       // If the user cannot access the form element or is a superuser, ignore.
       if (!$this->currentUser->hasPermission('bypass workbench access')) {
-        $scheme->alterForm($access_scheme, $element, $entity);
+        $scheme->alterForm($access_scheme, $element, $form_state);
         // Add the options hidden from the user silently to the form.
         $options_diff = $scheme->disallowedOptions($element);
         if (!empty($options_diff)) {
