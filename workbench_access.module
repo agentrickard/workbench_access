@@ -119,9 +119,9 @@ function workbench_access_entity_access(EntityInterface $entity, $op, AccountInt
   // Return net result of all enabled access schemes. If one scheme allows
   // access, then it is granted.
   $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
-  return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResult $carry, AccessSchemeInterface $scheme) use ($manager, $entity, $op, $account) {
+  return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResult $carry, AccessSchemeInterface $scheme) use ($entity, $op, $account) {
     $carry->addCacheableDependency($scheme)->cachePerPermissions()->addCacheableDependency($entity);
-    return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account, $manager));
+    return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account));
   }, AccessResult::neutral());
 }
 
