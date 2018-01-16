@@ -8,7 +8,7 @@ use Drupal\workbench_access\UserSectionStorageInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Provides specific access control for the taxonomy_term entity type.
+ * Provides specific access control for the user entity type.
  *
  * @EntityReferenceSelection(
  *   id = "workbench_access:user",

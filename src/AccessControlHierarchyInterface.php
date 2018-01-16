@@ -74,15 +74,13 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *   The operation, e.g. update, delete.
    * @param \Drupal\Core\Session\AccountInterface $account
    *   The user requesting access to the node.
-   * @param WorkbenchAccessManagerInterface $manager
-   *   The access control manager.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
    *   An access result response. By design, this is either neutral or deny.
    *
-   * @see workbench_access_node_access()
+   * @see workbench_access_entity_access()
    */
-  public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account, WorkbenchAccessManagerInterface $manager);
+  public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account);
 
   /**
    * Alters the selection options provided for an access control field.
