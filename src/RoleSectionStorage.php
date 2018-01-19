@@ -16,6 +16,13 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   use DependencySerializationTrait;
 
   /**
+   * Section association storage service.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $sectionStorage;
+
+  /**
    * State.
    *
    * @var \Drupal\Core\State\StateInterface
@@ -40,13 +47,14 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   public function __construct(StateInterface $state, EntityTypeManagerInterface $entityTypeManager) {
     $this->state = $state;
     $this->roleStorage = $entityTypeManager->getStorage('user_role');
+    $this->sectionStorage = $entityTypeManager->getStorage('section_association');
   }
 
   /**
    * {@inheritdoc}
    */
   public function addRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
-    $settings = $this->loadRoleSections($scheme, $role_id);
+    $settings = $this->getRoles($scheme, $role_id);
     foreach ($sections as $id) {
       $settings[$id] = 1;
     }
@@ -57,7 +65,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * {@inheritdoc}
    */
   public function removeRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
-    $settings = $this->loadRoleSections($scheme, $role_id);
+    $settings = $this->getRoles($scheme, $role_id);
     foreach ($sections as $id) {
       if (isset($settings[$id])) {
         unset($settings[$id]);
@@ -72,7 +80,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   public function getRoleSections(AccessSchemeInterface $scheme, AccountInterface $account) {
     $sections = [];
     foreach ($account->getRoles() as $rid) {
-      $settings = $this->loadRoleSections($scheme, $rid);
+      $settings = $this->getRoles($scheme, $rid);
       $sections = array_merge($sections, array_keys($settings));
     }
     return $sections;
@@ -108,15 +116,12 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getRoles(AccessSchemeInterface $scheme, $id) {
-    $list = [];
-    $roles = $this->roleStorage->loadMultiple();
-    foreach ($roles as $rid => $role) {
-      $settings = $this->loadRoleSections($scheme, $rid);
-      if (!empty($settings[$id])) {
-        $list[$rid] = $role->label();
-      }
-    }
-    return $list;
+    $query = $this->sectionStorage->getAggregateQuery()
+      ->condition('section_scheme_id', $scheme->id())
+      ->condition('section_id', $id)
+      ->groupBy('role_id.target_id')->execute();
+    $roles = $this->roleStorage->loadMultiple(array_column($query, 'role_id__target_id'));
+    return $roles;
   }
 
   /**
@@ -130,21 +135,6 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   }
 
   /**
-   * Loads the saved role sections for a given role ID.
-   *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
-   *   Access scheme.
-   * @param string $role_id
-   *   The role ID.
-   *
-   * @return array
-   *   Sections for role.
-   */
-  protected function loadRoleSections(AccessSchemeInterface $scheme, $role_id) {
-    return $this->state->get(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $scheme->id() . '__' . $role_id, []);
-  }
-
-  /**
    * Saves the role sections for a given role ID.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
@@ -153,6 +143,8 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    *   The role ID.
    * @param array $settings
    *   Sections for the role.
+   *
+   * @TODO: refactor.
    */
   protected function saveRoleSections(AccessSchemeInterface $scheme, $role_id, array $settings = []) {
     return $this->state->set(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $scheme->id() . '__' . $role_id, $settings);
@@ -165,6 +157,8 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    *   Access scheme.
    * @param string $rid
    *   The role ID.
+   *
+   * @TODO: refactor.
    */
   protected function deleteRoleSections(AccessSchemeInterface $scheme, $rid) {
     return $this->state->delete(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $scheme->id() . '__' . $rid);

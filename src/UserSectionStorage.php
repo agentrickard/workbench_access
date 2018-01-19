@@ -13,6 +13,13 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
+   * Section association storage service.
+   *
+   * @var \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected $sectionStorage;
+
+  /**
    * User storage handler.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
@@ -52,12 +59,15 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager, AccountInterface $currentUser, RoleSectionStorageInterface $role_section_storage) {
     $this->userStorage = $entityTypeManager->getStorage('user');
+    $this->sectionStorage = $entityTypeManager->getStorage('section_association');
     $this->currentUser = $currentUser;
     $this->roleSectionStorage = $role_section_storage;
   }
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: refactor?
    */
   public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE) {
     // Get the information from the account.
@@ -80,6 +90,8 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: refactor.
    */
   public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     $entity = $this->userStorage->load($user_id);
@@ -92,6 +104,8 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: refactor.
    */
   public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     $entity = $this->userStorage->load($user_id);
@@ -110,11 +124,11 @@ class UserSectionStorage implements UserSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getEditors(AccessSchemeInterface $scheme, $id) {
-    $users = $this->userStorage->getQuery()
-      ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, sprintf('%s:%s', $scheme->id(), $id))
-      ->condition('status', 1)
-      ->sort('name')
-      ->execute();
+    $query = $this->sectionStorage->getAggregateQuery()
+      ->condition('section_scheme_id', $scheme->id())
+      ->condition('section_id', $id)
+      ->groupBy('user_id.target_id')->execute();
+    $users = $this->userStorage->loadMultiple(array_column($query, 'user_id__target_id'));
     return $this->filterByPermission($users);
   }
 
@@ -139,6 +153,8 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: Refactor.
    */
   public function flushUsers(AccessSchemeInterface $scheme) {
     $users = $this->userStorage->loadMultiple($this->userStorage->getQuery()
