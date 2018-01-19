@@ -8,35 +8,6 @@
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
- * Implements hook_install().
- *
- * Installs the default on users.
- *
- * @TODO: Can we do this via schema?
- */
-function workbench_access_install() {
-  // Assign domain access to bundles.
-  $list['user'] = 'user';
-  foreach ($list as $bundle => $entity_type) {
-    workbench_access_confirm_fields($entity_type, $bundle);
-  }
-}
-
-/**
- * Implements hook_uninstall().
- *
- * Removes access control fields on uninstall.
- */
-function workbench_access_uninstall() {
-  foreach (['user'] as $type) {
-    $id = $type . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
-    if ($field = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($id)) {
-      $field->delete();
-    }
-  }
-}
-
-/**
  * Add the setting to deny access to unassigned content.
  */
 function workbench_access_update_8001() {
