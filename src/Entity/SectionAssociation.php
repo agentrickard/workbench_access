@@ -18,10 +18,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *     "access" = "Drupal\workbench_access\SectionAssociationAccessControlHandler",
  *     "storage" = "Drupal\workbench_access\SectionAssociationStorage",
  *     "storage_schema" = "Drupal\workbench_access\SectionAssociationStorageSchema",
- *     "views_data" = "\Drupal\views\EntityViewsData",
- *     "form" = {
- *       "default" = "Drupal\workbench_access\SectionAssociationForm"
- *     }
+ *     "views_data" = "\Drupal\views\EntityViewsData"
  *   },
  *   admin_permission = "assign workbench access",
  *   base_table = "section_association",
