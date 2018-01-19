@@ -16,13 +16,14 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   bundle_label = @Translation("Section association"),
  *   handlers = {
  *     "access" = "Drupal\workbench_access\SectionAssociationAccessControlHandler",
- *     "storage" = "Drupal\workbench_access\SectionAssociationStorage",
  *     "storage_schema" = "Drupal\workbench_access\SectionAssociationStorageSchema",
  *     "views_data" = "\Drupal\views\EntityViewsData"
  *   },
  *   admin_permission = "assign workbench access",
  *   base_table = "section_association",
  *   data_table = "section_association_data",
+ *   revision_table = "section_association_revision",
+ *   revision_data_table = "section_association_revision_data",
  *   translatable = FALSE,
  *   entity_keys = {
  *     "id" = "id",
@@ -56,10 +57,11 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setSetting('target_type', 'user')
       ->setSetting('handler', 'default')
       ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+      ->setRevisionable(TRUE)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'author',
-        'weight' => -3,
+        'weight' => -2,
       ])
       ->setDisplayOptions('form', [
         'type' => 'entity_reference_autocomplete',
@@ -68,7 +70,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
           'size' => 60,
           'placeholder' => '',
         ],
-        'weight' => -3,
+        'weight' => -2,
       ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
@@ -80,6 +82,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setSetting('target_type', 'user_role')
       ->setSetting('handler', 'default')
       ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
+      ->setRevisionable(TRUE)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'string',
