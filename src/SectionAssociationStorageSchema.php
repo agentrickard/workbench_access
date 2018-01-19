@@ -22,8 +22,11 @@ class SectionAssociationStorageSchema extends SqlContentEntityStorageSchema {
       'section_id',
       'section_scheme_id',
     ];
-    $schema['section_association_data']['unique keys'] += [
-      'workbench_access_state__lookup' => $unique_keys,
+    $schema['section_association_field_data']['unique keys'] += [
+      'section_association_data__lookup' => $unique_keys,
+    ];
+    $schema['section_association_field_revision_data']['unique keys'] += [
+      'section_association_data__lookup' => $unique_keys,
     ];
 
     return $schema;

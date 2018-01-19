@@ -16,14 +16,13 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   bundle_label = @Translation("Section association"),
  *   handlers = {
  *     "access" = "Drupal\workbench_access\SectionAssociationAccessControlHandler",
- *     "storage_schema" = "Drupal\workbench_access\SectionAssociationStorageSchema",
  *     "views_data" = "\Drupal\views\EntityViewsData"
  *   },
  *   admin_permission = "assign workbench access",
  *   base_table = "section_association",
- *   data_table = "section_association_data",
+ *   data_table = "section_association_field_data",
  *   revision_table = "section_association_revision",
- *   revision_data_table = "section_association_revision_data",
+ *   revision_data_table = "section_association_field_revision_data",
  *   translatable = FALSE,
  *   entity_keys = {
  *     "id" = "id",
@@ -31,6 +30,9 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *     "revision" = "revision_id",
  *   }
  * )
+ *
+ * @internal
+ *   This entity is marked internal because it should not be used directly.
  */
 class SectionAssociation extends ContentEntityBase implements SectionAssociationInterface {
 
@@ -38,18 +40,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
-
-    // Standard field, used as unique if primary index.
-    $fields['id'] = BaseFieldDefinition::create('integer')
-      ->setLabel(t('ID'))
-      ->setDescription(t('The ID of the Section Association entity.'))
-      ->setReadOnly(TRUE);
-
-    // Standard field, unique outside of the scope of the current project.
-    $fields['uuid'] = BaseFieldDefinition::create('uuid')
-      ->setLabel(t('UUID'))
-      ->setDescription(t('The UUID of the Section Association entity.'))
-      ->setReadOnly(TRUE);
+    $fields = parent::baseFieldDefinitions($entity_type);
 
     // Assigned users.
     $fields['user_id'] = BaseFieldDefinition::create('entity_reference')
