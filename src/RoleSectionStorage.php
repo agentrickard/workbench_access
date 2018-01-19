@@ -52,6 +52,8 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: refactor.
    */
   public function addRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     $settings = $this->getRoles($scheme, $role_id);
@@ -63,6 +65,8 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: refactor.
    */
   public function removeRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     $settings = $this->getRoles($scheme, $role_id);
@@ -121,11 +125,14 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
       ->condition('section_id', $id)
       ->groupBy('role_id.target_id')->execute();
     $roles = $this->roleStorage->loadMultiple(array_column($query, 'role_id__target_id'));
+    // @TODO: filter by permission?
     return $roles;
   }
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: refactor.
    */
   public function flushRoles(AccessSchemeInterface $scheme) {
     $roles = $this->roleStorage->loadMultiple();

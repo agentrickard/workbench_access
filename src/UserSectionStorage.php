@@ -67,7 +67,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * {@inheritdoc}
    *
-   * @TODO: refactor?
+   * @TODO: refactor.
    */
   public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE) {
     // Get the information from the account.
