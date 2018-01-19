@@ -99,6 +99,16 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
+    $fields['section_scheme_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Section scheme type'))
+      ->setDescription(t('The type of access scheme being used.'))
+      ->setRequired(TRUE)
+      ->setSetting('max_length', EntityTypeInterface::ID_MAX_LENGTH);
+    $fields['section_id'] = BaseFieldDefinition::create('string')
+      ->setLabel(t('Section ID'))
+      ->setDescription(t('The id of the access section.'))
+      ->setRequired(TRUE)
+      ->setSetting('max_length', EntityTypeInterface::ID_MAX_LENGTH);
 
     return $fields;
   }
