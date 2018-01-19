@@ -5,6 +5,7 @@ namespace Drupal\workbench_access\Entity;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\Field\FieldStorageDefinitionInterface;
 
 /**
  * Defines the workbench_access SectionAssociation class.
@@ -57,6 +58,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setDescription(t('The Name of the associated user.'))
       ->setSetting('target_type', 'user')
       ->setSetting('handler', 'default')
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'author',
@@ -80,6 +82,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setDescription(t('The roles associated with this section.'))
       ->setSetting('target_type', 'user_role')
       ->setSetting('handler', 'default')
+      ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'string',
