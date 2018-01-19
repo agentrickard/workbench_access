@@ -28,6 +28,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
+ *     "revision" = "revision_id",
  *   }
  * )
  */
