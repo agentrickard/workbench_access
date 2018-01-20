@@ -14,4 +14,9 @@ use Drupal\Core\Entity\ContentEntityInterface;
  */
 interface SectionAssociationInterface extends ContentEntityInterface {
 
+  /**
+   * Returns the scheme id for the Section Association.
+   */
+  public function getSchemeId();
+
 }

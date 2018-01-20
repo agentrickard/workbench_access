@@ -56,11 +56,33 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * @TODO: refactor.
    */
   public function addRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
-    $settings = $this->getRoles($scheme, $role_id);
     foreach ($sections as $id) {
-      $settings[$id] = 1;
+      // @TODO: This is tortured logic and probably much easier to handle.
+      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+        $mew_values = [];
+        if ($values = $section_association->get('role_id')) {
+          foreach ($values as $delta => $value) {
+            $target = $value->getValue();
+            $new_values[] = $target['target_id'];
+          }
+          $new_values[] = $role_id;
+          $section_association->set('role_id', array_unique($new_values));
+        }
+        else {
+          $section_association->set('role_id', [$role_id]);
+        }
+        $section_association->setNewRevision();
+      }
+      else {
+        $values = [
+          'access_scheme' => $scheme->id(),
+          'section_id' => $id,
+          'role_id' => [$role_id],
+        ];
+        $section_association = $this->sectionStorage->create($values);
+      }
+      $section_association->save();
     }
-    $this->saveRoleSections($scheme, $role_id, $settings);
   }
 
   /**
@@ -69,13 +91,22 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * @TODO: refactor.
    */
   public function removeRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
-    $settings = $this->getRoles($scheme, $role_id);
     foreach ($sections as $id) {
-      if (isset($settings[$id])) {
-        unset($settings[$id]);
+      // @TODO: This is tortured logic and probably much easier to handle.
+      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+        $new_values = [];
+        if ($values = $section_association->get('role_id')) {
+          foreach ($values as $delta => $value) {
+            $target = $value->getValue();
+            if ($target['target_id'] != $role_id) {
+              $new_values[] = $target['target_id'];
+            }
+          }
+          $section_association->set('role_id', array_unique($new_values));
+        }
+        $section_association->save();
       }
     }
-    $this->saveRoleSections($scheme, $role_id, $settings);
   }
 
   /**
@@ -121,10 +152,10 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    */
   public function getRoles(AccessSchemeInterface $scheme, $id) {
     $query = $this->sectionStorage->getAggregateQuery()
-      ->condition('section_scheme_id', $scheme->id())
+      ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
       ->groupBy('role_id.target_id')->execute();
-    $roles = $this->roleStorage->loadMultiple(array_column($query, 'role_id__target_id'));
+    $roles = $this->roleStorage->loadMultiple(array_column($query, 'role_id_target_id'));
     // @TODO: filter by permission?
     return $roles;
   }
@@ -154,7 +185,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * @TODO: refactor.
    */
   protected function saveRoleSections(AccessSchemeInterface $scheme, $role_id, array $settings = []) {
-    return $this->state->set(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $scheme->id() . '__' . $role_id, $settings);
+
   }
 
   /**

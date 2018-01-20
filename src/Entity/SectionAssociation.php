@@ -17,6 +17,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   bundle_entity_type = "access_scheme",
  *   handlers = {
  *     "access" = "Drupal\workbench_access\SectionAssociationAccessControlHandler",
+ *     "storage" = "Drupal\workbench_access\SectionAssociationStorage",
  *     "views_data" = "\Drupal\views\EntityViewsData"
  *   },
  *   admin_permission = "assign workbench access",
@@ -103,6 +104,13 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setSetting('max_length', EntityTypeInterface::ID_MAX_LENGTH);
 
     return $fields;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getSchemeId() {
+    return $this->bundle();
   }
 
 }

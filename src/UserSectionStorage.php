@@ -125,7 +125,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   public function getEditors(AccessSchemeInterface $scheme, $id) {
     $query = $this->sectionStorage->getAggregateQuery()
-      ->condition('section_scheme_id', $scheme->id())
+      ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
       ->groupBy('user_id.target_id')->execute();
     $users = $this->userStorage->loadMultiple(array_column($query, 'user_id__target_id'));
