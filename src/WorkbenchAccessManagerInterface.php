@@ -9,6 +9,7 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
  * Defines an interface handling Workbench Access configuration.
  */
 interface WorkbenchAccessManagerInterface extends PluginManagerInterface {
+  // @TODO: Remove.
   const FIELD_NAME = 'field_workbench_access';
 
   /**
