@@ -75,8 +75,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $uid = $this->currentUser->id();
     }
     if (!isset($this->userSectionCache[$scheme->id()][$uid])) {
-      $user = $this->userStorage->load($uid);
-      $user_sections = $this->unformatAndFilterSections($scheme, array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value'));
+      $user_sections = $this->loadUserSections($scheme, $uid);
       // Merge in role data.
       if ($add_roles) {
         $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $user));
@@ -90,16 +89,55 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
+   */
+  public function loadUserSections(AccessSchemeInterface $scheme, $user_id) {
+    $query = $this->sectionStorage->getAggregateQuery()
+      ->condition('access_scheme', $scheme->id())
+      ->condition('user_id', $user_id)
+      ->groupBy('section_id')->execute();
+    $list = array_column($query, 'section_id');
+    // $list may return an array with a NULL element, which is not 'empty.'
+    if (current($list)) {
+      return $this->filterByPermission($list);
+    }
+    return [];
+  }
+
+  /**
+   * {@inheritdoc}
    *
    * @TODO: refactor.
    */
   public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
-    $entity = $this->userStorage->load($user_id);
-    $values = array_column($entity->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
-    $new = array_merge($values, $this->formatSections($scheme, $sections));
-    $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, $new);
-    $entity->save();
-    $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, $new);
+    foreach ($sections as $id) {
+      // @TODO: This is tortured logic and probably much easier to handle.
+      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+        $mew_values = [];
+        if ($values = $section_association->get('user_id')) {
+          foreach ($values as $delta => $value) {
+            $target = $value->getValue();
+            $new_values[] = $target['target_id'];
+          }
+          $new_values[] = $user_id;
+          $section_association->set('user_id', array_unique($new_values));
+        }
+        else {
+          $section_association->set('user_id', [$user_id]);
+        }
+        $section_association->setNewRevision();
+      }
+      else {
+        $values = [
+          'access_scheme' => $scheme->id(),
+          'section_id' => $id,
+          'user_id' => [$user_id],
+        ];
+        $new_values[] = $user_id;
+        $section_association = $this->sectionStorage->create($values);
+      }
+      $section_association->save();
+      $this->userSectionCache[$scheme->id()][$user_id] = $new_values;
+    }
   }
 
   /**
@@ -108,16 +146,23 @@ class UserSectionStorage implements UserSectionStorageInterface {
    * @TODO: refactor.
    */
   public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
-    $entity = $this->userStorage->load($user_id);
-    $values = array_column($entity->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
-    $new = array_flip($values);
-    $sections = $this->formatSections($scheme, $sections);
     foreach ($sections as $id) {
-      unset($new[$id]);
+      // @TODO: This is tortured logic and probably much easier to handle.
+      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+        $new_values = [];
+        if ($values = $section_association->get('user_id')) {
+          foreach ($values as $delta => $value) {
+            $target = $value->getValue();
+            if ($target['target_id'] != $user_id) {
+              $new_values[] = $target['target_id'];
+            }
+          }
+          $section_association->set('user_id', array_unique($new_values));
+        }
+        $section_association->save();
+      }
     }
-    $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_keys($new));
-    $entity->save();
-    $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, array_keys($new));
+    $this->userSectionCache[$scheme->id()][$user_id] = array_unique($new_values);
   }
 
   /**
@@ -128,8 +173,12 @@ class UserSectionStorage implements UserSectionStorageInterface {
       ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
       ->groupBy('user_id.target_id')->execute();
-    $users = $this->userStorage->loadMultiple(array_column($query, 'user_id__target_id'));
-    return $this->filterByPermission($users);
+    $list = array_column($query, 'user_id_target_id');
+    // $list may return an array with a NULL element, which is not 'empty.'
+    if (current($list)) {
+      return $this->filterByPermission($list);
+    }
+    return [];
   }
 
   /**
@@ -181,52 +230,15 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   protected function filterByPermission($users = []) {
     $list = [];
-    $entities = $this->userStorage->loadMultiple($users);
-    foreach ($entities as $account) {
-      if ($account->hasPermission('use workbench access')) {
-        $list[$account->id()] = $account->label();
+    if (!empty($users)) {
+      $entities = $this->userStorage->loadMultiple($users);
+      foreach ($entities as $account) {
+        if ($account->hasPermission('use workbench access')) {
+          $list[$account->id()] = $account->label();
+        }
       }
     }
     return $list;
-  }
-
-  /**
-   * Formats sections in {scheme_id}:{section_id} format.
-   *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
-   *   Access scheme.
-   * @param array $sections
-   *   Sections to format.
-   *
-   * @return array
-   *   Formatted sections.
-   */
-  protected function formatSections(AccessSchemeInterface $scheme, array $sections) {
-    return array_map(function ($section) use ($scheme) {
-      return sprintf('%s:%s', $scheme->id(), $section);
-    }, $sections);
-  }
-
-  /**
-   * Unformats sections from {scheme_id}:{section_id} format and filters.
-   *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
-   *   Access scheme.
-   * @param array $sections
-   *   Values to unformat and filter.
-   *
-   * @return array
-   *   Unformatted and filtered sections.
-   */
-  protected function unformatAndFilterSections(AccessSchemeInterface $scheme, array $sections) {
-    return array_reduce($sections, function ($carry, $section) use ($scheme) {
-      list($scheme_id, $section_id) = explode(':', $section, 2);
-      if ($scheme_id !== $scheme->id()) {
-        return $carry;
-      }
-      $carry[] = $section_id;
-      return $carry;
-    }, []);
   }
 
 }
