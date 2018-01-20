@@ -42,6 +42,7 @@ function workbench_access_drush_help($section) {
 
 /**
  * Installs the test configuration.
+ * @TODO: Refactor
  */
 function drush_workbench_access_test() {
   try {
@@ -157,6 +158,7 @@ function _workbench_access_create_node_storage() {
 
 /**
  * Sets up form display.
+ * @TODO: Refactor
  */
 function _workbench_access_form_display($entity_type, $bundle) {
   // Try loading the entity from configuration.

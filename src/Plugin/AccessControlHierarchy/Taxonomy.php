@@ -434,6 +434,7 @@ class Taxonomy extends AccessControlHierarchyBase {
 
   /**
    * {@inheritdoc}
+   * @TODO: Refactor
    */
   public function getViewsJoin($entity_type, $key, $alias = NULL) {
     if ($entity_type == 'user') {

@@ -205,6 +205,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: Refactor
    */
   protected function fieldsByEntityType($entity_type) {
     // User/users do not name the data table consistently.

@@ -74,6 +74,7 @@ function workbench_access_post_update_convert_role_storage_keys() {
 
 /**
  * Convert user storage.
+ * @TODO: Refactor
  */
 function workbench_access_post_update_convert_user_storage_keys(array &$sandbox) {
   $user_storage = \Drupal::entityTypeManager()->getStorage('user');

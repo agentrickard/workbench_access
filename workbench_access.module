@@ -23,7 +23,8 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  *
  * @deprecated to be removed before 8.x.1.0 - use
  *   \Drupal\workbench_access\WorkbenchAccessManagerInterface::FIELD_NAME
- *   instead.
+ *   instead until it is removed.
+ *
  */
 define('WORKBENCH_ACCESS_FIELD', 'field_workbench_access');
 
