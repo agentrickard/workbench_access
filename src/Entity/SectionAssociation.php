@@ -13,7 +13,8 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  * @ContentEntityType(
  *   id = "section_association",
  *   label = @Translation("Section association"),
- *   bundle_label = @Translation("Section association"),
+ *   bundle_label = @Translation("Access scheme"),
+ *   bundle_entity_type = "access_scheme",
  *   handlers = {
  *     "access" = "Drupal\workbench_access\SectionAssociationAccessControlHandler",
  *     "views_data" = "\Drupal\views\EntityViewsData"
@@ -27,7 +28,8 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
- *     "revision" = "revision_id",
+ *     "revision" = "vid",
+ *     "bundle" = "access_scheme",
  *   }
  * )
  *
@@ -50,6 +52,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setSetting('handler', 'default')
       ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setRevisionable(TRUE)
+      ->setTranslatable(FALSE)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'author',
@@ -75,6 +78,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setSetting('handler', 'default')
       ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setRevisionable(TRUE)
+      ->setTranslatable(FALSE)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'string',
@@ -91,15 +95,11 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
-    $fields['section_scheme_id'] = BaseFieldDefinition::create('string')
-      ->setLabel(t('Section scheme type'))
-      ->setDescription(t('The type of access scheme being used.'))
-      ->setRequired(TRUE)
-      ->setSetting('max_length', EntityTypeInterface::ID_MAX_LENGTH);
     $fields['section_id'] = BaseFieldDefinition::create('string')
       ->setLabel(t('Section ID'))
       ->setDescription(t('The id of the access section.'))
       ->setRequired(TRUE)
+      ->setTranslatable(FALSE)
       ->setSetting('max_length', EntityTypeInterface::ID_MAX_LENGTH);
 
     return $fields;
