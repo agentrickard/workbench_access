@@ -53,7 +53,7 @@ function workbench_access_update_8004() {
   $entity_manager = \Drupal::entityTypeManager();
   $update_manager = \Drupal::entityDefinitionUpdateManager();
 
-  // Install 'access_scheme' config entity.
+  // Install 'section_association' content entity.
   $entity_manager->clearCachedDefinitions();
   $type = $entity_manager->getDefinition('section_association');
   $update_manager->installEntityType($type);
