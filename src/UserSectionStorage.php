@@ -80,7 +80,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $user_sections = $this->loadUserSections($scheme, $uid);
       // Merge in role data.
       if ($add_roles) {
-        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage('user')->load($uid)));
+        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage->load($uid)));
       }
 
       $this->userSectionCache[$scheme->id()][$uid] = array_unique($user_sections);

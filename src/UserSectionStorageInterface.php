@@ -44,7 +44,7 @@ interface UserSectionStorageInterface {
    *   The section id.
    *
    * @return array
-   *   An array of user ids.
+   *   An array keyed user ids with values of user labels (names).
    */
   public function getEditors(AccessSchemeInterface $scheme, $id);
 
