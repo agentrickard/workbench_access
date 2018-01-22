@@ -13,13 +13,6 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
-   * Section association storage service.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $sectionStorage;
-
-  /**
    * User storage handler.
    *
    * @var \Drupal\Core\Entity\EntityStorageInterface
@@ -59,9 +52,18 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager, AccountInterface $currentUser, RoleSectionStorageInterface $role_section_storage) {
     $this->userStorage = $entityTypeManager->getStorage('user');
-    $this->sectionStorage = $entityTypeManager->getStorage('section_association');
     $this->currentUser = $currentUser;
+    $this->entityTypeManager = $entityTypeManager;
     $this->roleSectionStorage = $role_section_storage;
+  }
+
+  /**
+   * \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected function sectionStorage() {
+    // The entity build process takes place too early in the call stack and we
+    // have test fails if we add this to the __construct().
+    return $this->entityTypeManager->getStorage('section_association');
   }
 
   /**
@@ -78,7 +80,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $user_sections = $this->loadUserSections($scheme, $uid);
       // Merge in role data.
       if ($add_roles) {
-        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $user));
+        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage('user')->load($uid)));
       }
 
       $this->userSectionCache[$scheme->id()][$uid] = array_unique($user_sections);
@@ -91,7 +93,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    * {@inheritdoc}
    */
   public function loadUserSections(AccessSchemeInterface $scheme, $user_id) {
-    $query = $this->sectionStorage->getAggregateQuery()
+    $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
       ->condition('user_id', $user_id)
       ->groupBy('section_id')->execute();
@@ -111,7 +113,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     foreach ($sections as $id) {
       // @TODO: This is tortured logic and probably much easier to handle.
-      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+      if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
         $mew_values = [];
         if ($values = $section_association->get('user_id')) {
           foreach ($values as $delta => $value) {
@@ -133,7 +135,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
           'user_id' => [$user_id],
         ];
         $new_values[] = $user_id;
-        $section_association = $this->sectionStorage->create($values);
+        $section_association = $this->sectionStorage()->create($values);
       }
       $section_association->save();
       $this->userSectionCache[$scheme->id()][$user_id] = $new_values;
@@ -148,7 +150,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
     foreach ($sections as $id) {
       // @TODO: This is tortured logic and probably much easier to handle.
-      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+      if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
         $new_values = [];
         if ($values = $section_association->get('user_id')) {
           foreach ($values as $delta => $value) {
@@ -169,7 +171,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getEditors(AccessSchemeInterface $scheme, $id) {
-    $query = $this->sectionStorage->getAggregateQuery()
+    $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
       ->groupBy('user_id.target_id')->execute();

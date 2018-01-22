@@ -12,6 +12,8 @@ interface RoleSectionStorageInterface {
 
   /**
    * State prefix.
+   *
+   * @deprecated
    */
   const WORKBENCH_ACCESS_ROLES_STATE_PREFIX = 'workbench_access_roles_';
 
@@ -70,7 +72,7 @@ interface RoleSectionStorageInterface {
    *   The section id.
    *
    * @return array
-   *   An array of role ids.
+   *   An array of role objects with keys of role ids
    */
   public function getRoles(AccessSchemeInterface $scheme, $id);
 

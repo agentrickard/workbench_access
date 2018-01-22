@@ -16,13 +16,6 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   use DependencySerializationTrait;
 
   /**
-   * Section association storage service.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $sectionStorage;
-
-  /**
    * State.
    *
    * @var \Drupal\Core\State\StateInterface
@@ -46,8 +39,17 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    */
   public function __construct(StateInterface $state, EntityTypeManagerInterface $entityTypeManager) {
     $this->state = $state;
+    $this->entityTypeManager = $entityTypeManager;
     $this->roleStorage = $entityTypeManager->getStorage('user_role');
-    $this->sectionStorage = $entityTypeManager->getStorage('section_association');
+  }
+
+  /**
+   * \Drupal\Core\Entity\EntityStorageInterface
+   */
+  protected function sectionStorage() {
+    // The entity build process takes place too early in the call stack and we
+    // have test fails if we add this to the __construct().
+    return $this->entityTypeManager->getStorage('section_association');
   }
 
   /**
@@ -58,7 +60,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   public function addRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     foreach ($sections as $id) {
       // @TODO: This is tortured logic and probably much easier to handle.
-      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+      if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
         $mew_values = [];
         if ($values = $section_association->get('role_id')) {
           foreach ($values as $delta => $value) {
@@ -79,7 +81,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
           'section_id' => $id,
           'role_id' => [$role_id],
         ];
-        $section_association = $this->sectionStorage->create($values);
+        $section_association = $this->sectionStorage()->create($values);
       }
       $section_association->save();
     }
@@ -93,7 +95,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   public function removeRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     foreach ($sections as $id) {
       // @TODO: This is tortured logic and probably much easier to handle.
-      if ($section_association = $this->sectionStorage->loadSection($scheme->id(), $id)) {
+      if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
         $new_values = [];
         if ($values = $section_association->get('role_id')) {
           foreach ($values as $delta => $value) {
@@ -112,11 +114,13 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function getRoleSections(AccessSchemeInterface $scheme, AccountInterface $account) {
+  public function getRoleSections(AccessSchemeInterface $scheme, AccountInterface $account = NULL) {
     $sections = [];
-    foreach ($account->getRoles() as $rid) {
-      $settings = $this->getRoles($scheme, $rid);
-      $sections = array_merge($sections, array_keys($settings));
+    if ($account) {
+      foreach ($account->getRoles() as $rid) {
+        $settings = $this->getRoles($scheme, $rid);
+        $sections = array_merge($sections, array_keys($settings));
+      }
     }
     return $sections;
   }
@@ -151,7 +155,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getRoles(AccessSchemeInterface $scheme, $id) {
-    $query = $this->sectionStorage->getAggregateQuery()
+    $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
       ->groupBy('role_id.target_id')->execute();
