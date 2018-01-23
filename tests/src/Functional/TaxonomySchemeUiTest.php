@@ -141,3 +141,5 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
   }
 
 }
+
+wt workbench_access Drupal\\Tests\\workbench_access\\Functional\\TaxonomySchemeTest

@@ -91,6 +91,7 @@ trait WorkbenchAccessTestTrait {
       'edit any page content',
       'administer menu',
       'delete any page content',
+      'use workbench access',
     ], 'editor');
 
     return $this->createUserWithRole($editor_rid);

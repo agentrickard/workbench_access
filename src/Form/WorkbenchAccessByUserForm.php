@@ -77,7 +77,6 @@ class WorkbenchAccessByUserForm extends FormBase {
     $existing_editors = $this->userSectionStorage->getEditors($access_scheme, $id);
     $potential_editors = $this->userSectionStorage->getPotentialEditors($id);
 
-    $form['access_scheme'] = ['#type' => 'value', '#value' => $access_scheme];
     $form['existing_editors'] = ['#type' => 'value', '#value' => $existing_editors];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
 
@@ -169,8 +168,6 @@ class WorkbenchAccessByUserForm extends FormBase {
     $trigger = $form_state->getTriggeringElement();
     $existing_editors = $form_state->getValue('existing_editors');
     $section_id = $form_state->getValue('section_id');
-    // @TODO: validate the access scheme?
-    $access_scheme = $form_state->getValue('access_scheme');
 
     // Add new editors.
     if ($trigger['#name'] == 'add') {

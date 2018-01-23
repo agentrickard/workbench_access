@@ -69,12 +69,12 @@ class WorkbenchAccessByRoleForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $access_scheme = NULL, $id = NULL) {
+    $this->scheme = $access_scheme;
     $element = $access_scheme->getAccessScheme()->load($id);
     $existing_roles = $this->roleSectionStorage->getRoles($access_scheme, $id);
     $potential_roles = $this->roleSectionStorage->getPotentialRolesFiltered($id);
 
     $form['existing_roles'] = ['#type' => 'value', '#value' => $existing_roles];
-    $form['access_scheme'] = ['#type' => 'value', '#value' => $access_scheme];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
     if (!$existing_roles) {
       $text = $this->t('There are no roles assigned to the %label section.', ['%label' => $element['label']]);
@@ -110,17 +110,15 @@ class WorkbenchAccessByRoleForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $roles = $form_state->getValue('roles');
     $existing_roles = $form_state->getValue('existing_roles');
-    // @TODO: validate the access scheme?
-    $access_scheme = $form_state->getValue('access_scheme');
     $id = $form_state->getValue('section_id');
     foreach ($roles as $role_id => $value) {
       // Add role to section.
       if ($value && !isset($existing_roles[$role_id])) {
-        $this->roleSectionStorage->addRole($access_scheme, $role_id, [$id]);
+        $this->roleSectionStorage->addRole($this->scheme, $role_id, [$id]);
       }
       // Remove role from section.
       if (!$value && isset($existing_roles[$role_id])) {
-        $this->roleSectionStorage->removeRole($access_scheme, $role_id, [$id]);
+        $this->roleSectionStorage->removeRole($this->scheme, $role_id, [$id]);
       }
     }
   }

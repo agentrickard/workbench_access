@@ -101,7 +101,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setDescription(t('The id of the access section.'))
       ->setRequired(TRUE)
       ->setTranslatable(FALSE)
-      ->setSetting('max_length', EntityTypeInterface::ID_MAX_LENGTH);
+      ->setSetting('max_length', 255);
 
     return $fields;
   }

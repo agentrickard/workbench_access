@@ -101,7 +101,7 @@ class AccessByRoleFormTest extends BrowserTestBase {
     $expected = [$expected_role_id];
     $role_storage = $this->container->get('workbench_access.role_section_storage');
     $existing_roles = $role_storage->getRoles($scheme, $section_id);
-    $this->assertEquals($expected, array_keys($existing_roles));
+    $this->assertEquals($expected, $existing_roles);
   }
 
 }

@@ -72,7 +72,7 @@ interface RoleSectionStorageInterface {
    *   The section id.
    *
    * @return array
-   *   An array of role objects with keys of role ids
+   *   An array of role ids
    */
   public function getRoles(AccessSchemeInterface $scheme, $id);
 

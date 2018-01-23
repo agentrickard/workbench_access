@@ -84,6 +84,8 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
         $section_association = $this->sectionStorage()->create($values);
       }
       $section_association->save();
+      // @TODO: inject this service.
+      \Drupal::service('workbench_access.user_section_storage')->resetCache($scheme);
     }
   }
 
@@ -108,6 +110,8 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
         }
         $section_association->save();
       }
+      // @TODO: inject this service.
+      \Drupal::service('workbench_access.user_section_storage')->resetCache($scheme);
     }
   }
 
@@ -117,9 +121,9 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   public function getRoleSections(AccessSchemeInterface $scheme, AccountInterface $account = NULL) {
     $sections = [];
     if ($account) {
-      foreach ($account->getRoles() as $rid) {
-        $settings = $this->getRoles($scheme, $rid);
-        $sections = array_merge($sections, array_keys($settings));
+      $results = $this->sectionStorage()->loadByProperties(['role_id' => $account->getRoles(), 'access_scheme' => $scheme->id()]);
+      foreach ($results as $result) {
+        $sections[] = $result->get('section_id')->value;
       }
     }
     return $sections;
@@ -161,7 +165,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
       ->groupBy('role_id.target_id')->execute();
     $roles = $this->roleStorage->loadMultiple(array_column($query, 'role_id_target_id'));
     // @TODO: filter by permission?
-    return $roles;
+    return array_keys($roles);
   }
 
   /**

@@ -80,13 +80,13 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $user_sections = $this->loadUserSections($scheme, $uid);
       // Merge in role data.
       if ($add_roles) {
+        // In some tests, role data is loading from stale cache,
+        $this->userStorage->resetCache([$uid]);
         $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage->load($uid)));
       }
-
-      $this->userSectionCache[$scheme->id()][$uid] = array_unique($user_sections);
+      $this->userSectionCache[$scheme->id()][$uid] = $user_sections;
     }
     return $this->userSectionCache[$scheme->id()][$uid];
-
   }
 
   /**
@@ -98,11 +98,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       ->condition('user_id', $user_id)
       ->groupBy('section_id')->execute();
     $list = array_column($query, 'section_id');
-    // $list may return an array with a NULL element, which is not 'empty.'
-    if (current($list)) {
-      return $this->filterByPermission($list);
-    }
-    return [];
+    return $list;
   }
 
   /**
@@ -138,7 +134,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
         $section_association = $this->sectionStorage()->create($values);
       }
       $section_association->save();
-      $this->userSectionCache[$scheme->id()][$user_id] = $new_values;
+      $this->resetCache($scheme, $user_id);
     }
   }
 
@@ -164,7 +160,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
         $section_association->save();
       }
     }
-    $this->userSectionCache[$scheme->id()][$user_id] = array_unique($new_values);
+    $this->resetCache($scheme, $user_id);
   }
 
   /**
@@ -241,6 +237,18 @@ class UserSectionStorage implements UserSectionStorageInterface {
       }
     }
     return $list;
+  }
+
+  /**
+   * Reset the static cache from an external change.
+   */
+  public function resetCache(AccessSchemeInterface $scheme, $user_id = NULL) {
+    if ($user_id && isset($this->userSectionCache[$scheme->id()][$user_id])) {
+      unset($this->userSectionCache[$scheme->id()][$user_id]);
+    }
+    elseif (isset($this->userSectionCache[$scheme->id()])) {
+      unset($this->userSectionCache[$scheme->id()]);
+    }
   }
 
 }

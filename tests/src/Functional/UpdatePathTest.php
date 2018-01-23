@@ -60,7 +60,7 @@ class UpdatePathTest extends UpdatePathTestBase {
     $this->assertContains($term->id(), $sections);
     $roles = $role_storage->getRoles($scheme, $term->id());
     $this->assertNotEmpty($roles);
-    $this->assertEquals(['editors' => 'Editors'], $roles);
+    $this->assertEquals(['editors'], $roles);
     $views_data = $this->container->get('views.views_data')->getAll();
     $this->assertNotEmpty($views_data['node']['workbench_access_section']);
     $this->assertEquals('default', $views_data['node']['workbench_access_section']['field']['scheme']);

@@ -36,6 +36,8 @@ class NodeFormMenuTest extends BrowserTestBase {
     // Set up a content type and menu scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $scheme = $this->setUpMenuScheme(['page'], ['main']);
+    $user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $role_storage = \Drupal::service('workbench_access.role_section_storage');
     // Set up an editor and log in as them.
     $editor = $this->setUpEditorUser();
     $this->drupalLogin($editor);
@@ -59,34 +61,71 @@ class NodeFormMenuTest extends BrowserTestBase {
       'menu_name' => 'main',
     ]);
     $base_link->save();
-    $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $base_link->getPluginId();
-    $editor->save();
+
+    // Add the user to the base section.
+    $user_storage->addUser($scheme, $editor->id(), [$base_link->getPluginId()]);
+    $expected = [$editor->id()];
+    $existing_users = $user_storage->getEditors($scheme, $base_link->getPluginId());
+    $this->assertEquals($expected, array_keys($existing_users));
+
+    $expected = [$base_link->getPluginId()];
+    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $this->assertEquals($expected, $existing);
 
     $staff_rid = $this->createRole([], 'staff');
     $super_staff_rid = $this->createRole([], 'super_staff');
-    // Set the role -> term mapping.
-    \Drupal::service('workbench_access.role_section_storage')->addRole($scheme, $staff_rid, [$staff_link->getPluginId()]);
-    \Drupal::service('workbench_access.role_section_storage')->addRole($scheme, $super_staff_rid, [$super_staff_link->getPluginId()]);
+    // Set the role -> menu mapping. But don't add this user.
+    $role_storage->addRole($scheme, $staff_rid, [$staff_link->getPluginId()]);
+    $role_storage->addRole($scheme, $super_staff_rid, [$super_staff_link->getPluginId()]);
 
-    $web_assert = $this->assertSession();
+    $expected = [$base_link->getPluginId()];
+    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $this->assertEquals($expected, $existing);
+
     $this->drupalGet('node/add/page');
+    $web_assert = $this->assertSession();
 
-    // Assert we can't see the options yet.
+    $web_assert->optionExists('menu[menu_parent]', $base_link->label());
+
+    // Assert we can't see the other options yet.
     $web_assert->optionNotExists('menu[menu_parent]', $staff_link->label());
     $web_assert->optionNotExists('menu[menu_parent]', $super_staff_link->label());
 
     // Add the staff role and check the option exists.
     $editor->addRole($staff_rid);
     $editor->save();
+    $user_storage->resetCache($scheme, $editor->id());
+
+    $expected = [
+      $base_link->getPluginId(),
+      $staff_link->getPluginId(),
+    ];
+    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $this->assertEquals($expected, $existing);
+
     $this->drupalGet('node/add/page');
+    $web_assert->optionExists('menu[menu_parent]', $base_link->label());
     $web_assert->optionExists('menu[menu_parent]', $staff_link->label());
 
     // Add the super staff role and check both options exist.
     $editor->addRole($super_staff_rid);
     $editor->save();
+    $user_storage->resetCache($scheme, $editor->id());
+
+    $expected = [
+      $base_link->getPluginId(),
+      $staff_link->getPluginId(),
+      $super_staff_link->getPluginId(),
+    ];
+    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $this->assertEquals($expected, $existing);
+
     $this->drupalGet('node/add/page');
+    $web_assert->optionExists('menu[menu_parent]', $base_link->label());
     $web_assert->optionExists('menu[menu_parent]', $staff_link->label());
     $web_assert->optionExists('menu[menu_parent]', $super_staff_link->label());
   }
 
 }
+
+// wt workbench_access Drupal\\Tests\\workbench_access\\Functional\\NodeFormMenuTest
