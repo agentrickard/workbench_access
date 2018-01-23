@@ -127,5 +127,3 @@ class NodeFormMenuTest extends BrowserTestBase {
   }
 
 }
-
-// wt workbench_access Drupal\\Tests\\workbench_access\\Functional\\NodeFormMenuTest
