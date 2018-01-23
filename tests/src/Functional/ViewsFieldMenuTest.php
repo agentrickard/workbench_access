@@ -105,14 +105,30 @@ class ViewsFieldMenuTest extends BrowserTestBase {
       'access user profiles',
     ];
     $this->user = $this->createUser($permissions);
-    $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (MenuLinkContentInterface $link) {
+
+    $user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $scheme_storage = \Drupal::service('entity_type.manager')->getStorage('access_scheme');
+
+    $scheme = $scheme_storage->load('menu');
+
+    $ids = array_values(array_map(function (MenuLinkContentInterface $link) {
       return 'menu:' . $link->getPluginId();
-    }, $this->links)));
-    $this->user->save();
+    }, $this->links));
+    $user_storage->addUser($scheme, $this->user->id(), $ids);
+
+    // Check data loading.
+    $expected = sort($ids);
+    $existing = $user_storage->getUserSections($scheme, $this->user->id());
+    $this->assertEquals($expected, sort($existing));
 
     $this->user2 = $this->createUser($permissions);
-    $this->user2->set(WorkbenchAccessManagerInterface::FIELD_NAME, ['menu:' . reset($this->links)->getPluginId()]);
-    $this->user2->save();
+    $ids = ['menu:' . reset($this->links)->getPluginId()];
+    $user_storage->addUser($scheme, $this->user2->id(), $ids);
+
+    // Check data loading.
+    $expected = sort($ids);
+    $existing = $user_storage->getUserSections($scheme, $this->user2->id());
+    $this->assertEquals($expected, sort($existing));
   }
 
   /**
