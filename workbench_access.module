@@ -57,7 +57,7 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
   if (!$entity instanceof ContentEntityInterface) {
     return;
   }
-  \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($form, $form, $form_state);
+  \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($form, $form, $form_state, $entity);
 }
 
 /**
@@ -240,5 +240,5 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
   if (!$entity instanceof ContentEntityInterface) {
     return $element;
   }
-  return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $form_state);
+  return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $form_state, $entity);
 }

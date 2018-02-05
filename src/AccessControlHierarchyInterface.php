@@ -91,8 +91,10 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
    *   The content entry form to alter.
    * @param \Drupal\Core\Form\FormStateInterface
    *   Active form state data.
+   * @param \Drupal\Core\Entity\EntityInterface
+   *   The entity object that the form is modifying.
    */
-  public function alterForm(AccessSchemeInterface $scheme, array &$form, FormStateInterface $form_state);
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, FormStateInterface &$form_state, ContentEntityInterface $entity);
 
   /**
    * Gets any options that are set but cannot be changed by the editor.

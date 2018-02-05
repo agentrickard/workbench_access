@@ -315,7 +315,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   /**
    * {@inheritdoc}
    */
-  public function alterForm(AccessSchemeInterface $scheme, array &$form, FormStateInterface $form_state) {
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, FormStateInterface &$form_state, ContentEntityInterface $entity) {
     // Default implementation is empty.
   }
 

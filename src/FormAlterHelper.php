@@ -58,13 +58,17 @@ class FormAlterHelper implements ContainerInjectionInterface {
    *   Complete form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   Active form state data.
+   * @param \Drupal\Core\Entity\EntityInterface
+   *   The entity object that the form is modifying.
    *
    * @return array
    *   The altered element.
    */
-  public function alterForm(array &$element, array &$complete_form, FormStateInterface $form_state) {
+  public function alterForm(array &$element, array &$complete_form, FormStateInterface &$form_state, ContentEntityInterface $entity) {
     $callback = FALSE;
-    $entity = $form_state->getFormObject()->getEntity();
+    if (empty($entity)) {
+      $entity = $form_state->getFormObject()->getEntity();
+    }
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
       // If no access field is set, we do nothing.
@@ -76,7 +80,7 @@ class FormAlterHelper implements ContainerInjectionInterface {
       // Load field data that can be edited.
       // If the user cannot access the form element or is a superuser, ignore.
       if (!$this->currentUser->hasPermission('bypass workbench access')) {
-        $scheme->alterForm($access_scheme, $element, $form_state);
+        $scheme->alterForm($access_scheme, $element, $form_state, $entity);
         // Add the options hidden from the user silently to the form.
         $options_diff = $scheme->disallowedOptions($element);
         if (!empty($options_diff)) {

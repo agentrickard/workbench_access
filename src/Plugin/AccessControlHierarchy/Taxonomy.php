@@ -184,8 +184,7 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * {@inheritdoc}
    */
-  public function alterForm(AccessSchemeInterface $scheme, array &$form, FormStateInterface $form_state) {
-    $entity = $form_state->getFormObject()->getEntity();
+  public function alterForm(AccessSchemeInterface $scheme, array &$form, FormStateInterface &$form_state, ContentEntityInterface $entity) {
     foreach (array_column($this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle()), 'field') as $field) {
       if (!isset($form[$field])) {
         continue;
