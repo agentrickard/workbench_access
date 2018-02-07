@@ -162,6 +162,7 @@ class AccessScheme extends ConfigEntityBase implements AccessSchemeInterface, En
         'access_scheme' => $entity->id(),
       ]);
       $section_storage->delete($sections);
+      \Drupal::service('workbench_access.user_section_storage')->resetCache($entity);
     }
   }
 

@@ -84,6 +84,7 @@ class FlushTest extends KernelTestBase {
       'vid' => $this->vocabulary->id(),
       'name' => 'Some section',
     ]);
+    $section->save();
     $user = $this->createUser();
     $user->addRole($role);
     $user->save();
@@ -97,3 +98,5 @@ class FlushTest extends KernelTestBase {
   }
 
 }
+
+# wt workbench_access 'Drupal\Tests\workbench_access\Kernel\FlushTest'
