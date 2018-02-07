@@ -7,6 +7,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\user\Entity\User;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
  * Tests for the access by user form.

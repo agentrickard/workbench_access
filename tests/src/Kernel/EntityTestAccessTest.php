@@ -6,7 +6,7 @@ use Drupal\entity_test\Entity\EntityTest;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 

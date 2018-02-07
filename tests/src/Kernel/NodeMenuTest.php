@@ -8,7 +8,7 @@ use Drupal\system\Entity\Menu;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**

@@ -6,7 +6,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Plugin\views\field\Section;
 
 /**

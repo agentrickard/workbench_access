@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\workbench_access\Functional;
+namespace Drupal\Tests\workbench_access\Traits;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Url;
