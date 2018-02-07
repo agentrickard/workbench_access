@@ -98,9 +98,13 @@ function drush_workbench_access_test() {
  * Flushes assigned user permissions.
  */
 function drush_workbench_access_flush() {
+  $section_storage = \Drupal::entityTypeManager()->getStorage('section_association');
   foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $scheme) {
-    $scheme->delete();
+    $sections = $section_storage->loadByProperties([
+      'access_scheme' => $scheme->id(),
+    ]);
+    $section_storage->delete($sections);
   }
-  drush_print('User and role assignments cleared. Access schemes deleted.');
+  drush_print('User and role assignments cleared.');
 }
 
