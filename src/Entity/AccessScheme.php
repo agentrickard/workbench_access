@@ -155,9 +155,13 @@ class AccessScheme extends ConfigEntityBase implements AccessSchemeInterface, En
    */
   public static function postDelete(EntityStorageInterface $storage, array $entities) {
     parent::postDelete($storage, $entities);
+    // Delete all associated storage.
+    $section_storage = \Drupal::entityTypeManager()->getStorage('section_association');
     foreach ($entities as $entity) {
-      \Drupal::service('workbench_access.role_section_storage')->flushRoles($entity);
-      \Drupal::service('workbench_access.user_section_storage')->flushUsers($entity);
+      $sections = $section_storage->loadByProperties([
+        'access_scheme' => $entity->id(),
+      ]);
+      $section_storage->delete($sections);
     }
   }
 

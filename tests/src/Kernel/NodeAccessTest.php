@@ -60,9 +60,8 @@ class NodeAccessTest extends KernelTestBase {
     $this->installConfig(['filter', 'node', 'workbench_access']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
     $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();

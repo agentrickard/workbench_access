@@ -169,18 +169,6 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
-   *
-   * @TODO: refactor.
-   */
-  public function flushRoles(AccessSchemeInterface $scheme) {
-    $roles = $this->roleStorage->loadMultiple();
-    foreach ($roles as $rid => $role) {
-      $this->deleteRoleSections($scheme, $rid);
-    }
-  }
-
-  /**
    * Saves the role sections for a given role ID.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme

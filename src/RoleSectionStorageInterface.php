@@ -77,19 +77,6 @@ interface RoleSectionStorageInterface {
   public function getRoles(AccessSchemeInterface $scheme, $id);
 
   /**
-   * Removes all role assignments.
-   *
-   * This method should be triggered when changing access schemes. If possible,
-   * let the administrator choose to run this.
-   *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
-   *   Access scheme.
-   *
-   * @todo is this still used?
-   */
-  public function flushRoles(AccessSchemeInterface $scheme);
-
-  /**
    * Gets the sections assigned to a user by way of their roles.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme

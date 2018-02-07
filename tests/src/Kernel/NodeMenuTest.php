@@ -63,9 +63,8 @@ class NodeMenuTest extends KernelTestBase {
     $this->installConfig(['filter', 'node', 'workbench_access', 'system']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('menu_link_content');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
     $this->createContentType(['type' => 'article']);
     // This is created by system module.

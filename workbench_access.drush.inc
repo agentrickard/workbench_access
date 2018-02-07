@@ -98,10 +98,6 @@ function drush_workbench_access_test() {
  * Flushes assigned user permissions.
  */
 function drush_workbench_access_flush() {
-  $user_section_storage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
-  $role_section_storage = \Drupal::getContainer()->get('workbench_access.role_section_storage');
-  $role_section_storage->flushRoles();
-  $user_section_storage->flushUsers();
   foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $scheme) {
     $scheme->delete();
   }

@@ -200,31 +200,6 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: Refactor.
-   */
-  public function flushUsers(AccessSchemeInterface $scheme) {
-    $users = $this->userStorage->loadMultiple($this->userStorage->getQuery()
-      ->condition(WorkbenchAccessManagerInterface::FIELD_NAME, Database::getConnection()
-        ->escapeLike(sprintf('%s:', $scheme->id())) . '%', 'LIKE')
-      ->sort('name')
-      ->execute());
-    foreach ($users as $user) {
-      $values = array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
-      $updated_values = array_filter($values, function ($item) use ($scheme) {
-        list($scheme_id) = explode(':', $item, 2);
-        return $scheme_id !== $scheme->id();
-      });
-      if ($values !== $updated_values) {
-        $user->set(WorkbenchAccessManagerInterface::FIELD_NAME, $updated_values);
-        $user->save();
-      }
-    }
-    unset($this->userSectionCache[$scheme->id()]);
-  }
-
-  /**
-   * {@inheritdoc}
    */
   protected function filterByPermission($users = []) {
     $list = [];

@@ -35,6 +35,13 @@ class EntityTestAccessTest extends KernelTestBase {
   protected $scheme;
 
   /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $user_storage;
+
+  /**
    * {@inheritdoc}
    */
   protected static $modules = [
@@ -65,6 +72,7 @@ class EntityTestAccessTest extends KernelTestBase {
     entity_test_create_bundle('access_controlled');
     entity_test_create_bundle('not_access_controlled');
     $this->installConfig(['filter', 'entity_test', 'workbench_access']);
+    $this->installEntitySchema('access_scheme');
     $this->scheme = AccessScheme::create([
       'id' => 'editorial_section',
       'label' => 'Editorial section',
@@ -76,7 +84,7 @@ class EntityTestAccessTest extends KernelTestBase {
           [
             'entity_type' => 'entity_test',
             'bundle' => 'access_controlled',
-            'field' => 'field_workbench_access',
+            'field' => WorkbenchAccessManagerInterface::FIELD_NAME,
           ],
         ],
       ],
@@ -84,13 +92,13 @@ class EntityTestAccessTest extends KernelTestBase {
     $this->scheme->save();
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $this->vocabulary = $this->setUpVocabulary();
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('entity_test');
     $this->setUpTaxonomyFieldForEntityType('entity_test', 'access_controlled', $this->vocabulary->id());
+    $this->user_storage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -113,9 +121,11 @@ class EntityTestAccessTest extends KernelTestBase {
       'view test entity',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
+
     $permissions[] = 'bypass workbench access';
     $editor_with_bypass_access = $this->createUser($permissions);
 
@@ -144,8 +154,9 @@ class EntityTestAccessTest extends KernelTestBase {
       'view test entity',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
 
     // Test an entity that is not subject to access control.
