@@ -52,3 +52,4 @@ class UserSectionStorageUnitTest extends UnitTestCase {
   }
 
 }
+

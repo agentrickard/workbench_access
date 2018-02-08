@@ -135,4 +135,3 @@ class SectionCacheTest extends KernelTestBase {
   }
 
 }
-# wt workbench_access 'Drupal\Tests\workbench_access\Kernel\SectionCacheTest'
