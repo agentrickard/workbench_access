@@ -34,13 +34,6 @@ class SectionCacheTest extends KernelTestBase {
   protected $userSectionStorage;
 
   /**
-   * Access scheme.
-   *
-   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
-   */
-  protected $scheme;
-
-  /**
    * {@inheritdoc}
    */
   protected static $modules = [
@@ -52,6 +45,20 @@ class SectionCacheTest extends KernelTestBase {
     'options',
     'text',
   ];
+
+  /**
+   * Access control scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $user_storage;
 
   /**
    * {@inheritdoc}
@@ -77,6 +84,7 @@ class SectionCacheTest extends KernelTestBase {
       ],
     ]);
     $this->scheme->save();
+    $this->user_storage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -97,8 +105,8 @@ class SectionCacheTest extends KernelTestBase {
       'use workbench access',
     ];
     $editor = $this->createUser($permissions);
-    $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $this->scheme->id() . ':' . $term->id();
     $editor->save();
+    $this->user_storage->addUser($this->scheme, $editor->id(), [$term->id()]);
 
     // Now fetch the sections for this user. Count should be 1.
     $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
@@ -127,3 +135,4 @@ class SectionCacheTest extends KernelTestBase {
   }
 
 }
+# wt workbench_access 'Drupal\Tests\workbench_access\Kernel\SectionCacheTest'
