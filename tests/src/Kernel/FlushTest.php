@@ -98,5 +98,3 @@ class FlushTest extends KernelTestBase {
   }
 
 }
-
-# wt workbench_access 'Drupal\Tests\workbench_access\Kernel\FlushTest'

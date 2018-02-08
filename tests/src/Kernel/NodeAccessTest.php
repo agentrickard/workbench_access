@@ -52,6 +52,20 @@ class NodeAccessTest extends KernelTestBase {
   protected $accessHandler;
 
   /**
+   * Access control scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $user_storage;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -68,7 +82,8 @@ class NodeAccessTest extends KernelTestBase {
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('node');
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
-    $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $this->scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $this->user_storage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -94,8 +109,9 @@ class NodeAccessTest extends KernelTestBase {
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
     $editor_with_bypass_access = $this->createUser($permissions);
@@ -127,8 +143,9 @@ class NodeAccessTest extends KernelTestBase {
       'delete any page content',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
 
     // Test a node that is not assigned to a section. Both should be allowed

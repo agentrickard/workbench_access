@@ -28,7 +28,7 @@ class EntityTestAccessTest extends KernelTestBase {
   protected $vocabulary;
 
   /**
-   * Scheme.
+   * Access control scheme.
    *
    * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
    */
