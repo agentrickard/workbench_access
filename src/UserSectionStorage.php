@@ -135,6 +135,8 @@ class UserSectionStorage implements UserSectionStorageInterface {
       }
       $section_association->save();
       $this->resetCache($scheme, $user_id);
+      // Return the user object.
+      return $this->userStorage->load($user_id);
     }
   }
 
