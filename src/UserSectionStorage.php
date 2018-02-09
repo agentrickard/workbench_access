@@ -88,6 +88,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, $new);
     $entity->save();
     $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, $new);
+    return $entity;
   }
 
   /**
@@ -104,6 +105,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     $entity->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_keys($new));
     $entity->save();
     $this->userSectionCache[$scheme->id()][$user_id] = $this->unformatAndFilterSections($scheme, array_keys($new));
+    return $entity;
   }
 
   /**
