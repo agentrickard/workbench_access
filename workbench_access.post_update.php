@@ -97,3 +97,28 @@ function workbench_access_post_update_convert_user_storage_keys(array &$sandbox)
   $sandbox['#finished'] = empty($sandbox['ids']) ? 1 : ($sandbox['count'] - count($sandbox['ids'])) / $sandbox['count'];
   return t('Updated user assigments');
 }
+
+/**
+ * Transform existing data to new storage.
+ */
+function workbench_access_post_update_section_role_association(&$sandbox) {
+  $schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple();
+  $storage = \Drupal::service('workbench_access.role_section_storage');
+  $state = \Drupal::state();
+  foreach ($schemes as $scheme) {
+    foreach (\Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple() as $rid => $role) {
+      $potential_ids = [
+        RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid,
+        RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . 'default__' . $rid,
+      ];
+      foreach ($potential_ids as $key) {
+        if ($existing = $state->get($key, FALSE)) {
+          // Save the new roles.
+          $storage->addRole($scheme, $rid, array_values($existing));
+          // Delete the old storage.
+          $state->delete($key);
+        }
+      }
+    }
+  }
+}
