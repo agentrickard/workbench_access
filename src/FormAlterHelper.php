@@ -5,6 +5,7 @@ namespace Drupal\workbench_access;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -55,14 +56,19 @@ class FormAlterHelper implements ContainerInjectionInterface {
    *   Element to alter. May be the whole form, or a sub-form.
    * @param array $complete_form
    *   Complete form.
-   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
-   *   Entity being edited.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Active form state data.
+   * @param \Drupal\Core\Entity\EntityInterface
+   *   The entity object that the form is modifying.
    *
    * @return array
    *   The altered element.
    */
-  public function alterForm(array &$element, array &$complete_form, ContentEntityInterface $entity) {
+  public function alterForm(array &$element, array &$complete_form, FormStateInterface &$form_state, ContentEntityInterface $entity) {
     $callback = FALSE;
+    if (empty($entity)) {
+      $entity = $form_state->getFormObject()->getEntity();
+    }
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
       // If no access field is set, we do nothing.
@@ -74,7 +80,7 @@ class FormAlterHelper implements ContainerInjectionInterface {
       // Load field data that can be edited.
       // If the user cannot access the form element or is a superuser, ignore.
       if (!$this->currentUser->hasPermission('bypass workbench access')) {
-        $scheme->alterForm($access_scheme, $element, $entity);
+        $scheme->alterForm($access_scheme, $element, $form_state, $entity);
         // Add the options hidden from the user silently to the form.
         $options_diff = $scheme->disallowedOptions($element);
         if (!empty($options_diff)) {
