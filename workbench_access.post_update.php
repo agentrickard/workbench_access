@@ -99,7 +99,7 @@ function workbench_access_post_update_convert_user_storage_keys(array &$sandbox)
 }
 
 /**
- * Transform existing data to new storage.
+ * Transform existing role data to new storage.
  */
 function workbench_access_post_update_section_role_association(&$sandbox) {
   $schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple();
@@ -121,4 +121,37 @@ function workbench_access_post_update_section_role_association(&$sandbox) {
       }
     }
   }
+}
+
+/**
+ * Transform existing user data to new storage.
+ */
+function workbench_access_post_update_section_user_association(&$sandbox) {
+  $schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple();
+  $storage = \Drupal::service('workbench_access.user_section_storage');
+  $user_storage = \Drupal::entityTypeManager()->getStorage('user');
+  if (!isset($sandbox['ids'])) {
+    $sandbox['ids'] = $user_storage
+      ->getQuery()
+      ->exists(WorkbenchAccessManagerInterface::FIELD_NAME)
+      ->execute();
+    $sandbox['count'] = count($sandbox['ids']);
+  }
+  foreach (array_splice($sandbox['ids'], 0, 50) as $id) {
+    $user = $user_storage->load($id);
+    $existing = array_column($user->get(WorkbenchAccessManagerInterface::FIELD_NAME)->getValue(), 'value');
+    foreach ($schemes as $scheme_id => $scheme) {
+      $add_sections = [];
+      foreach ($existing as $item) {
+        $split = explode(':', $item);
+        if ($split[0] == $scheme_id) {
+          $add_sections[] = $split[1];
+        }
+      }
+    }
+    $storage->addUser($scheme, $id, $add_sections);
+  }
+
+  $sandbox['#finished'] = empty($sandbox['ids']) ? 1 : ($sandbox['count'] - count($sandbox['ids'])) / $sandbox['count'];
+  return t('Updated user assigments');
 }
