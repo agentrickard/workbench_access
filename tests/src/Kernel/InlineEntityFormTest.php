@@ -187,4 +187,12 @@ class InlineEntityFormTest extends KernelTestBase implements FormInterface {
     return new Crawler((string) $markup);
   }
 
+  /**
+   * Stub function for the getEntity() method of an entity form.
+   */
+  public function getEntity() {
+    // Just create a dummy page node.
+    return $this->createNode();
+  }
+
 }
