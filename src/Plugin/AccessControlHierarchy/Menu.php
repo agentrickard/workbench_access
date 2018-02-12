@@ -115,10 +115,24 @@ class Menu extends AccessControlHierarchyBase {
         $tree[$id][$link_id]['parents'] = [$id];
       }
       if (isset($link->subtree)) {
+        // The elements of the 'subtree' sub-array are not sorted by weight.
+        uasort($link->subtree, [$this, '_workbench_access_menu_sort']);
         $this->buildTree($id, $link->subtree, $tree);
       }
     }
     return $tree;
+  }
+
+  /**
+   * Sorts the menu tree by weight.
+   *
+   * @link https://www.drupal.org/project/workbench_access/issues/2933996
+   */
+  private function _workbench_access_menu_sort($a, $b) {
+    if ($a->link->getWeight() == $b->link->getWeight()) {
+      return $a->link->getTitle() > $b->link->getTitle();
+    }
+    return $a->link->getWeight() > $b->link->getWeight();
   }
 
   /**
