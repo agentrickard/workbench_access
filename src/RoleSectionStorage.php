@@ -159,11 +159,15 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getRoles(AccessSchemeInterface $scheme, $id) {
+    $roles = [];
     $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
       ->groupBy('role_id.target_id')->execute();
-    $roles = $this->roleStorage->loadMultiple(array_column($query, 'role_id_target_id'));
+    $rids = array_column($query, 'role_id_target_id');
+    if (!empty(current($rids))) {
+      $roles = $this->roleStorage->loadMultiple($rids);
+    }
     // @TODO: filter by permission?
     return array_keys($roles);
   }
