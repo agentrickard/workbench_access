@@ -152,12 +152,16 @@ function workbench_access_post_update_section_user_association(&$sandbox) {
     $storage->addUser($scheme, $id, $add_sections);
   }
 
-  // Delete the field.
+  $sandbox['#finished'] = empty($sandbox['ids']) ? 1 : ($sandbox['count'] - count($sandbox['ids'])) / $sandbox['count'];
+  return t('Updated user assigments');
+}
+
+/**
+ * Delete the old workbench_access field.
+ */
+function workbench_access_post_update_workbench_access_field_delete(&$sandbox) {
   $field_storage = \Drupal::entityTypeManager()->getStorage('field_config');
   if ($field = $field_storage->load(WorkbenchAccessManagerInterface::FIELD_NAME)) {
     $field->delete();
   }
-
-  $sandbox['#finished'] = empty($sandbox['ids']) ? 1 : ($sandbox['count'] - count($sandbox['ids'])) / $sandbox['count'];
-  return t('Updated user assigments');
 }

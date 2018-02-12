@@ -74,6 +74,9 @@ class UpdatePathTest extends UpdatePathTestBase {
     $field_storage = \Drupal::entityTypeManager()->getStorage('field_config');
     $field = $field_storage->load(WorkbenchAccessManagerInterface::FIELD_NAME);
     $this->assertEmpty($field);
+    $field_storage_config = \Drupal::entityTypeManager()->getStorage('field_storage_config');
+    $field = $field_storage_config->load(WorkbenchAccessManagerInterface::FIELD_NAME);
+    $this->assertEmpty($field);
   }
 
 }
