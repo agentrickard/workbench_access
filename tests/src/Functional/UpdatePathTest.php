@@ -3,6 +3,7 @@
 namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\FunctionalTests\Update\UpdatePathTestBase;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines a class for testing the update path to scheme based access.
@@ -68,6 +69,11 @@ class UpdatePathTest extends UpdatePathTestBase {
     $this->assertEquals('default', $views_data['users']['workbench_access_section']['field']['scheme']);
     $this->assertEquals('default', $views_data['users']['workbench_access_section']['filter']['scheme']);
     $this->assertNotEmpty($views_data['users']['workbench_access_section']);
+
+    // Ensure the field was deleted.
+    $field_storage = \Drupal::entityTypeManager()->getStorage('field_config');
+    $field = $field_storage->load(WorkbenchAccessManagerInterface::FIELD_NAME);
+    $this->assertEmpty($field);
   }
 
 }

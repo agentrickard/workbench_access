@@ -152,6 +152,12 @@ function workbench_access_post_update_section_user_association(&$sandbox) {
     $storage->addUser($scheme, $id, $add_sections);
   }
 
+  // Delete the field.
+  $field_storage = \Drupal::entityTypeManager()->getStorage('field_config');
+  if ($field = $field_storage->load(WorkbenchAccessManagerInterface::FIELD_NAME)) {
+    $field->delete();
+  }
+
   $sandbox['#finished'] = empty($sandbox['ids']) ? 1 : ($sandbox['count'] - count($sandbox['ids'])) / $sandbox['count'];
   return t('Updated user assigments');
 }
