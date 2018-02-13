@@ -108,6 +108,19 @@ class AccessByRoleFormTest extends BrowserTestBase {
     $editors = $page->findField('edit-editors');
     $web_assert->checkboxChecked('Staff', $editors);
     $web_assert->checkboxNotChecked('Super staff', $editors);
+
+    $page->uncheckField('Staff');
+    $page->pressButton('Submit');
+
+    $expected = [];
+    $role_storage = $this->container->get('workbench_access.role_section_storage');
+    $existing_roles = $role_storage->getRoles($scheme, $section_id);
+    $this->assertEquals($expected, $existing_roles);
+
+    $this->drupalGet(sprintf('/admin/config/workflow/workbench_access/editorial_section/sections/%s/roles', $section_id));
+    $editors = $page->findField('edit-editors');
+    $web_assert->checkboxNotChecked('Staff', $editors);
+    $web_assert->checkboxNotChecked('Super staff', $editors);
   }
 
 }
