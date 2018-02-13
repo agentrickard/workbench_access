@@ -121,6 +121,27 @@ class Section extends ManyToOne {
   /**
    * {@inheritdoc}
    */
+  protected function valueForm(&$form, FormStateInterface $form_state) {
+    parent::valueForm($form, $form_state);
+
+    if (!$form_state->get('exposed')) {
+      $this->helper->buildOptionsForm($form, $form_state);
+    }
+    else {
+      $options = $this->valueOptions;
+      $exposed_options = [];
+      foreach ($options as $key => $value) {
+        if (!isset($this->options['value']['all']) && !isset($this->options['value'][$key])) {
+          unset($options[$key]);
+        }
+      }
+      $form['value']['#options'] = $options;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   protected function defineOptions() {
     $options = parent::defineOptions();
 

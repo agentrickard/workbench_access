@@ -76,10 +76,6 @@ class ViewsData {
           we may need to do all of our computation there, with the exception
           of the base relationships.
         - However, if may be that the relationships require configuration.
-
-
-
-
       */
     }
     return $data;
