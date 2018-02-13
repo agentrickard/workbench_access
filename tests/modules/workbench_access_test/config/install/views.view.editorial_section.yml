@@ -188,7 +188,8 @@ display:
           group_type: group
           admin_label: ''
           operator: in
-          value: {  }
+          value:
+            all: all
           group: 1
           exposed: true
           expose:
@@ -206,7 +207,7 @@ display:
               anonymous: '0'
               administrator: '0'
               editor: '0'
-            reduce: 0
+            reduce: 1
           is_grouped: false
           group_info:
             label: ''

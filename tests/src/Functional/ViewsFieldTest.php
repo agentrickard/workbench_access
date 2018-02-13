@@ -7,6 +7,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\TermInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\workbench_access\Entity\AccessScheme;
 
 /**
  * Defines a class for testing workbench access views.
@@ -42,6 +43,13 @@ class ViewsFieldTest extends BrowserTestBase {
    * @var \Drupal\user\UserInterface
    */
   protected $user2;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $user_storage;
 
   /**
    * {@inheritdoc}
@@ -96,14 +104,19 @@ class ViewsFieldTest extends BrowserTestBase {
       'access user profiles',
     ];
     $this->user = $this->createUser($permissions);
-    $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (TermInterface $term) {
-      return 'editorial_section:' . $term->id();
-    }, $this->terms)));
     $this->user->save();
+    $this->user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $this->scheme = AccessScheme::load('editorial_section');
+
+    $values = array_values(array_map(function (TermInterface $term) {
+      return 'editorial_section:' . $term->id();
+    }, $this->terms));
+    $this->user_storage->addUser($this->scheme, $this->user->id(), $values);
 
     $this->user2 = $this->createUser($permissions);
-    $this->user2->set(WorkbenchAccessManagerInterface::FIELD_NAME, ['editorial_section:' . reset($this->terms)->id()]);
     $this->user2->save();
+    $values = ['editorial_section:' . reset($this->terms)->id()];
+    $this->user_storage->addUser($this->scheme, $this->user2->id(), $values);
   }
 
   /**

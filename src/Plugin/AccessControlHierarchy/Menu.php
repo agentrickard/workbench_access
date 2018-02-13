@@ -192,14 +192,15 @@ class Menu extends AccessControlHierarchyBase {
   public function getViewsJoin($entity_type, $key, $alias = NULL) {
     if ($entity_type == 'user') {
       $configuration['menu'] = [
-        'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
-        'field' => 'entity_id',
+        'table' => 'section_association__user_id',
+        'field' => 'user_id_target_id',
         'left_table' => 'users',
         'left_field' => $key,
         'operator' => '=',
-        'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
-        'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
+        'table_alias' => 'section_association__user_id',
+        'real_field' => 'user_id_target_id',
       ];
+      return $configuration;
     }
     else {
       $configuration['menu'] = [
