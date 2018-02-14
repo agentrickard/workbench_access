@@ -285,15 +285,15 @@ class Section extends ManyToOne {
       // @TODO: This is probably correct, because user data is stored with
       // differerent context than entity field data.
       if ($this->table == 'users') {
+        $new_values = [];
         $scheme = $this->scheme->getAccessScheme();
         foreach ($values as $id) {
           $section_storage = \Drupal::service('entity_type.manager')->getStorage('section_association');
-          $section = $scheme->load($id);
           if ($association = $section_storage->loadSection($this->scheme->id(), $id)) {
-            $id = $association->id();
+            $new_values[] = $association->id();
           }
-        #  $this->valueOptions[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
         }
+        $values = $new_values;
       }
       // If values, add our standard where clause.
       if (!empty($values)) {

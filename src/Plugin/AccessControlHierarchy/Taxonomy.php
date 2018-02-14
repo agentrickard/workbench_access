@@ -454,9 +454,6 @@ class Taxonomy extends AccessControlHierarchyBase {
     }), 'field');
     $table_prefix = $entity_type;
     $field_suffix = '_target_id';
-    if ($entity_type == 'user') {
-      $field_suffix = '_value';
-    }
     $configuration = [];
     foreach ($fields as $field) {
       $configuration[$field] = [
