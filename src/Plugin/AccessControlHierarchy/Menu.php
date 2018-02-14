@@ -198,7 +198,7 @@ class Menu extends AccessControlHierarchyBase {
         'left_field' => $key,
         'operator' => '=',
         'table_alias' => 'section_association__user_id',
-        'real_field' => 'user_id_target_id',
+        'real_field' => 'entity_id',
       ];
       return $configuration;
     }
