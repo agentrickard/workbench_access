@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access\Plugin\views\filter;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\views\Plugin\views\filter\ManyToOne;
 use Drupal\views\Views;
 use Drupal\views\ManyToOneHelper;
@@ -20,6 +21,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @ViewsFilter("workbench_access_section")
  */
 class Section extends ManyToOne {
+
+  use StringTranslationTrait;
 
   /**
    * Scheme.
@@ -119,20 +122,25 @@ class Section extends ManyToOne {
   }
 
   /**
-   * {@inheritdoc}
+   * Overrides \Drupal\views\Plugin\views\filter\ManyToOne::valueForm().
+   *
+   * Our options are user-based. Filter out any not allowed by the view
+   * configuration.
    */
   protected function valueForm(&$form, FormStateInterface $form_state) {
     parent::valueForm($form, $form_state);
-
     if (!$form_state->get('exposed')) {
       $this->helper->buildOptionsForm($form, $form_state);
     }
     else {
       $options = $this->valueOptions;
       $exposed_options = [];
-      foreach ($options as $key => $value) {
-        if (!isset($this->options['value']['all']) && !isset($this->options['value'][$key])) {
-          unset($options[$key]);
+      $empty = [0 => $this->t('All')];
+      if ($this->options['value'] != $empty && !isset($this->options['value']['all'])) {
+        foreach ($options as $key => $value) {
+          if (!isset($this->options['value'][$key])) {
+            unset($options[$key]);
+          }
         }
       }
       $form['value']['#options'] = $options;
@@ -274,13 +282,21 @@ class Section extends ManyToOne {
       if (!empty($this->options['section_filter']['show_hierarchy'])) {
         $values = $this->getChildren($values);
       }
+      // @TODO: This is probably correct, because user data is stored with
+      // differerent context than entity field data.
+      if ($this->table == 'users') {
+        $scheme = $this->scheme->getAccessScheme();
+        foreach ($values as $id) {
+          $section_storage = \Drupal::service('entity_type.manager')->getStorage('section_association');
+          $section = $scheme->load($id);
+          if ($association = $section_storage->loadSection($this->scheme->id(), $id)) {
+            $id = $association->id();
+          }
+        #  $this->valueOptions[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
+        }
+      }
       // If values, add our standard where clause.
       if (!empty($values)) {
-        if ($this->getEntityType() === 'user') {
-          $values = array_map(function ($item) {
-            return sprintf('%s:%s', $this->scheme->id(), $item);
-          }, $values);
-        }
         $this->scheme->getAccessScheme()->addWhere($this, $values);
       }
       // Else add a failing where clause.

@@ -102,6 +102,7 @@ class ViewsFieldTest extends BrowserTestBase {
       'delete any article content',
       'administer nodes',
       'access user profiles',
+      'use workbench access',
     ];
     $this->user = $this->createUser($permissions);
     $this->user->save();
@@ -109,13 +110,13 @@ class ViewsFieldTest extends BrowserTestBase {
     $this->scheme = AccessScheme::load('editorial_section');
 
     $values = array_values(array_map(function (TermInterface $term) {
-      return 'editorial_section:' . $term->id();
+      return $term->id();
     }, $this->terms));
     $this->user_storage->addUser($this->scheme, $this->user->id(), $values);
 
     $this->user2 = $this->createUser($permissions);
     $this->user2->save();
-    $values = ['editorial_section:' . reset($this->terms)->id()];
+    $values = [reset($this->terms)->id()];
     $this->user_storage->addUser($this->scheme, $this->user2->id(), $values);
   }
 
