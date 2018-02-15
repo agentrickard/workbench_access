@@ -13,13 +13,6 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
-   * User storage handler.
-   *
-   * @var \Drupal\Core\Entity\EntityStorageInterface
-   */
-  protected $userStorage;
-
-  /**
    * Static cache to prevent recalculation of sections for a user in a request.
    *
    * @var array
@@ -58,7 +51,6 @@ class UserSectionStorage implements UserSectionStorageInterface {
    *   Role section storage.
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager, AccountInterface $currentUser, RoleSectionStorageInterface $role_section_storage) {
-    $this->userStorage = $entityTypeManager->getStorage('user');
     $this->currentUser = $currentUser;
     $this->entityTypeManager = $entityTypeManager;
     $this->roleSectionStorage = $role_section_storage;
@@ -87,7 +79,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $user_sections = $this->loadUserSections($scheme, $uid);
       // Merge in role data.
       if ($add_roles) {
-        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage->load($uid)));
+        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage()->load($uid)));
       }
       $this->userSectionCache[$scheme->id()][$uid] = $user_sections;
     }
@@ -142,7 +134,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $this->resetCache($scheme, $user_id);
     }
     // Return the user object.
-    return $this->userStorage->load($user_id);
+    return $this->userStorage()->load($user_id);
   }
 
   /**
@@ -169,7 +161,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     }
     $this->resetCache($scheme, $user_id);
     // Return the user object.
-    return $this->userStorage->load($user_id);
+    return $this->userStorage()->load($user_id);
   }
 
   /**
@@ -192,7 +184,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getPotentialEditors($id) {
-    $query = $this->userStorage->getQuery();
+    $query = $this->userStorage()->getQuery();
     $users = $query
       ->condition('status', 1)
       ->sort('name')
@@ -213,7 +205,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   protected function filterByPermission($users = []) {
     $list = [];
     if (!empty($users)) {
-      $entities = $this->userStorage->loadMultiple($users);
+      $entities = $this->userStorage()->loadMultiple($users);
       foreach ($entities as $account) {
         if ($account->hasPermission('use workbench access')) {
           $list[$account->id()] = $account->label();
@@ -233,6 +225,16 @@ class UserSectionStorage implements UserSectionStorageInterface {
     elseif (isset($this->userSectionCache[$scheme->id()])) {
       unset($this->userSectionCache[$scheme->id()]);
     }
+  }
+
+  /**
+   * Gets user storage handler.
+   *
+   * @return \Drupal\Core\Entity\EntityStorageInterface
+   *   User storage.
+   */
+  protected function userStorage() {
+    return $this->entityTypeManager->getStorage('user');
   }
 
 }

@@ -37,8 +37,8 @@ class NodeFormMenuTest extends BrowserTestBase {
     // Set up a content type and menu scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $scheme = $this->setUpMenuScheme(['page'], ['main']);
-    $user_storage = \Drupal::service('workbench_access.user_section_storage');
-    $role_storage = \Drupal::service('workbench_access.role_section_storage');
+    $user_storage = $this->container->get('workbench_access.user_section_storage');
+    $role_storage = $this->container->get('workbench_access.role_section_storage');
 
     // Set up an editor and log in as them.
     $editor = $this->setUpEditorUser();
