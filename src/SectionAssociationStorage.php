@@ -3,11 +3,10 @@
 namespace Drupal\workbench_access;
 
 use Drupal\Core\Entity\Sql\SqlContentEntityStorage;
-use Drupal\workbench_access\Entity\AccessSchemeInterface;
-use Drupal\workbench_access\Entity\SectionAssociationInterface;
 
 /**
  * Defines section association storage.
+ *
  * @TODO: write the interface.
  */
 class SectionAssociationStorage extends SqlContentEntityStorage {

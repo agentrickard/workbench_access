@@ -16,7 +16,6 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -434,6 +433,7 @@ class Taxonomy extends AccessControlHierarchyBase {
 
   /**
    * {@inheritdoc}
+   *
    * @TODO: Refactor
    */
   public function getViewsJoin($entity_type, $key, $alias = NULL) {

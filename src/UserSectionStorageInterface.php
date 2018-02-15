@@ -19,7 +19,7 @@ interface UserSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this user.
    *
-   * @return \Drupal\Core\Session\AccountInterface $user
+   * @return \Drupal\Core\Session\AccountInterface
    *   The saved user entity.
    */
   public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
@@ -34,7 +34,7 @@ interface UserSectionStorageInterface {
    * @param array $sections
    *   An array of section ids to assign to this user.
    *
-   * @return \Drupal\Core\Session\AccountInterface $user
+   * @return \Drupal\Core\Session\AccountInterface
    *   The saved user entity.
    */
   public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
@@ -92,23 +92,5 @@ interface UserSectionStorageInterface {
    *   An array of section ids that the user is assigned to.
    */
   public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE);
-
-  /**
-   * Loads the raw editorial sections assigned to a user.
-   *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
-   *   Access scheme.
-   * @param int $user_id
-   *   The user id.
-   * @param bool $add_roles
-   *   Whether to add the role-based assignments to the user. Defaults to true.
-   *
-   * @return array
-   *   An array of section ids that the user is directly assigned to, not
-   *   including role-based assignments.
-   *
-   * @internal
-   */
-  public function loadUserSections(AccessSchemeInterface $scheme, $user_id);
 
 }

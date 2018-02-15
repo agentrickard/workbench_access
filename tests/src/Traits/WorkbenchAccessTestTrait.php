@@ -53,7 +53,7 @@ trait WorkbenchAccessTestTrait {
    * @param string $field_name
    *   Field name.
    *
-   * @return $field
+   * @return field
    *   The created field entity.
    */
   protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME) {

@@ -2,7 +2,6 @@
 
 namespace Drupal\workbench_access;
 
-use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -57,7 +56,10 @@ class UserSectionStorage implements UserSectionStorageInterface {
   }
 
   /**
-   * \Drupal\Core\Entity\EntityStorageInterface
+   * Gets section storage.
+   *
+   * @return \Drupal\Core\Entity\EntityStorageInterface
+   *   Section storage.
    */
   protected function sectionStorage() {
     // The entity build process takes place too early in the call stack and we
@@ -89,7 +91,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * {@inheritdoc}
    */
-  public function loadUserSections(AccessSchemeInterface $scheme, $user_id) {
+  protected function loadUserSections(AccessSchemeInterface $scheme, $user_id) {
     $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
       ->condition('user_id', $user_id)
@@ -173,7 +175,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       ->condition('section_id', $id)
       ->groupBy('user_id.target_id')->execute();
     $list = array_column($query, 'user_id_target_id');
-    // $list may return an array with a NULL element, which is not 'empty.'
+    // $list may return an array with a NULL element, which is not 'empty.'.
     if (current($list)) {
       return $this->filterByPermission($list);
     }
@@ -229,6 +231,10 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * Gets user storage handler.
+   *
+   * The entity build process takes place too early in the call stack so we
+   * end up with a stale reference to the user storage handler if we do this in
+   * the constructor.
    *
    * @return \Drupal\Core\Entity\EntityStorageInterface
    *   User storage.

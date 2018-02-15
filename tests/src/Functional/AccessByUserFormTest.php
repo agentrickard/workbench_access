@@ -5,7 +5,6 @@ namespace Drupal\Tests\workbench_access\Functional;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
-use Drupal\user\Entity\User;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 

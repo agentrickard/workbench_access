@@ -10,7 +10,6 @@ use Drupal\system\MenuInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
@@ -116,7 +115,7 @@ class Menu extends AccessControlHierarchyBase {
       }
       if (isset($link->subtree)) {
         // The elements of the 'subtree' sub-array are not sorted by weight.
-        uasort($link->subtree, [$this, '_workbench_access_menu_sort']);
+        uasort($link->subtree, [$this, 'sortTree']);
         $this->buildTree($id, $link->subtree, $tree);
       }
     }
@@ -125,10 +124,8 @@ class Menu extends AccessControlHierarchyBase {
 
   /**
    * Sorts the menu tree by weight.
-   *
-   * @link https://www.drupal.org/project/workbench_access/issues/2933996
    */
-  private function _workbench_access_menu_sort($a, $b) {
+  protected function sortTree($a, $b) {
     if ($a->link->getWeight() == $b->link->getWeight()) {
       return $a->link->getTitle() > $b->link->getTitle();
     }
@@ -187,6 +184,7 @@ class Menu extends AccessControlHierarchyBase {
 
   /**
    * {@inheritdoc}
+   *
    * @TODO: Refactor
    */
   public function getViewsJoin($entity_type, $key, $alias = NULL) {

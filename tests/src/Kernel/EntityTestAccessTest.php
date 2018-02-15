@@ -39,7 +39,7 @@ class EntityTestAccessTest extends KernelTestBase {
    *
    * @var \Drupal\workbench_access\UserSectionStorage
    */
-  protected $user_storage;
+  protected $userStorage;
 
   /**
    * {@inheritdoc}
@@ -98,7 +98,7 @@ class EntityTestAccessTest extends KernelTestBase {
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('entity_test');
     $this->setUpTaxonomyFieldForEntityType('entity_test', 'access_controlled', $this->vocabulary->id());
-    $this->user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -122,7 +122,7 @@ class EntityTestAccessTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
 
     $editor_with_no_access = $this->createUser($permissions);
 
@@ -155,7 +155,7 @@ class EntityTestAccessTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
 
     $editor_with_no_access = $this->createUser($permissions);
 

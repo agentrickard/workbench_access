@@ -8,7 +8,6 @@
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Implements hook_drush_command().
@@ -41,6 +40,7 @@ function workbench_access_drush_help($section) {
 
 /**
  * Installs the test vocabulary.
+ *
  * @TODO: Refactor
  */
 function drush_workbench_access_test() {
@@ -107,4 +107,3 @@ function drush_workbench_access_flush() {
   }
   drush_print('User and role assignments cleared.');
 }
-

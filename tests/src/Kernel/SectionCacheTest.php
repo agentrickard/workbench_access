@@ -7,7 +7,6 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Entity\AccessScheme;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Tests the internal caching of section data.
@@ -58,7 +57,7 @@ class SectionCacheTest extends KernelTestBase {
    *
    * @var \Drupal\workbench_access\UserSectionStorage
    */
-  protected $user_storage;
+  protected $userStorage;
 
   /**
    * {@inheritdoc}
@@ -84,7 +83,7 @@ class SectionCacheTest extends KernelTestBase {
       ],
     ]);
     $this->scheme->save();
-    $this->user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -106,7 +105,7 @@ class SectionCacheTest extends KernelTestBase {
     ];
     $editor = $this->createUser($permissions);
     $editor->save();
-    $this->user_storage->addUser($this->scheme, $editor->id(), [$term->id()]);
+    $this->userStorage->addUser($this->scheme, $editor->id(), [$term->id()]);
 
     // Now fetch the sections for this user. Count should be 1.
     $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());

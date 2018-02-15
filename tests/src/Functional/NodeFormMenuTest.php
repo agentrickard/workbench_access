@@ -4,7 +4,6 @@ namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\Tests\BrowserTestBase;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**

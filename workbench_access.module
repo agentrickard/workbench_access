@@ -12,11 +12,8 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\workbench_access\AccessControlHierarchyBase;
-use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\FormAlterHelper;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines the name of the node access control field.
@@ -24,7 +21,6 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  * @deprecated to be removed before 8.x.1.0 - use
  *   \Drupal\workbench_access\WorkbenchAccessManagerInterface::FIELD_NAME
  *   instead until it is removed.
- *
  */
 define('WORKBENCH_ACCESS_FIELD', 'field_workbench_access');
 

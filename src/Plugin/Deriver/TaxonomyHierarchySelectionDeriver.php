@@ -5,7 +5,6 @@ namespace Drupal\workbench_access\Plugin\Deriver;
 use Drupal\Component\Plugin\Derivative\DeriverBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Plugin\Discovery\ContainerDeriverInterface;
-use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -53,9 +52,7 @@ class TaxonomyHierarchySelectionDeriver extends DeriverBase implements Container
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $id => $scheme) {
       $this->derivatives[$id] = [
         'scheme' => $id,
-        'label' => new TranslatableMarkup($this->label, [
-          '@name' => $scheme->label(),
-        ]),
+        'label' => $scheme->label(),
       ] + $base_plugin_definition;
     }
     return $this->derivatives;

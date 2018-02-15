@@ -9,7 +9,6 @@ use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Tests workbench_access integration with node access via menu plugin.
@@ -67,7 +66,7 @@ class NodeMenuTest extends KernelTestBase {
    *
    * @var \Drupal\workbench_access\UserSectionStorage
    */
-  protected $user_storage;
+  protected $userStorage;
 
   /**
    * {@inheritdoc}
@@ -89,7 +88,7 @@ class NodeMenuTest extends KernelTestBase {
     $node_type->setThirdPartySetting('menu_ui', 'available_menus', ['main']);
     $node_type->save();
     $this->scheme = $this->setupMenuScheme([$node_type->id()], ['main']);
-    $this->user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -118,7 +117,7 @@ class NodeMenuTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$link->getPluginId()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$link->getPluginId()]);
 
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -161,7 +160,7 @@ class NodeMenuTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->user_storage->addUser($this->scheme, $allowed_editor->id(), [$link->getPluginId()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$link->getPluginId()]);
 
     $editor_with_no_access = $this->createUser($permissions);
 

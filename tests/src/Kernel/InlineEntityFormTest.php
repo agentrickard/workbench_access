@@ -14,7 +14,7 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
- * Tests workbench access with inline entity form
+ * Tests workbench access with inline entity form.
  *
  * @group workbench_access
  */

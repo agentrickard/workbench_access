@@ -6,7 +6,6 @@ use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\menu_link_content\MenuLinkContentInterface;
 use Drupal\node\Entity\Node;
 use Drupal\Tests\BrowserTestBase;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines a class for testing workbench access views.
@@ -141,8 +140,6 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     foreach ($this->links as $section => $link) {
       $row = $assert->elementExists('css', '.views-row:contains("' . $link->label() . '")');
       $assert->pageTextContains($section . ' node 1');
-      // The following line causes intermittent fails on Travis.
-      # $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
     }
     // Now filter the page.
     $this->drupalGet('admin/content/sections/menu', [
