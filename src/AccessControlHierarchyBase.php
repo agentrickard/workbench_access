@@ -205,22 +205,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: Refactor
-   */
-  protected function fieldsByEntityType($entity_type) {
-    // User/users do not name the data table consistently.
-    if ($entity_type == 'user' || $entity_type == 'users') {
-      return ['user' => WorkbenchAccessManagerInterface::FIELD_NAME];
-    }
-    else {
-      $fields = $this->config->get('fields');
-      return $fields[$entity_type];
-    }
-  }
-
-  /**
-   * {@inheritdoc}
    */
   public function disallowedOptions($field) {
     $options = [];
