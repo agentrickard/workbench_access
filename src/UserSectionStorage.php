@@ -72,29 +72,29 @@ class UserSectionStorage implements UserSectionStorageInterface {
    *
    * @TODO: refactor.
    */
-  public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE) {
+  public function getUserSections(AccessSchemeInterface $scheme, AccountInterface $account = NULL, $add_roles = TRUE) {
     // Get the information from the account.
-    if (is_null($uid)) {
-      $uid = $this->currentUser->id();
+    if (!$account) {
+      $account = $this->currentUser;
     }
-    if (!isset($this->userSectionCache[$scheme->id()][$uid])) {
-      $user_sections = $this->loadUserSections($scheme, $uid);
+    if (!isset($this->userSectionCache[$scheme->id()][$account->id()])) {
+      $user_sections = $this->loadUserSections($scheme, $account);
       // Merge in role data.
       if ($add_roles) {
-        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage()->load($uid)));
+        $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $account));
       }
-      $this->userSectionCache[$scheme->id()][$uid] = $user_sections;
+      $this->userSectionCache[$scheme->id()][$account->id()] = $user_sections;
     }
-    return $this->userSectionCache[$scheme->id()][$uid];
+    return $this->userSectionCache[$scheme->id()][$account->id()];
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function loadUserSections(AccessSchemeInterface $scheme, $user_id) {
+  protected function loadUserSections(AccessSchemeInterface $scheme, AccountInterface $account) {
     $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
-      ->condition('user_id', $user_id)
+      ->condition('user_id', $account->id())
       ->groupBy('section_id')->execute();
     $list = array_column($query, 'section_id');
     return $list;

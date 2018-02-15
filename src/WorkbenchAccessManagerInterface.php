@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access;
 
 use Drupal\Component\Plugin\PluginManagerInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
@@ -50,12 +51,12 @@ interface WorkbenchAccessManagerInterface extends PluginManagerInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param int $uid
-   *   An optional user id. If not provided, the active user is returned.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   Account being checked.
    *
    * @return bool
    *   TRUE if user is in all schemes.
    */
-  public function userInAll(AccessSchemeInterface $scheme, $uid = NULL);
+  public function userInAll(AccessSchemeInterface $scheme, AccountInterface $account = NULL);
 
 }

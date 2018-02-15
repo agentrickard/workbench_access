@@ -64,13 +64,13 @@ class NodeFormMenuTest extends BrowserTestBase {
     $base_link->save();
 
     // Add the user to the base section.
-    $user_storage->addUser($scheme, $editor->id(), [$base_link->getPluginId()]);
+    $user_storage->addUser($scheme, $editor, [$base_link->getPluginId()]);
     $expected = [$editor->id()];
     $existing_users = $user_storage->getEditors($scheme, $base_link->getPluginId());
     $this->assertEquals($expected, array_keys($existing_users));
 
     $expected = [$base_link->getPluginId()];
-    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $existing = $user_storage->getUserSections($scheme, $editor);
     $this->assertEquals($expected, $existing);
 
     $staff_rid = $this->createRole([], 'staff');
@@ -83,7 +83,7 @@ class NodeFormMenuTest extends BrowserTestBase {
 
     // Check data loading.
     $expected = [$base_link->getPluginId()];
-    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $existing = $user_storage->getUserSections($scheme, $editor);
     $this->assertEquals($expected, $existing);
 
     // Check form handling.
@@ -103,7 +103,7 @@ class NodeFormMenuTest extends BrowserTestBase {
       $base_link->getPluginId(),
       $staff_link->getPluginId(),
     ];
-    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $existing = $user_storage->getUserSections($scheme, $editor);
     $this->assertEquals($expected, $existing);
 
     $this->drupalGet('node/add/page');
@@ -121,7 +121,7 @@ class NodeFormMenuTest extends BrowserTestBase {
       $staff_link->getPluginId(),
       $super_staff_link->getPluginId(),
     ];
-    $existing = $user_storage->getUserSections($scheme, $editor->id());
+    $existing = $user_storage->getUserSections($scheme, $editor);
     $this->assertEquals($expected, $existing);
 
     $this->drupalGet('node/add/page');

@@ -105,10 +105,10 @@ class SectionCacheTest extends KernelTestBase {
     ];
     $editor = $this->createUser($permissions);
     $editor->save();
-    $this->userStorage->addUser($this->scheme, $editor->id(), [$term->id()]);
+    $this->userStorage->addUser($this->scheme, $editor, [$term->id()]);
 
     // Now fetch the sections for this user. Count should be 1.
-    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
+    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor);
     $this->assertTrue(count($sections) == 1);
 
     // Create a new section.
@@ -119,15 +119,15 @@ class SectionCacheTest extends KernelTestBase {
     $term2->save();
 
     // Add to the user.
-    $this->userSectionStorage->addUser($this->scheme, $editor->id(), [$term2->id()]);
+    $this->userSectionStorage->addUser($this->scheme, $editor, [$term2->id()]);
 
     // Now fetch the sections for this user. Count should be 2.
-    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
+    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor);
     $this->assertTrue(count($sections) == 2);
 
     // Now remove and test again.
-    $this->userSectionStorage->removeUser($this->scheme, $editor->id(), [$term2->id()]);
-    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
+    $this->userSectionStorage->removeUser($this->scheme, $editor, [$term2->id()]);
+    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor);
     $this->assertTrue(count($sections) == 1);
 
     $this->assertEquals([$editor->id() => $editor->label()], $this->userSectionStorage->getEditors($this->scheme, $term->id()));

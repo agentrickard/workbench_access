@@ -117,7 +117,7 @@ class NodeMenuTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$link->getPluginId()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$link->getPluginId()]);
 
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -160,7 +160,7 @@ class NodeMenuTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$link->getPluginId()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$link->getPluginId()]);
 
     $editor_with_no_access = $this->createUser($permissions);
 

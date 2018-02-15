@@ -90,10 +90,10 @@ class FlushTest extends KernelTestBase {
     $user->save();
     $roleStorage->addRole($this->scheme, $role, [$section->id()]);
     $this->assertEquals([$section->id()], $roleStorage->getRoleSections($this->scheme, $user));
-    $userStorage->addUser($this->scheme, $user->id(), [$section->id()]);
-    $this->assertEquals([$section->id()], $userStorage->getUserSections($this->scheme, $user->id(), FALSE));
+    $userStorage->addUser($this->scheme, $user, [$section->id()]);
+    $this->assertEquals([$section->id()], $userStorage->getUserSections($this->scheme, $user, FALSE));
     $this->scheme->delete();
-    $this->assertEmpty($userStorage->getUserSections($this->scheme, $user->id(), FALSE));
+    $this->assertEmpty($userStorage->getUserSections($this->scheme, $user, FALSE));
     $this->assertEmpty($roleStorage->getRoleSections($this->scheme, $user));
   }
 

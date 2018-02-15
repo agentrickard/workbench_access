@@ -110,7 +110,7 @@ class NodeAccessTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
 
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -144,7 +144,7 @@ class NodeAccessTest extends KernelTestBase {
     ];
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
-    $this->userStorage->addUser($this->scheme, $allowed_editor->id(), [$term->id()]);
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
 
     $editor_with_no_access = $this->createUser($permissions);
 

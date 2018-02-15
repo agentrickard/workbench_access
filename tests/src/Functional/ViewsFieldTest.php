@@ -65,6 +65,13 @@ class ViewsFieldTest extends BrowserTestBase {
   ];
 
   /**
+   * Access scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -111,12 +118,12 @@ class ViewsFieldTest extends BrowserTestBase {
     $values = array_values(array_map(function (TermInterface $term) {
       return $term->id();
     }, $this->terms));
-    $this->userStorage->addUser($this->scheme, $this->user->id(), $values);
+    $this->userStorage->addUser($this->scheme, $this->user, $values);
 
     $this->user2 = $this->createUser($permissions);
     $this->user2->save();
     $values = [reset($this->terms)->id()];
-    $this->userStorage->addUser($this->scheme, $this->user2->id(), $values);
+    $this->userStorage->addUser($this->scheme, $this->user2, $values);
   }
 
   /**

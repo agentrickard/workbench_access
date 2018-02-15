@@ -48,9 +48,9 @@ class UserSectionStorageUnitTest extends UnitTestCase {
     $role_section_storage->getRoleSections($scheme->reveal(), $user->reveal())->willReturn([]);
     $user_section_storage = new UserSectionStorage($entity_type_manager->reveal(), $user->reveal(), $role_section_storage->reveal());
     // First time, prime the cache.
-    $user_section_storage->getUserSections($scheme->reveal(), $testUserId);
+    $user_section_storage->getUserSections($scheme->reveal(), $user->reveal());
     // Second time, just return the result.
-    $user_section_storage->getUserSections($scheme->reveal(), $testUserId);
+    $user_section_storage->getUserSections($scheme->reveal(), $user->reveal());
   }
 
 }

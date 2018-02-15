@@ -191,7 +191,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     if (!$deny_on_empty && empty($entity_sections)) {
       return AccessResult::neutral();
     }
-    $user_sections = $this->userSectionStorage->getUserSections($scheme, $account->id());
+    $user_sections = $this->userSectionStorage->getUserSections($scheme, $account);
     if (empty($user_sections)) {
       return AccessResult::forbidden();
     }

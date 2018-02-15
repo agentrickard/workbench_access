@@ -56,7 +56,7 @@ class UpdatePathTest extends UpdatePathTestBase {
     $editors = $user_storage->getEditors($scheme, $term->id());
     $this->assertNotEmpty($editors);
     $this->assertEquals([$user->id() => 'robbo'], $editors);
-    $sections = $user_storage->getUserSections($scheme, $user->id());
+    $sections = $user_storage->getUserSections($scheme, $user);
     $this->assertNotEmpty($sections);
     $this->assertContains($term->id(), $sections);
     $roles = $role_storage->getRoles($scheme, $term->id());

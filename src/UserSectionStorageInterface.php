@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
@@ -14,30 +15,30 @@ interface UserSectionStorageInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param int $user_id
-   *   A user id.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   User to add to the section.
    * @param array $sections
    *   An array of section ids to assign to this user.
    *
    * @return \Drupal\Core\Session\AccountInterface
    *   The saved user entity.
    */
-  public function addUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
+  public function addUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []);
 
   /**
    * Removes a set of sections to a user.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param int $user_id
-   *   A user id.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   User to remove from the section.
    * @param array $sections
    *   An array of section ids to assign to this user.
    *
    * @return \Drupal\Core\Session\AccountInterface
    *   The saved user entity.
    */
-  public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []);
+  public function removeUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []);
 
   /**
    * Gets a list of editors assigned to a section.
@@ -83,14 +84,14 @@ interface UserSectionStorageInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param int $uid
-   *   An optional user id. If not provided, the active user is returned.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   An optional user. If not provided, the active user is returned.
    * @param bool $add_roles
    *   Whether to add the role-based assignments to the user. Defaults to true.
    *
    * @return array
    *   An array of section ids that the user is assigned to.
    */
-  public function getUserSections(AccessSchemeInterface $scheme, $uid = NULL, $add_roles = TRUE);
+  public function getUserSections(AccessSchemeInterface $scheme, AccountInterface $account = NULL, $add_roles = TRUE);
 
 }
