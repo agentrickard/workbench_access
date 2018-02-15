@@ -15,6 +15,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
  *   label = @Translation("Section association"),
  *   bundle_label = @Translation("Access scheme"),
  *   bundle_entity_type = "access_scheme",
+ *   internal = TRUE,
  *   handlers = {
  *     "access" = "Drupal\workbench_access\SectionAssociationAccessControlHandler",
  *     "storage" = "Drupal\workbench_access\SectionAssociationStorage",
