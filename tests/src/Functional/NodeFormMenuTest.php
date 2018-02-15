@@ -98,6 +98,7 @@ class NodeFormMenuTest extends BrowserTestBase {
     $editor->addRole($staff_rid);
     $editor->save();
     $user_storage->resetCache($scheme, $editor->id());
+    $this->container->get('entity_type.manager')->getStorage('user')->resetCache();
 
     $expected = [
       $base_link->getPluginId(),

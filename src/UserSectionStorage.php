@@ -41,6 +41,13 @@ class UserSectionStorage implements UserSectionStorageInterface {
   protected $roleSectionStorage;
 
   /**
+   * Entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
    * Constructs a new UserSectionStorage object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
@@ -80,8 +87,6 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $user_sections = $this->loadUserSections($scheme, $uid);
       // Merge in role data.
       if ($add_roles) {
-        // In some tests, role data is loading from stale cache,
-        $this->userStorage->resetCache([$uid]);
         $user_sections = array_merge($user_sections, $this->roleSectionStorage->getRoleSections($scheme, $this->userStorage->load($uid)));
       }
       $this->userSectionCache[$scheme->id()][$uid] = $user_sections;
