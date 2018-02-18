@@ -113,20 +113,20 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     $ids = array_values(array_map(function (MenuLinkContentInterface $link) {
       return $link->getPluginId();
     }, $this->links));
-    $user_storage->addUser($scheme, $this->user->id(), $ids);
+    $user_storage->addUser($scheme, $this->user, $ids);
 
     // Check data loading.
     $expected = sort($ids);
-    $existing = $user_storage->getUserSections($scheme, $this->user->id());
+    $existing = $user_storage->getUserSections($scheme, $this->user);
     $this->assertEquals($expected, sort($existing));
 
     $this->user2 = $this->createUser($permissions);
     $ids = [reset($this->links)->getPluginId()];
-    $user_storage->addUser($scheme, $this->user2->id(), $ids);
+    $user_storage->addUser($scheme, $this->user2, $ids);
 
     // Check data loading.
     $expected = sort($ids);
-    $existing = $user_storage->getUserSections($scheme, $this->user2->id());
+    $existing = $user_storage->getUserSections($scheme, $this->user2);
     $this->assertEquals($expected, sort($existing));
   }
 

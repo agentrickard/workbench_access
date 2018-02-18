@@ -150,7 +150,7 @@ function workbench_access_post_update_section_user_association(&$sandbox) {
         }
       }
     }
-    $storage->addUser($scheme, $id, $add_sections);
+    $storage->addUser($scheme, $user, $add_sections);
   }
 
   $sandbox['#finished'] = empty($sandbox['ids']) ? 1 : ($sandbox['count'] - count($sandbox['ids'])) / $sandbox['count'];

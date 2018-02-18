@@ -63,7 +63,7 @@ class NodeFormTest extends BrowserTestBase {
     $base_term->save();
 
     // Add the user to the base section.
-    $user_storage->addUser($scheme, $editor->id(), [$base_term->id()]);
+    $user_storage->addUser($scheme, $editor, [$base_term->id()]);
     $expected = [$editor->id()];
     $existing_users = $user_storage->getEditors($scheme, $base_term->id());
     $this->assertEquals($expected, array_keys($existing_users));

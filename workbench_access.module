@@ -97,7 +97,7 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
   $user_section_storage = \Drupal::service('workbench_access.user_section_storage');
   $forbidden = AccessResult::forbidden();
   $invalid_schemes = array_reduce($schemes, function ($carry, AccessSchemeInterface $scheme) use ($user_section_storage, $account, $forbidden) {
-    $sections = $user_section_storage->getUserSections($scheme, $account->id());
+    $sections = $user_section_storage->getUserSections($scheme, $account);
     if (!$sections) {
       $carry[] = $scheme->label();
     }
