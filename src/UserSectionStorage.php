@@ -144,7 +144,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    *
    * @TODO: refactor.
    */
-  public function removeUser(AccessSchemeInterface $scheme, $user_id, array $sections = []) {
+  public function removeUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []) {
     foreach ($sections as $id) {
       // @TODO: This is tortured logic and probably much easier to handle.
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
