@@ -115,11 +115,11 @@ class UserSectionStorage implements UserSectionStorageInterface {
             $target = $value->getValue();
             $new_values[] = $target['target_id'];
           }
-          $new_values[] = $user_id;
+          $new_values[] = $account->id();
           $section_association->set('user_id', array_unique($new_values));
         }
         else {
-          $section_association->set('user_id', [$user_id]);
+          $section_association->set('user_id', [$account->id()]);
         }
         $section_association->setNewRevision();
       }
@@ -127,16 +127,16 @@ class UserSectionStorage implements UserSectionStorageInterface {
         $values = [
           'access_scheme' => $scheme->id(),
           'section_id' => $id,
-          'user_id' => [$user_id],
+          'user_id' => [$account->id()],
         ];
-        $new_values[] = $user_id;
+        $new_values[] = $account->id();
         $section_association = $this->sectionStorage()->create($values);
       }
       $section_association->save();
-      $this->resetCache($scheme, $user_id);
+      $this->resetCache($scheme, $account->id());
     }
     // Return the user object.
-    return $this->userStorage()->load($user_id);
+    return $this->userStorage()->load($account->id());
   }
 
   /**
@@ -152,7 +152,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
         if ($values = $section_association->get('user_id')) {
           foreach ($values as $delta => $value) {
             $target = $value->getValue();
-            if ($target['target_id'] != $user_id) {
+            if ($target['target_id'] != $account->id()) {
               $new_values[] = $target['target_id'];
             }
           }
@@ -161,9 +161,9 @@ class UserSectionStorage implements UserSectionStorageInterface {
         $section_association->save();
       }
     }
-    $this->resetCache($scheme, $user_id);
+    $this->resetCache($scheme, $account->id());
     // Return the user object.
-    return $this->userStorage()->load($user_id);
+    return $this->userStorage()->load($account->id());
   }
 
   /**
