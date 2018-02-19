@@ -3,7 +3,6 @@
 namespace Drupal\workbench_access\Plugin\views\filter;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\views\Plugin\views\filter\ManyToOne;
 use Drupal\views\Views;
 use Drupal\views\ManyToOneHelper;
@@ -21,8 +20,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  * @ViewsFilter("workbench_access_section")
  */
 class Section extends ManyToOne {
-
-  use StringTranslationTrait;
 
   /**
    * Scheme.
