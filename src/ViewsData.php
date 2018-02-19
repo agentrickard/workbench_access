@@ -2,7 +2,6 @@
 
 namespace Drupal\workbench_access;
 
-use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\views\EntityViewsData;
 
 /**
@@ -11,8 +10,6 @@ use Drupal\views\EntityViewsData;
  * @internal
  */
 class ViewsData extends EntityViewsData {
-
-  use StringTranslationTrait;
 
   /**
    * Returns the views data.
