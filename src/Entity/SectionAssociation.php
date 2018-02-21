@@ -54,7 +54,6 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setSetting('handler', 'default')
       ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setRevisionable(TRUE)
-      ->setTranslatable(FALSE)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'author',
@@ -80,7 +79,6 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ->setSetting('handler', 'default')
       ->setCardinality(FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED)
       ->setRevisionable(TRUE)
-      ->setTranslatable(FALSE)
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'string',
