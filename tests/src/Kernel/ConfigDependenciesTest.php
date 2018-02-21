@@ -6,7 +6,7 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Plugin\views\field\Section;
 
 /**
@@ -65,8 +65,6 @@ class ConfigDependenciesTest extends KernelTestBase {
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
     $node_type2 = $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();

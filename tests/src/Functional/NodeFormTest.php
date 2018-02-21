@@ -5,6 +5,7 @@ namespace Drupal\Tests\workbench_access\Functional;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
  * Tests for the node form.
@@ -34,8 +35,11 @@ class NodeFormTest extends BrowserTestBase {
     // Set up a content type, taxonomy field, and taxonomy scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
-    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
+    $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
     $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
+    $user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $role_storage = \Drupal::service('workbench_access.role_section_storage');
+
     // Set up an editor and log in as them.
     $editor = $this->setUpEditorUser();
     $this->drupalLogin($editor);
@@ -57,8 +61,12 @@ class NodeFormTest extends BrowserTestBase {
       'name' => 'Editor',
     ]);
     $base_term->save();
-    $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $base_term->id();
-    $editor->save();
+
+    // Add the user to the base section.
+    $user_storage->addUser($scheme, $editor, [$base_term->id()]);
+    $expected = [$editor->id()];
+    $existing_users = $user_storage->getEditors($scheme, $base_term->id());
+    $this->assertEquals($expected, array_keys($existing_users));
 
     $staff_rid = $this->createRole([], 'staff');
     $super_staff_rid = $this->createRole([], 'super_staff');

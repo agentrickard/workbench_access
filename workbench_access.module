@@ -12,18 +12,15 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\workbench_access\AccessControlHierarchyBase;
-use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\FormAlterHelper;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines the name of the node access control field.
  *
  * @deprecated to be removed before 8.x.1.0 - use
  *   \Drupal\workbench_access\WorkbenchAccessManagerInterface::FIELD_NAME
- *   instead.
+ *   instead until it is removed.
  */
 define('WORKBENCH_ACCESS_FIELD', 'field_workbench_access');
 
@@ -58,58 +55,6 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
     return;
   }
   \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($form, $form, $form_state, $entity);
-}
-
-/**
- * Creates our fields for an entity bundle.
- *
- * @param string $entity_type
- *   The entity type being created. Users are supported.
- * @param string $bundle
- *   The bundle being created.
- */
-function workbench_access_confirm_fields($entity_type, $bundle) {
-  // We have reports that importing config causes this function to fail.
-  try {
-    $text = [
-      'user' => [
-        'type' => 'user',
-    // @TODO tie to config
-        'label' => 'Sections',
-        'description' => 'Assign the editorial sections that this user belongs to.',
-      ],
-      'node' => [
-        'type' => $bundle,
-      // @TODO tie to config
-        'label' => 'Sections',
-        'description' => 'The editorial section for this content.',
-      ],
-    ];
-    $id = $entity_type . '.' . $bundle . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
-
-    if (!$field = \Drupal::entityTypeManager()->getStorage('field_config')->load($id)) {
-      $field = [
-        'field_name' => WorkbenchAccessManagerInterface::FIELD_NAME,
-        'entity_type' => $entity_type,
-        'label' => $text[$entity_type]['label'],
-        'bundle' => $bundle,
-        'required' => FALSE,
-        'description' => $text[$entity_type]['description'],
-      ];
-      if ($entity_type == 'node') {
-        $field['settings']['handler_settings']['target_bundles'] = ['workbench_access' => 'workbench_access'];
-        $field['settings']['handler_settings']['auto_create'] = FALSE;
-        $field['settings']['handler_settings']['sort'] = ['field' => '_none'];
-      }
-      $field_config = \Drupal::entityTypeManager()->getStorage('field_config')->create($field);
-      $field_config->save();
-    }
-    // Installing without setting form display leaves the field hidden, which is
-    // what we want right now. @TODO: UI for user form.
-  }
-  catch (Exception $e) {
-    \Drupal::logger('workbench_access')->notice('Field installation failed.');
-  }
 }
 
 /**
@@ -152,7 +97,7 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
   $user_section_storage = \Drupal::service('workbench_access.user_section_storage');
   $forbidden = AccessResult::forbidden();
   $invalid_schemes = array_reduce($schemes, function ($carry, AccessSchemeInterface $scheme) use ($user_section_storage, $account, $forbidden) {
-    $sections = $user_section_storage->getUserSections($scheme, $account->id());
+    $sections = $user_section_storage->getUserSections($scheme, $account);
     if (!$sections) {
       $carry[] = $scheme->label();
     }

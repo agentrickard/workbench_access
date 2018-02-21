@@ -119,6 +119,32 @@ class Section extends ManyToOne {
   }
 
   /**
+   * Overrides \Drupal\views\Plugin\views\filter\ManyToOne::valueForm().
+   *
+   * Our options are user-based. Filter out any not allowed by the view
+   * configuration.
+   */
+  protected function valueForm(&$form, FormStateInterface $form_state) {
+    parent::valueForm($form, $form_state);
+    if (!$form_state->get('exposed')) {
+      $this->helper->buildOptionsForm($form, $form_state);
+    }
+    else {
+      $options = $this->valueOptions;
+      $exposed_options = [];
+      $empty = [0 => $this->t('All')];
+      if ($this->options['value'] != $empty && !isset($this->options['value']['all'])) {
+        foreach ($options as $key => $value) {
+          if (!isset($this->options['value'][$key])) {
+            unset($options[$key]);
+          }
+        }
+      }
+      $form['value']['#options'] = $options;
+    }
+  }
+
+  /**
    * {@inheritdoc}
    */
   protected function defineOptions() {
@@ -253,13 +279,21 @@ class Section extends ManyToOne {
       if (!empty($this->options['section_filter']['show_hierarchy'])) {
         $values = $this->getChildren($values);
       }
+      // @TODO: This is probably correct, because user data is stored with
+      // differerent context than entity field data.
+      if ($this->table == 'users') {
+        $new_values = [];
+        $scheme = $this->scheme->getAccessScheme();
+        foreach ($values as $id) {
+          $section_storage = \Drupal::service('entity_type.manager')->getStorage('section_association');
+          if ($association = $section_storage->loadSection($this->scheme->id(), $id)) {
+            $new_values[] = $association->id();
+          }
+        }
+        $values = $new_values;
+      }
       // If values, add our standard where clause.
       if (!empty($values)) {
-        if ($this->getEntityType() === 'user') {
-          $values = array_map(function ($item) {
-            return sprintf('%s:%s', $this->scheme->id(), $item);
-          }, $values);
-        }
         $this->scheme->getAccessScheme()->addWhere($this, $values);
       }
       // Else add a failing where clause.

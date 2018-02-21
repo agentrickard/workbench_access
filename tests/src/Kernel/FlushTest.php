@@ -7,7 +7,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
  * Defines a class for testing that deleting schemes flushes privileges.
@@ -59,9 +59,8 @@ class FlushTest extends KernelTestBase {
     $this->installConfig(['filter', 'node', 'workbench_access']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
     $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
@@ -85,15 +84,16 @@ class FlushTest extends KernelTestBase {
       'vid' => $this->vocabulary->id(),
       'name' => 'Some section',
     ]);
+    $section->save();
     $user = $this->createUser();
     $user->addRole($role);
     $user->save();
     $roleStorage->addRole($this->scheme, $role, [$section->id()]);
     $this->assertEquals([$section->id()], $roleStorage->getRoleSections($this->scheme, $user));
-    $userStorage->addUser($this->scheme, $user->id(), [$section->id()]);
-    $this->assertEquals([$section->id()], $userStorage->getUserSections($this->scheme, $user->id(), FALSE));
+    $userStorage->addUser($this->scheme, $user, [$section->id()]);
+    $this->assertEquals([$section->id()], $userStorage->getUserSections($this->scheme, $user, FALSE));
     $this->scheme->delete();
-    $this->assertEmpty($userStorage->getUserSections($this->scheme, $user->id(), FALSE));
+    $this->assertEmpty($userStorage->getUserSections($this->scheme, $user, FALSE));
     $this->assertEmpty($roleStorage->getRoleSections($this->scheme, $user));
   }
 

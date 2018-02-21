@@ -6,7 +6,6 @@ use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\menu_link_content\MenuLinkContentInterface;
 use Drupal\node\Entity\Node;
 use Drupal\Tests\BrowserTestBase;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines a class for testing workbench access views.
@@ -105,14 +104,30 @@ class ViewsFieldMenuTest extends BrowserTestBase {
       'access user profiles',
     ];
     $this->user = $this->createUser($permissions);
-    $this->user->set(WorkbenchAccessManagerInterface::FIELD_NAME, array_values(array_map(function (MenuLinkContentInterface $link) {
-      return 'menu:' . $link->getPluginId();
-    }, $this->links)));
-    $this->user->save();
+
+    $user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $scheme_storage = \Drupal::service('entity_type.manager')->getStorage('access_scheme');
+
+    $scheme = $scheme_storage->load('menu');
+
+    $ids = array_values(array_map(function (MenuLinkContentInterface $link) {
+      return $link->getPluginId();
+    }, $this->links));
+    $user_storage->addUser($scheme, $this->user, $ids);
+
+    // Check data loading.
+    $expected = sort($ids);
+    $existing = $user_storage->getUserSections($scheme, $this->user);
+    $this->assertEquals($expected, sort($existing));
 
     $this->user2 = $this->createUser($permissions);
-    $this->user2->set(WorkbenchAccessManagerInterface::FIELD_NAME, ['menu:' . reset($this->links)->getPluginId()]);
-    $this->user2->save();
+    $ids = [reset($this->links)->getPluginId()];
+    $user_storage->addUser($scheme, $this->user2, $ids);
+
+    // Check data loading.
+    $expected = sort($ids);
+    $existing = $user_storage->getUserSections($scheme, $this->user2);
+    $this->assertEquals($expected, sort($existing));
   }
 
   /**
@@ -125,8 +140,6 @@ class ViewsFieldMenuTest extends BrowserTestBase {
     foreach ($this->links as $section => $link) {
       $row = $assert->elementExists('css', '.views-row:contains("' . $link->label() . '")');
       $assert->pageTextContains($section . ' node 1');
-      // The following line causes intermittent fails on Travis.
-      # $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
     }
     // Now filter the page.
     $this->drupalGet('admin/content/sections/menu', [

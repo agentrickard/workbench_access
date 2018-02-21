@@ -191,7 +191,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
     if (!$deny_on_empty && empty($entity_sections)) {
       return AccessResult::neutral();
     }
-    $user_sections = $this->userSectionStorage->getUserSections($scheme, $account->id());
+    $user_sections = $this->userSectionStorage->getUserSections($scheme, $account);
     if (empty($user_sections)) {
       return AccessResult::forbidden();
     }
@@ -201,20 +201,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       return AccessResult::neutral();
     }
     return AccessResult::forbidden();
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  protected function fieldsByEntityType($entity_type) {
-    // User/users do not name the data table consistently.
-    if ($entity_type == 'user' || $entity_type == 'users') {
-      return ['user' => WorkbenchAccessManagerInterface::FIELD_NAME];
-    }
-    else {
-      $fields = $this->config->get('fields');
-      return $fields[$entity_type];
-    }
   }
 
   /**

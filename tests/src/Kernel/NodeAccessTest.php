@@ -7,7 +7,7 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
@@ -52,6 +52,20 @@ class NodeAccessTest extends KernelTestBase {
   protected $accessHandler;
 
   /**
+   * Access control scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $userStorage;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -60,16 +74,16 @@ class NodeAccessTest extends KernelTestBase {
     $this->installConfig(['filter', 'node', 'workbench_access']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
     $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('node');
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
-    $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $this->scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -95,8 +109,9 @@ class NodeAccessTest extends KernelTestBase {
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
     $editor_with_bypass_access = $this->createUser($permissions);
@@ -128,8 +143,9 @@ class NodeAccessTest extends KernelTestBase {
       'delete any page content',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
 
     // Test a node that is not assigned to a section. Both should be allowed

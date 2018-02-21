@@ -3,6 +3,7 @@
 namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\FunctionalTests\Update\UpdatePathTestBase;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Defines a class for testing the update path to scheme based access.
@@ -55,12 +56,12 @@ class UpdatePathTest extends UpdatePathTestBase {
     $editors = $user_storage->getEditors($scheme, $term->id());
     $this->assertNotEmpty($editors);
     $this->assertEquals([$user->id() => 'robbo'], $editors);
-    $sections = $user_storage->getUserSections($scheme, $user->id());
+    $sections = $user_storage->getUserSections($scheme, $user);
     $this->assertNotEmpty($sections);
     $this->assertContains($term->id(), $sections);
     $roles = $role_storage->getRoles($scheme, $term->id());
     $this->assertNotEmpty($roles);
-    $this->assertEquals(['editors' => 'Editors'], $roles);
+    $this->assertEquals(['editors'], $roles);
     $views_data = $this->container->get('views.views_data')->getAll();
     $this->assertNotEmpty($views_data['node']['workbench_access_section']);
     $this->assertEquals('default', $views_data['node']['workbench_access_section']['field']['scheme']);
@@ -68,6 +69,14 @@ class UpdatePathTest extends UpdatePathTestBase {
     $this->assertEquals('default', $views_data['users']['workbench_access_section']['field']['scheme']);
     $this->assertEquals('default', $views_data['users']['workbench_access_section']['filter']['scheme']);
     $this->assertNotEmpty($views_data['users']['workbench_access_section']);
+
+    // Ensure the field was deleted.
+    $field_storage = \Drupal::entityTypeManager()->getStorage('field_config');
+    $field = $field_storage->load(WorkbenchAccessManagerInterface::FIELD_NAME);
+    $this->assertEmpty($field);
+    $field_storage_config = \Drupal::entityTypeManager()->getStorage('field_storage_config');
+    $field = $field_storage_config->load(WorkbenchAccessManagerInterface::FIELD_NAME);
+    $this->assertEmpty($field);
   }
 
 }

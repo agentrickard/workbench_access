@@ -16,7 +16,6 @@ use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -434,17 +433,19 @@ class Taxonomy extends AccessControlHierarchyBase {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: Refactor
    */
   public function getViewsJoin($entity_type, $key, $alias = NULL) {
     if ($entity_type == 'user') {
       $configuration['taxonomy'] = [
-        'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
-        'field' => 'entity_id',
+        'table' => 'section_association__user_id',
+        'field' => 'user_id_target_id',
         'left_table' => 'users',
         'left_field' => $key,
         'operator' => '=',
-        'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
-        'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
+        'table_alias' => 'section_association__user_id',
+        'real_field' => 'entity_id',
       ];
       return $configuration;
     }
@@ -453,9 +454,6 @@ class Taxonomy extends AccessControlHierarchyBase {
     }), 'field');
     $table_prefix = $entity_type;
     $field_suffix = '_target_id';
-    if ($entity_type == 'user') {
-      $field_suffix = '_value';
-    }
     $configuration = [];
     foreach ($fields as $field) {
       $configuration[$field] = [

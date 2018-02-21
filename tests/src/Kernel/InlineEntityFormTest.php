@@ -9,12 +9,12 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
- * Tests workbench access with inline entity form
+ * Tests workbench access with inline entity form.
  *
  * @group workbench_access
  */
@@ -67,9 +67,8 @@ class InlineEntityFormTest extends KernelTestBase implements FormInterface {
     $this->installConfig(['filter', 'node', 'workbench_access', 'system']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
     $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();

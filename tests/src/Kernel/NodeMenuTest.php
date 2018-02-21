@@ -8,8 +8,7 @@ use Drupal\system\Entity\Menu;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
 use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
  * Tests workbench_access integration with node access via menu plugin.
@@ -54,6 +53,21 @@ class NodeMenuTest extends KernelTestBase {
    */
   protected $accessHandler;
 
+
+  /**
+   * Access control scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $userStorage;
+
   /**
    * {@inheritdoc}
    */
@@ -63,9 +77,8 @@ class NodeMenuTest extends KernelTestBase {
     $this->installConfig(['filter', 'node', 'workbench_access', 'system']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('menu_link_content');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $node_type = $this->createContentType(['type' => 'page']);
     $this->createContentType(['type' => 'article']);
     // This is created by system module.
@@ -74,7 +87,8 @@ class NodeMenuTest extends KernelTestBase {
       ->getAccessControlHandler('node');
     $node_type->setThirdPartySetting('menu_ui', 'available_menus', ['main']);
     $node_type->save();
-    $this->setupMenuScheme([$node_type->id()], ['main']);
+    $this->scheme = $this->setupMenuScheme([$node_type->id()], ['main']);
+    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -102,8 +116,9 @@ class NodeMenuTest extends KernelTestBase {
       'administer nodes',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->getPluginId();
     $allowed_editor->save();
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$link->getPluginId()]);
+
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
     $editor_with_bypass_access = $this->createUser($permissions);
@@ -144,8 +159,9 @@ class NodeMenuTest extends KernelTestBase {
       'delete any page content',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $link->getPluginId();
     $allowed_editor->save();
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$link->getPluginId()]);
+
     $editor_with_no_access = $this->createUser($permissions);
 
     // Test a node that is not assigned to a section. Both should be allowed

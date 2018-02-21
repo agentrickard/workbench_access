@@ -12,6 +12,8 @@ interface RoleSectionStorageInterface {
 
   /**
    * State prefix.
+   *
+   * @deprecated
    */
   const WORKBENCH_ACCESS_ROLES_STATE_PREFIX = 'workbench_access_roles_';
 
@@ -70,22 +72,9 @@ interface RoleSectionStorageInterface {
    *   The section id.
    *
    * @return array
-   *   An array of role ids.
+   *   An array of role ids
    */
   public function getRoles(AccessSchemeInterface $scheme, $id);
-
-  /**
-   * Removes all role assignments.
-   *
-   * This method should be triggered when changing access schemes. If possible,
-   * let the administrator choose to run this.
-   *
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
-   *   Access scheme.
-   *
-   * @todo is this still used?
-   */
-  public function flushRoles(AccessSchemeInterface $scheme);
 
   /**
    * Gets the sections assigned to a user by way of their roles.

@@ -5,9 +5,8 @@ namespace Drupal\Tests\workbench_access\Kernel;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Entity\AccessScheme;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Tests the internal caching of section data.
@@ -34,13 +33,6 @@ class SectionCacheTest extends KernelTestBase {
   protected $userSectionStorage;
 
   /**
-   * Access scheme.
-   *
-   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
-   */
-  protected $scheme;
-
-  /**
    * {@inheritdoc}
    */
   protected static $modules = [
@@ -54,6 +46,20 @@ class SectionCacheTest extends KernelTestBase {
   ];
 
   /**
+   * Access control scheme.
+   *
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
+   */
+  protected $scheme;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $userStorage;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp() {
@@ -61,9 +67,8 @@ class SectionCacheTest extends KernelTestBase {
     $this->installConfig(['workbench_access']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('taxonomy_term');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $this->vocabulary = $this->setUpVocabulary();
     // The user section storage service.
     $this->userSectionStorage = \Drupal::getContainer()->get('workbench_access.user_section_storage');
@@ -78,6 +83,7 @@ class SectionCacheTest extends KernelTestBase {
       ],
     ]);
     $this->scheme->save();
+    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -98,11 +104,11 @@ class SectionCacheTest extends KernelTestBase {
       'use workbench access',
     ];
     $editor = $this->createUser($permissions);
-    $editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = $this->scheme->id() . ':' . $term->id();
     $editor->save();
+    $this->userStorage->addUser($this->scheme, $editor, [$term->id()]);
 
     // Now fetch the sections for this user. Count should be 1.
-    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
+    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor);
     $this->assertTrue(count($sections) == 1);
 
     // Create a new section.
@@ -113,15 +119,15 @@ class SectionCacheTest extends KernelTestBase {
     $term2->save();
 
     // Add to the user.
-    $this->userSectionStorage->addUser($this->scheme, $editor->id(), [$term2->id()]);
+    $this->userSectionStorage->addUser($this->scheme, $editor, [$term2->id()]);
 
     // Now fetch the sections for this user. Count should be 2.
-    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
+    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor);
     $this->assertTrue(count($sections) == 2);
 
     // Now remove and test again.
-    $this->userSectionStorage->removeUser($this->scheme, $editor->id(), [$term2->id()]);
-    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor->id());
+    $this->userSectionStorage->removeUser($this->scheme, $editor, [$term2->id()]);
+    $sections = $this->userSectionStorage->getUserSections($this->scheme, $editor);
     $this->assertTrue(count($sections) == 1);
 
     $this->assertEquals([$editor->id() => $editor->label()], $this->userSectionStorage->getEditors($this->scheme, $term->id()));

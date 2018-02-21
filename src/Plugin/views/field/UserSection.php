@@ -99,13 +99,13 @@ class UserSection extends Section {
    * {@inheritdoc}
    */
   public function render(ResultRow $values) {
-    $uid = $this->getValue($values, 'uid');
+    $user = $this->getEntity($values);
     $all = $this->scheme->getAccessScheme()->getTree();
-    if ($this->manager->userInAll($this->scheme, $uid)) {
+    if ($this->manager->userInAll($this->scheme, $user)) {
       $sections = WorkbenchAccessManager::getAllSections($this->scheme, TRUE);
     }
     else {
-      $sections = $this->userSectionStorage->getUserSections($this->scheme, $uid);
+      $sections = $this->userSectionStorage->getUserSections($this->scheme, $user);
     }
     $output = [];
     foreach ($sections as $id) {

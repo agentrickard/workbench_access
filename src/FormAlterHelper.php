@@ -32,7 +32,9 @@ class FormAlterHelper implements ContainerInjectionInterface {
    * Constructs a new FormAlterHelper object.
    *
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
+   *   Entity type manager.
    * @param \Drupal\Core\Session\AccountInterface $currentUser
+   *   Current user.
    */
   public function __construct(EntityTypeManagerInterface $entityTypeManager, AccountInterface $currentUser) {
     $this->entityTypeManager = $entityTypeManager;
@@ -58,7 +60,7 @@ class FormAlterHelper implements ContainerInjectionInterface {
    *   Complete form.
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   Active form state data.
-   * @param \Drupal\Core\Entity\EntityInterface
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
    *   The entity object that the form is modifying.
    *
    * @return array

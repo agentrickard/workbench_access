@@ -5,6 +5,7 @@ namespace Drupal\Tests\workbench_access\Functional;
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
  * Defines a class for testing the UI to create and configure schemes.

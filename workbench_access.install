@@ -5,37 +5,6 @@
  * Install, update and uninstall functions for the Workbench Access module.
  */
 
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-
-/**
- * Implements hook_install().
- *
- * Installs the default on users.
- *
- * @TODO: Can we do this via schema?
- */
-function workbench_access_install() {
-  // Assign domain access to bundles.
-  $list['user'] = 'user';
-  foreach ($list as $bundle => $entity_type) {
-    workbench_access_confirm_fields($entity_type, $bundle);
-  }
-}
-
-/**
- * Implements hook_uninstall().
- *
- * Removes access control fields on uninstall.
- */
-function workbench_access_uninstall() {
-  foreach (['user'] as $type) {
-    $id = $type . '.' . WorkbenchAccessManagerInterface::FIELD_NAME;
-    if ($field = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load($id)) {
-      $field->delete();
-    }
-  }
-}
-
 /**
  * Add the setting to deny access to unassigned content.
  */
@@ -71,5 +40,19 @@ function workbench_access_update_8003() {
   // Install 'access_scheme' config entity.
   $entity_manager->clearCachedDefinitions();
   $type = $entity_manager->getDefinition('access_scheme');
+  $update_manager->installEntityType($type);
+}
+
+/**
+ * Create the new entity type.
+ */
+function workbench_access_update_8004() {
+  // Install our config entity.
+  $entity_manager = \Drupal::entityTypeManager();
+  $update_manager = \Drupal::entityDefinitionUpdateManager();
+
+  // Install 'section_association' content entity.
+  $entity_manager->clearCachedDefinitions();
+  $type = $entity_manager->getDefinition('section_association');
   $update_manager->installEntityType($type);
 }

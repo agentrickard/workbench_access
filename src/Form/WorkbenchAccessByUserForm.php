@@ -72,6 +72,7 @@ class WorkbenchAccessByUserForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $access_scheme = NULL, $id = NULL) {
     $this->scheme = $access_scheme;
+
     $element = $access_scheme->getAccessScheme()->load($id);
     $existing_editors = $this->userSectionStorage->getEditors($access_scheme, $id);
     $potential_editors = $this->userSectionStorage->getPotentialEditors($id);
@@ -244,12 +245,13 @@ class WorkbenchAccessByUserForm extends FormBase {
    *   Existing editors uids.
    */
   protected function addEditors(array $uids, $section_id, array $existing_editors = []) {
+    /** @var \Drupal\user\UserInterface[] $users */
     $users = User::loadMultiple($uids);
     $editors_added = [];
     foreach ($users as $uid => $user) {
       // Add user to section.
       if (!isset($existing_editors[$uid])) {
-        $this->userSectionStorage->addUser($this->scheme, $uid, [$section_id]);
+        $this->userSectionStorage->addUser($this->scheme, $user, [$section_id]);
         $editors_added[] = $user->getDisplayName();
       }
     }
@@ -275,9 +277,11 @@ class WorkbenchAccessByUserForm extends FormBase {
    */
   protected function removeEditors(array $uids, $section_id, array $existing_editors = []) {
     $editors_removed = [];
-    foreach ($uids as $user_id) {
+    /** @var \Drupal\user\UserInterface[] $users */
+    $users = User::loadMultiple($uids);
+    foreach ($users as $user_id => $user) {
       if (isset($existing_editors[$user_id])) {
-        $this->userSectionStorage->removeUser($this->scheme, $user_id, [$section_id]);
+        $this->userSectionStorage->removeUser($this->scheme, $user, [$section_id]);
         $editors_removed[] = $existing_editors[$user_id];
       }
     }

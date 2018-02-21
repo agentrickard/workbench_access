@@ -135,18 +135,17 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
   /**
    * {@inheritdoc}
    */
-  public function userInAll(AccessSchemeInterface $scheme, $uid = NULL) {
+  public function userInAll(AccessSchemeInterface $scheme, AccountInterface $account = NULL) {
     // Get the information from the account.
-    if (is_null($uid)) {
-      $uid = $this->currentUser->id();
+    if (!$account) {
+      $account = $this->currentUser;
     }
-    $user = $this->entityTypeManager->getStorage('user')->load($uid);
-    if ($user->hasPermission('bypass workbench access')) {
+    if ($account->hasPermission('bypass workbench access')) {
       return TRUE;
     }
     else {
       // If the user is assigned to all the top-level sections, treat as admin.
-      $user_sections = $this->userSectionStorage->getUserSections($scheme, $uid);
+      $user_sections = $this->userSectionStorage->getUserSections($scheme, $account);
       foreach (array_keys($scheme->getAccessScheme()->getTree()) as $root) {
         if (empty($user_sections[$root])) {
           return FALSE;

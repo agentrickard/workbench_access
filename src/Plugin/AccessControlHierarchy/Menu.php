@@ -10,7 +10,6 @@ use Drupal\system\MenuInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
@@ -115,10 +114,22 @@ class Menu extends AccessControlHierarchyBase {
         $tree[$id][$link_id]['parents'] = [$id];
       }
       if (isset($link->subtree)) {
+        // The elements of the 'subtree' sub-array are not sorted by weight.
+        uasort($link->subtree, [$this, 'sortTree']);
         $this->buildTree($id, $link->subtree, $tree);
       }
     }
     return $tree;
+  }
+
+  /**
+   * Sorts the menu tree by weight.
+   */
+  protected function sortTree($a, $b) {
+    if ($a->link->getWeight() == $b->link->getWeight()) {
+      return $a->link->getTitle() > $b->link->getTitle();
+    }
+    return $a->link->getWeight() > $b->link->getWeight();
   }
 
   /**
@@ -173,18 +184,21 @@ class Menu extends AccessControlHierarchyBase {
 
   /**
    * {@inheritdoc}
+   *
+   * @TODO: Refactor
    */
   public function getViewsJoin($entity_type, $key, $alias = NULL) {
     if ($entity_type == 'user') {
       $configuration['menu'] = [
-        'table' => 'user__' . WorkbenchAccessManagerInterface::FIELD_NAME,
-        'field' => 'entity_id',
+        'table' => 'section_association__user_id',
+        'field' => 'user_id_target_id',
         'left_table' => 'users',
         'left_field' => $key,
         'operator' => '=',
-        'table_alias' => WorkbenchAccessManagerInterface::FIELD_NAME,
-        'real_field' => WorkbenchAccessManagerInterface::FIELD_NAME . '_value',
+        'table_alias' => 'section_association__user_id',
+        'real_field' => 'entity_id',
       ];
+      return $configuration;
     }
     else {
       $configuration['menu'] = [

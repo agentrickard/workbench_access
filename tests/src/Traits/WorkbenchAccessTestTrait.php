@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\workbench_access\Functional;
+namespace Drupal\Tests\workbench_access\Traits;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Url;
@@ -52,6 +52,9 @@ trait WorkbenchAccessTestTrait {
    *   Vocabulary ID.
    * @param string $field_name
    *   Field name.
+   *
+   * @return field
+   *   The created field entity.
    */
   protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME) {
     // Create an instance of the access field on the bundle.
@@ -60,7 +63,7 @@ trait WorkbenchAccessTestTrait {
       // The scheme doesn't exist yet so there is no plugin yet.
       $handler_id = 'default:taxonomy_term';
     }
-    $this->createEntityReferenceField($entity_type_id, $bundle, $field_name, 'Section', 'taxonomy_term', $handler_id, [
+    $field = $this->createEntityReferenceField($entity_type_id, $bundle, $field_name, 'Section', 'taxonomy_term', $handler_id, [
       'target_bundles' => [
         $vocabulary_id => $vocabulary_id,
       ],
@@ -76,6 +79,8 @@ trait WorkbenchAccessTestTrait {
     }
     $form_display->setComponent($field_name, ['type' => 'options_select']);
     $form_display->save();
+
+    return $field;
   }
 
   /**
@@ -91,6 +96,7 @@ trait WorkbenchAccessTestTrait {
       'edit any page content',
       'administer menu',
       'delete any page content',
+      'use workbench access',
     ], 'editor');
 
     return $this->createUserWithRole($editor_rid);
