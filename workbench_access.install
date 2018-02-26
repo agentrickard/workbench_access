@@ -55,7 +55,7 @@ function workbench_access_update_8002() {
   // Alter it to the new format.
   $config = \Drupal::configFactory()->getEditable('workbench_access.settings');
   foreach (['scheme', 'label', 'plural_label', 'fields', 'parents'] as $delete) {
-    $config->delete();
+    $config->clear($delete);
   }
   $config->save(TRUE);
 }
