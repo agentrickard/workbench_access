@@ -25,9 +25,15 @@ class UpdatePathTest extends UpdatePathTestBase {
    * Tests workbench_access_update_8002, 8003(), and 8004().
    */
   public function testUpdatePath() {
+    $expected_new_config = [
+      'deny_on_empty' => \Drupal::config('workbench_access.settings')->get('deny_on_empty'),
+      '_core' => \Drupal::config('workbench_access.settings')->get('_core'),
+    ];
     $this->runUpdates();
+    
     // Tests that the first update was run.
     // workbench_access_post_update_convert_to_scheme()
+    $this->assertEquals($expected_new_config, \Drupal::config('workbench_access.settings')->getRawData());
     $this->assertEquals('default', $this->container->get('state')->get('workbench_access_upgraded_scheme_id'));
     $entity_type_manager = $this->container->get('entity_type.manager');
 
