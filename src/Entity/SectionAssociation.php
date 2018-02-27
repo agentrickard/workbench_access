@@ -112,4 +112,32 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
     return $this->bundle();
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getCurrentUserIds() {
+    $user_ids = [];
+    if ($values = $this->get('user_id')) {
+      foreach ($values as $delta => $value) {
+        $target = $value->getValue();
+        $user_ids[] = $target['target_id'];
+      }
+    }
+    return $user_ids;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getCurrentRoleIds() {
+    $role_ids = [];
+    if ($values = $this->get('role_id')) {
+      foreach ($values as $delta => $value) {
+        $target = $value->getValue();
+        $role_ids[] = $target['target_id'];
+      }
+    }
+    return $role_ids;
+  }
+
 }

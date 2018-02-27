@@ -57,19 +57,11 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: refactor.
    */
   public function addRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     foreach ($sections as $id) {
-      // @TODO: This is tortured logic and probably much easier to handle.
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
-        $mew_values = [];
-        if ($values = $section_association->get('role_id')) {
-          foreach ($values as $delta => $value) {
-            $target = $value->getValue();
-            $new_values[] = $target['target_id'];
-          }
+        if ($new_values = $section_association->getCurrentRoleIds()) {
           $new_values[] = $role_id;
           $section_association->set('role_id', array_unique($new_values));
         }
@@ -87,33 +79,28 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
         $section_association = $this->sectionStorage()->create($values);
       }
       $section_association->save();
-      // @TODO: inject this service.
+
       \Drupal::service('workbench_access.user_section_storage')->resetCache($scheme);
     }
   }
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: refactor.
    */
   public function removeRole(AccessSchemeInterface $scheme, $role_id, array $sections = []) {
     foreach ($sections as $id) {
-      // @TODO: This is tortured logic and probably much easier to handle.
+      $new_values = [];
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
-        $new_values = [];
-        if ($values = $section_association->get('role_id')) {
+        if ($values = $section_association->getCurrentRoleIds()) {
           foreach ($values as $delta => $value) {
-            $target = $value->getValue();
-            if ($target['target_id'] != $role_id) {
-              $new_values[] = $target['target_id'];
+            if ($value != $role_id) {
+              $new_values[] = $value;
             }
           }
           $section_association->set('role_id', array_unique($new_values));
         }
         $section_association->save();
       }
-      // @TODO: inject this service.
       \Drupal::service('workbench_access.user_section_storage')->resetCache($scheme);
     }
   }

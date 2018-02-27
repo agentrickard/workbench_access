@@ -19,4 +19,18 @@ interface SectionAssociationInterface extends ContentEntityInterface {
    */
   public function getSchemeId();
 
+  /**
+   * Returns an array of currently assigned user ids for the section.
+   *
+   * @return array
+   */
+  public function getCurrentUserIds();
+
+  /**
+   * Returns an array of currently assigned role ids for the section.
+   *
+   * @return array
+   */
+  public function getCurrentRoleIds();
+
 }

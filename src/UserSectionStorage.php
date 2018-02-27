@@ -104,13 +104,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
   public function addUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []) {
     foreach ($sections as $id) {
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
-        $mew_values = [];
-        // The current values are not directly accessible from outside the class.
-        if ($values = $section_association->get('user_id')) {
-          foreach ($values as $delta => $value) {
-            $target = $value->getValue();
-            $new_values[] = $target['target_id'];
-          }
+        if ($new_values = $section_association->getCurrentUserIds()) {
           $new_values[] = $account->id();
           $section_association->set('user_id', array_unique($new_values));
         }
@@ -140,14 +134,12 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   public function removeUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []) {
     foreach ($sections as $id) {
-      // The current values are not directly accessible from outside the class.
+      $new_values = [];
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
-        $new_values = [];
-        if ($values = $section_association->get('user_id')) {
+        if ($values = $section_association->getCurrentUserIds()) {
           foreach ($values as $delta => $value) {
-            $target = $value->getValue();
-            if ($target['target_id'] != $account->id()) {
-              $new_values[] = $target['target_id'];
+            if ($value != $account->id()) {
+              $new_values[] = $value;
             }
           }
           $section_association->set('user_id', array_unique($new_values));
