@@ -100,19 +100,11 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: refactor.
    */
   public function addUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []) {
     foreach ($sections as $id) {
-      // @TODO: This is tortured logic and probably much easier to handle.
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
-        $mew_values = [];
-        if ($values = $section_association->get('user_id')) {
-          foreach ($values as $delta => $value) {
-            $target = $value->getValue();
-            $new_values[] = $target['target_id'];
-          }
+        if ($new_values = $section_association->getCurrentUserIds()) {
           $new_values[] = $account->id();
           $section_association->set('user_id', array_unique($new_values));
         }
@@ -139,19 +131,15 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: refactor.
    */
   public function removeUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []) {
     foreach ($sections as $id) {
-      // @TODO: This is tortured logic and probably much easier to handle.
+      $new_values = [];
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
-        $new_values = [];
-        if ($values = $section_association->get('user_id')) {
+        if ($values = $section_association->getCurrentUserIds()) {
           foreach ($values as $delta => $value) {
-            $target = $value->getValue();
-            if ($target['target_id'] != $account->id()) {
-              $new_values[] = $target['target_id'];
+            if ($value != $account->id()) {
+              $new_values[] = $value;
             }
           }
           $section_association->set('user_id', array_unique($new_values));
@@ -160,6 +148,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       }
     }
     $this->resetCache($scheme, $account->id());
+
     // Return the user object.
     return $this->userStorage()->load($account->id());
   }
