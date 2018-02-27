@@ -104,6 +104,13 @@ class AccessScheme extends ConfigEntityBase implements AccessSchemeInterface, En
   /**
    * {@inheritdoc}
    */
+  public function getAccessSchemeId() {
+    return $this->scheme;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function getAccessScheme() {
     return $this->getPluginCollection()->get($this->scheme);
   }
