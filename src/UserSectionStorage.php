@@ -100,14 +100,12 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: refactor.
    */
   public function addUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []) {
     foreach ($sections as $id) {
-      // @TODO: This is tortured logic and probably much easier to handle.
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
         $mew_values = [];
+        // The current values are not directly accessible from outside the class.
         if ($values = $section_association->get('user_id')) {
           foreach ($values as $delta => $value) {
             $target = $value->getValue();
@@ -139,12 +137,10 @@ class UserSectionStorage implements UserSectionStorageInterface {
 
   /**
    * {@inheritdoc}
-   *
-   * @TODO: refactor.
    */
   public function removeUser(AccessSchemeInterface $scheme, AccountInterface $account, array $sections = []) {
     foreach ($sections as $id) {
-      // @TODO: This is tortured logic and probably much easier to handle.
+      // The current values are not directly accessible from outside the class.
       if ($section_association = $this->sectionStorage()->loadSection($scheme->id(), $id)) {
         $new_values = [];
         if ($values = $section_association->get('user_id')) {
@@ -160,6 +156,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       }
     }
     $this->resetCache($scheme, $account->id());
+
     // Return the user object.
     return $this->userStorage()->load($account->id());
   }
