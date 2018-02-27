@@ -44,6 +44,7 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
    * {@inheritdoc}
    */
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
+
     $fields = parent::baseFieldDefinitions($entity_type);
 
     // Assigned users.
@@ -95,14 +96,25 @@ class SectionAssociation extends ContentEntityBase implements SectionAssociation
       ])
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
-    $fields['section_id'] = BaseFieldDefinition::create('string')
+
+    $fields['section_id'] = BaseFieldDefinition::create('entity_reference')
       ->setLabel(t('Section ID'))
       ->setDescription(t('The id of the access section.'))
-      ->setRequired(TRUE)
-      ->setTranslatable(FALSE)
-      ->setSetting('max_length', 255);
+      ->setRequired(TRUE);
 
     return $fields;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function bundleFieldDefinitions(EntityTypeInterface $entity_type, $bundle, array $base_field_definitions) {
+    if ($access_scheme = AccessScheme::load($bundle)) {
+      $fields['section_id'] = clone $base_field_definitions['section_id'];
+      $fields['section_id']->setSetting('target_type', $access_scheme->getAccessSchemeId());
+      return $fields;
+    }
+    return [];
   }
 
   /**

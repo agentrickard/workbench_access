@@ -18,6 +18,14 @@ interface AccessSchemeInterface extends ConfigEntityInterface {
   public function getPluralLabel();
 
   /**
+   * Gets the access scheme ID for this configuration entity.
+   *
+   * @return string
+   *   Gets the access scheme ID.
+   */
+  public function getAccessSchemeId();
+
+  /**
    * Gets the access scheme for this configuration entity.
    *
    * @return \Drupal\workbench_access\AccessControlHierarchyInterface
