@@ -220,7 +220,7 @@ class Menu extends AccessControlHierarchyBase {
    */
   public function viewsData(array &$data, AccessSchemeInterface $scheme) {
     $data['node']['workbench_access_section'] = [
-      'title' => t('Workbench Section @name', ['@name' => $scheme->label()]),
+      'title' => t('Workbench Access @name', ['@name' => $scheme->label()]),
       'help' => t('The sections to which this content belongs in the @name scheme.', [
         '@name' => $scheme->label(),
       ]),

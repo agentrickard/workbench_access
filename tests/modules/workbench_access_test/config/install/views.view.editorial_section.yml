@@ -424,7 +424,7 @@ display:
           exposed: true
           expose:
             operator_id: workbench_access_section_op
-            label: 'Workbench Section Menu'
+            label: 'Workbench Access Menu'
             description: ''
             use_operator: false
             operator: workbench_access_section_op

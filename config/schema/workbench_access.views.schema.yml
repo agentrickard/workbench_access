@@ -2,21 +2,21 @@
 
 views.field.workbench_access_section:
   type: views_field
-  label: 'Workbench Section'
+  label: 'Workbench Access'
   mapping:
     separator:
       type: label
       label: 'Separator'
 views.field.workbench_access_user_section:
   type: views_field
-  label: 'Workbench Section'
+  label: 'Workbench Access'
   mapping:
     separator:
       type: label
       label: 'Separator'
 views.filter.workbench_access_section:
   type: views_filter
-  label: 'Workbench Section'
+  label: 'Workbench Access'
   mapping:
     operator:
       type: string
