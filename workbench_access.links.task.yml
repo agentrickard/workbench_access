@@ -20,3 +20,8 @@ workbench_access.edit:
   route_name: entity.access_scheme.edit_form
   base_route: entity.access_scheme.edit_form
   weight: 5
+
+workbench_access.user:
+  route_name: entity.section_association.edit
+  base_route: entity.user.canonical
+  title: Workbench Access
