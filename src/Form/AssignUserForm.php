@@ -122,7 +122,7 @@ class AssignUserForm extends FormBase {
       $role_sections = $this->roleSectionStorage->getRoleSections($scheme, $user);
       foreach ($options as $value => $label) {
         if (in_array($value, $role_sections)) {
-          $options[$value] = '<strong>' . $options[$value] . ' * </strong>';
+          $options[$value] = '<strong>' . $label . ' * </strong>';
         }
       }
       $form[$scheme->id()] = [
@@ -131,19 +131,14 @@ class AssignUserForm extends FormBase {
         '#collapsed' => FALSE,
         '#title' => $scheme->getPluralLabel(),
       ];
-      $form[$scheme->id()]['active'] = [
+      $form[$scheme->id()]['active_' . $scheme->id()] = [
         '#type' => 'checkboxes',
         '#title' => $this->t('Assigned sections'),
         '#options' => $options,
         '#default_value' => $user_sections,
-        '#description' => $this->t('Sections assigned by role are emphasized with an * but not selected unless they are also assigned directly to the user. They need not be selected. Access granted by role cannot be revoked from this form.'),
+        '#description' => $this->t('Sections assigned by role are <strong>emphasized</strong> and marked with an * but not selected unless they are also assigned directly to the user. They need not be selected. Access granted by role cannot be revoked from this form.'),
       ];
-      $no_access = array_diff($user_sections, array_keys($options));
-      $form[$scheme->id()]['no_access'] = [
-        '#type' => 'value',
-        '#value' => $no_access,
-      ];
-      $form[$scheme->id()]['scheme'] = [
+      $form[$scheme->id()]['scheme_' . $scheme->id()] = [
         '#type' => 'value',
         '#value' => $scheme,
       ];
@@ -169,26 +164,19 @@ class AssignUserForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $values = $form_state->getValues();
     $items = [];
-    if (count($values['schemes']) < 2) {
-      $id = current($values['schemes']);
-      $items[$id]['scheme'] = $values['scheme'];
-      $items[$id]['selections'] = $values['active'];
-      $items[$id]['no_access'] = $values['no_access'];
-    }
-    else {
-      foreach ($values['schemes'] as $id) {
-        $items[$id]['scheme'] = $values[$id]['scheme'];
-        $items[$id]['selections'] = $values[$id]['active'];
-        $items[$id]['no_access'] = $values[$id]['no_access'];
-      }
+    foreach ($values['schemes'] as $id) {
+      $items[$id]['scheme'] = $values['scheme_' . $id];
+      $items[$id]['selections'] = $values['active_' . $id];
     }
     foreach ($items as $item) {
+      // Add sections.
       $sections = array_filter($item['selections'], function($val) {
         return !empty($val);
       });
       $sections = array_keys($sections);
-      $sections = array_merge($sections, $item['no_access']);
       $this->userSectionStorage->addUser($item['scheme'], $this->user, $sections);
+
+      // Remove sections.
       $remove_sections = array_keys(array_filter($item['selections'], function($val) {
         return empty($val);
       }));
@@ -208,7 +196,7 @@ class AssignUserForm extends FormBase {
   }
 
   /**
-   * Gets available form opotions for this user.
+   * Gets available form options for this administrative user.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   The access scheme being processed by the form.
