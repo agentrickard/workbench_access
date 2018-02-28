@@ -46,7 +46,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
   /**
    * Gets section storage.
    *
-   * @return \Drupal\Core\Entity\EntityStorageInterface
+   * @return \Drupal\workbench_access\SectionAssociationStorageInterface
    *   Section storage.
    */
   protected function sectionStorage() {
