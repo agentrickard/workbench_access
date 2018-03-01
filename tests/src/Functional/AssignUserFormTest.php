@@ -169,6 +169,18 @@ class AssignUserFormTest extends BrowserTestBase {
     $assert->statusCodeEquals(200);
     $assert->checkboxChecked('active_taxonomy_section[2]');
     $assert->checkboxChecked('active_taxonomy_section[3]');
+
+    // Check the storage.
+    $user_storage = $this->container->get('workbench_access.user_section_storage');
+    $none_sections = $user_storage->getUserSections($taxonomy_scheme, $none_user);
+    $this->assertEquals(count($none_sections), 2);
+    $none_sections = $user_storage->getUserSections($menu_scheme, $none_user);
+    $this->assertEmpty($none_sections);
+    $expected = [$none_user->id()];
+    $existing_users = $user_storage->getEditors($taxonomy_scheme, 2);
+    $this->assertEquals($expected, array_keys($existing_users));
+    $existing_users = $user_storage->getEditors($taxonomy_scheme, 3);
+    $this->assertEquals($expected, array_keys($existing_users));
   }
 
 }
