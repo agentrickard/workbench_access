@@ -152,7 +152,7 @@ trait WorkbenchAccessTestTrait {
    */
   public function setUpTaxonomyScheme(NodeType $node_type, Vocabulary $vocab, $id = 'editorial_section') {
     $scheme = AccessScheme::create([
-      'id' => 'editorial_section',
+      'id' => $id,
       'label' => ucfirst(str_replace('_', ' ', $id)),
       'plural_label' => ucfirst(str_replace('_', ' ', $id)) . 's',
       'scheme' => 'taxonomy',
