@@ -44,7 +44,7 @@ class AssignUserFormTest extends BrowserTestBase {
     $taxonomy_scheme = $this->setUpTaxonomyScheme($node_type, $vocab, 'taxonomy_section');
 
     // Create terms for the test.
-    $terms = ['workbench_access' => 'Access'];
+    $terms = ['workbench_access' => 'Test Vocabulary'];
     $staff_term = Term::create([
       'vid' => $vocab->id(),
       'name' => 'Staff',
@@ -182,16 +182,18 @@ class AssignUserFormTest extends BrowserTestBase {
     $existing_users = $user_storage->getEditors($taxonomy_scheme, 3);
     $this->assertEquals($expected, array_keys($existing_users));
 
-    // Assign the limited user to just the menu options.
-    // We assign at the top level. All should be visible.
-    $user_storage->addUser($menu_scheme, $partial_user, ['main']);
-
-    // Check page access.
+    // Check page access for the partial admin user.
     $this->drupalLogin($partial_user);
     $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
     $assert = $this->assertSession();
     $assert->statusCodeEquals(200);
+    // No assignments, no options.
+    $assert->pageTextContains('You do not have permission to manage any assignments.');
 
+    // Assign the limited user to just the menu options.
+    // We assign at the top level. All should be visible.
+    $user_storage->addUser($menu_scheme, $partial_user, ['main']);
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
     // Check page options.
     $assert->pageTextNotContains('Taxonomy sections');
     $assert->pageTextContains('Menu sections');
@@ -203,6 +205,58 @@ class AssignUserFormTest extends BrowserTestBase {
       $assert->pageTextContains($link);
       $assert->fieldExists('active_menu_section['. $id .']');
     }
+
+    // Add the user to two menu sections.
+    $page = $this->getSession()->getPage();
+    $page->checkField('active_menu_section[' . $staff_link->getPluginId() . ']');
+    $page->checkField('active_menu_section[' . $super_staff_link->getPluginId() . ']');
+    $page->pressButton('save');
+
+    // Check the storage.
+    $none_sections = $user_storage->getUserSections($taxonomy_scheme, $none_user);
+    $this->assertEquals(count($none_sections), 2);
+    $none_sections = $user_storage->getUserSections($menu_scheme, $none_user);
+    $this->assertEquals(count($none_sections), 2);
+
+    // Check page as admin.
+    $this->drupalLogin($admin_user);
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(200);
+
+    $assert->checkboxChecked('active_taxonomy_section[2]');
+    $assert->checkboxChecked('active_taxonomy_section[3]');
+    $assert->checkboxChecked('active_menu_section[' . $staff_link->getPluginId() . ']');
+    $assert->checkboxChecked('active_menu_section[' . $super_staff_link->getPluginId() . ']');
+
+    // Remove the user from one taxonomy sections.
+    $page = $this->getSession()->getPage();
+    $page->uncheckField('active_taxonomy_section[3]');
+    $page->pressButton('save');
+
+    // Check the storage.
+    $user_storage->resetCache($taxonomy_scheme, $none_user->id());
+    $none_sections = $user_storage->getUserSections($taxonomy_scheme, $none_user);
+    $this->assertEquals(count($none_sections), 1);
+    $none_sections = $user_storage->getUserSections($menu_scheme, $none_user);
+    $this->assertEquals(count($none_sections), 2);
+    $expected = [$none_user->id()];
+    $existing_users = $user_storage->getEditors($taxonomy_scheme, 2);
+    $this->assertEquals($expected, array_keys($existing_users));
+    $existing_users = $user_storage->getEditors($taxonomy_scheme, 3);
+    $this->assertEquals([], array_keys($existing_users));
+
+    // Check that the $none_user cannot access the page.
+    $this->drupalLogin($none_user);
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(403);
+
+    // Check that an anonymous user cannot access the page.
+    $this->drupalLogout();
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(403);
   }
 
 }

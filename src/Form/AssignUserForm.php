@@ -113,6 +113,8 @@ class AssignUserForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, UserInterface $user = NULL) {
     $account = $this->currentUser();
     $this->user = $user;
+    $form_enabled = FALSE;
+    $active_schemes = [];
 
     // Load all schemes.
     $schemes = $this->schemeStorage->loadMultiple();
@@ -126,36 +128,47 @@ class AssignUserForm extends FormBase {
           $options[$value] = '<strong>' . $label . ' * </strong>';
         }
       }
-      $form[$scheme->id()] = [
-        '#type' => 'fieldset',
-        '#collapsible' => TRUE,
-        '#collapsed' => FALSE,
-        '#title' => $scheme->getPluralLabel(),
-      ];
-      $form[$scheme->id()]['active_' . $scheme->id()] = [
-        '#type' => 'checkboxes',
-        '#title' => $this->t('Assigned sections'),
-        '#options' => $options,
-        '#default_value' => $user_sections,
-        '#description' => $this->t('Sections assigned by role are <strong>emphasized</strong> and marked with an * but not selected unless they are also assigned directly to the user. They need not be selected. Access granted by role cannot be revoked from this form.'),
-      ];
-      $form[$scheme->id()]['scheme_' . $scheme->id()] = [
+      if (!empty($options)) {
+        $form[$scheme->id()] = [
+          '#type' => 'fieldset',
+          '#collapsible' => TRUE,
+          '#collapsed' => FALSE,
+          '#title' => $scheme->getPluralLabel(),
+        ];
+        $form[$scheme->id()]['active_' . $scheme->id()] = [
+          '#type' => 'checkboxes',
+          '#title' => $this->t('Assigned sections'),
+          '#options' => $options,
+          '#default_value' => $user_sections,
+          '#description' => $this->t('Sections assigned by role are <strong>emphasized</strong> and marked with an * but not selected unless they are also assigned directly to the user. They need not be selected. Access granted by role cannot be revoked from this form.'),
+        ];
+        $form[$scheme->id()]['scheme_' . $scheme->id()] = [
+          '#type' => 'value',
+          '#value' => $scheme,
+        ];
+        $form_enabled = TRUE;
+        $active_schemes[] = $scheme->id();
+      }
+    }
+    if ($form_enabled) {
+      $form['schemes'] = [
         '#type' => 'value',
-        '#value' => $scheme,
+        '#value' => $active_schemes,
+      ];
+      $form['actions'] = [
+        '#type' => 'actions',
+        'submit' => [
+          '#type' => 'submit',
+          '#name' => 'save',
+          '#value' => $this->t('Save'),
+        ],
       ];
     }
-    $form['schemes'] = [
-      '#type' => 'value',
-      '#value' => array_keys($schemes),
-    ];
-    $form['actions'] = [
-      '#type' => 'actions',
-      'submit' => [
-        '#type' => 'submit',
-        '#name' => 'save',
-        '#value' => $this->t('Save'),
-      ],
-    ];
+    else {
+      $form['help'] = [
+        '#markup' => $this->t('You do not have permission to manage any assignments.'),
+      ];
+    }
     return $form;
   }
 

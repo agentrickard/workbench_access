@@ -36,7 +36,7 @@ trait WorkbenchAccessTestTrait {
    *   The vocabulary entity.
    */
   public function setUpVocabulary() {
-    $vocab = Vocabulary::create(['vid' => 'workbench_access', 'name' => 'Access']);
+    $vocab = Vocabulary::create(['vid' => 'workbench_access', 'name' => 'Test Vocabulary']);
     $vocab->save();
     return $vocab;
   }
