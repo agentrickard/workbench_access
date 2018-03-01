@@ -8,6 +8,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserInterface;
+use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\SectionAssociationStorageInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
@@ -203,19 +204,52 @@ class AssignUserForm extends FormBase {
    */
   public function getFormOptions(AccessSchemeInterface $scheme) {
     $options = [];
+    $access_scheme = $scheme->getAccessScheme();
     if ($this->manager->userInAll($scheme)) {
       $list = $this->manager->getAllSections($scheme, FALSE);
     }
     else {
+      // @TODO: new method needed?
       $list = $this->userSectionStorage->getUserSections($scheme);
+      $list = $this->getChildren($access_scheme, $list);
     }
-    $access_scheme = $scheme->getAccessScheme();
     foreach ($list as $id) {
       if ($section = $access_scheme->load($id)) {
         $options[$id] = str_repeat('-', $section['depth']) . ' ' . $section['label'];
       }
     }
     return $options;
+  }
+
+  /**
+   * Gets the child sections of a base section.
+   *
+   * @param \Drupal\workbench_access\AccessControlHierarchyInterface $access_scheme
+   *   The access scheme being processed by the form.
+   * @param array $values
+   *   Defined or selected values.
+   *
+   * @return array
+   *   An array of section ids that this user may see.
+   */
+  protected function getChildren(AccessControlHierarchyInterface $access_scheme, array $values) {
+    $tree = $access_scheme->getTree();
+    $children = [];
+    foreach ($values as $id) {
+      foreach ($tree as $key => $data) {
+        if ($id == $key) {
+          $children += array_keys($data);
+        }
+        else {
+          foreach ($data as $iid => $item) {
+            if ($iid == $id || in_array($id, $item['parents'])) {
+              $children[] = $iid;
+            }
+          }
+        }
+      }
+    }
+    return $children;
   }
 
 }

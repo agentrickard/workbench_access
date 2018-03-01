@@ -181,6 +181,28 @@ class AssignUserFormTest extends BrowserTestBase {
     $this->assertEquals($expected, array_keys($existing_users));
     $existing_users = $user_storage->getEditors($taxonomy_scheme, 3);
     $this->assertEquals($expected, array_keys($existing_users));
+
+    // Assign the limited user to just the menu options.
+    // We assign at the top level. All should be visible.
+    $user_storage->addUser($menu_scheme, $partial_user, ['main']);
+
+    // Check page access.
+    $this->drupalLogin($partial_user);
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(200);
+
+    // Check page options.
+    $assert->pageTextNotContains('Taxonomy sections');
+    $assert->pageTextContains('Menu sections');
+    foreach ($terms as $id => $term) {
+      $assert->pageTextNotContains($term);
+      $assert->fieldNotExists('active_taxonomy_section['. $id .']');
+    }
+    foreach ($links as $id => $link) {
+      $assert->pageTextContains($link);
+      $assert->fieldExists('active_menu_section['. $id .']');
+    }
   }
 
 }
