@@ -36,7 +36,7 @@ trait WorkbenchAccessTestTrait {
    *   The vocabulary entity.
    */
   public function setUpVocabulary() {
-    $vocab = Vocabulary::create(['vid' => 'workbench_access', 'name' => 'Access']);
+    $vocab = Vocabulary::create(['vid' => 'workbench_access', 'name' => 'Test Vocabulary']);
     $vocab->save();
     return $vocab;
   }
@@ -144,15 +144,17 @@ trait WorkbenchAccessTestTrait {
    *   Node type to set it up for.
    * @param \Drupal\taxonomy\Entity\Vocabulary $vocab
    *   The vocab to use for the scheme.
+   * @param string $id
+   *   Scheme ID.
    *
    * @return \Drupal\workbench_access\Entity\AccessSchemeInterface
    *   Created scheme.
    */
-  public function setUpTaxonomyScheme(NodeType $node_type, Vocabulary $vocab) {
+  public function setUpTaxonomyScheme(NodeType $node_type, Vocabulary $vocab, $id = 'editorial_section') {
     $scheme = AccessScheme::create([
-      'id' => 'editorial_section',
-      'label' => 'Editorial section',
-      'plural_label' => 'Editorial sections',
+      'id' => $id,
+      'label' => ucfirst(str_replace('_', ' ', $id)),
+      'plural_label' => ucfirst(str_replace('_', ' ', $id)) . 's',
       'scheme' => 'taxonomy',
       'scheme_settings' => [
         'vocabularies' => [$vocab->id()],
@@ -185,8 +187,8 @@ trait WorkbenchAccessTestTrait {
   public function setUpMenuScheme(array $node_type_ids, array $menu_ids, $id = 'editorial_section') {
     $scheme = AccessScheme::create([
       'id' => $id,
-      'label' => 'Editorial section',
-      'plural_label' => 'Editorial sections',
+      'label' => ucfirst(str_replace('_', ' ', $id)),
+      'plural_label' => ucfirst(str_replace('_', ' ', $id)) . 's',
       'scheme' => 'menu',
       'scheme_settings' => [
         'menus' => $menu_ids,

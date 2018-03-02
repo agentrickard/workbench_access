@@ -29,3 +29,14 @@ entity.access_scheme.by_user:
     parameters:
       access_scheme:
         type: 'entity:access_scheme'
+
+entity.section_association.edit:
+  path: '/user/{user}/workbench_access'
+  defaults:
+    _form: 'Drupal\workbench_access\Form\AssignUserForm'
+    _title: 'Workbench Access'
+  requirements:
+    _custom_access: 'Drupal\workbench_access\Form\AssignUserForm::checkAccess'
+  options:
+    _admin_route: TRUE
+    user: \d+
