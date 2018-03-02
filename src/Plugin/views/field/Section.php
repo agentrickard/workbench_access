@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\views\Plugin\views\field\FieldPluginBase;
 use Drupal\views\ResultRow;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -94,7 +95,13 @@ class Section extends FieldPluginBase {
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
           if (isset($data[$id])) {
-            $output[] = $this->sanitizeValue($data[$id]['label']);
+            // @TODO: This is being sanitzed on output.
+            if (isset($data[$id]['entity_uri'])) {
+              $output[] = \Drupal::l($data[$id]['label'], Url::fromUri($data[$id]['entity_uri']));
+            }
+            else {
+              $output[] = $this->sanitizeValue($data[$id]['label']);
+            }
           }
         }
       }
