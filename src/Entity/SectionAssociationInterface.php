@@ -23,6 +23,7 @@ interface SectionAssociationInterface extends ContentEntityInterface {
    * Returns an array of currently assigned user ids for the section.
    *
    * @return array
+   *   A positional array of user ids.
    */
   public function getCurrentUserIds();
 
@@ -30,6 +31,7 @@ interface SectionAssociationInterface extends ContentEntityInterface {
    * Returns an array of currently assigned role ids for the section.
    *
    * @return array
+   *   A positional array of role ids.
    */
   public function getCurrentRoleIds();
 
