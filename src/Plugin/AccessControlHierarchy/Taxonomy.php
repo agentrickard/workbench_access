@@ -105,7 +105,7 @@ class Taxonomy extends AccessControlHierarchyBase {
             'parents' => [],
             'weight' => 0,
             'description' => $vocabulary->label(),
-            'entity_uri' => 'entity:vocabulary/' . $vocabulary_id,
+            'path' => 'admin/structure/taxonomy/manage/' . $vocabulary->id(),
           ];
           // @TODO: It is possible that this will return a filtered set, if
           // term_access is applied to the query.
@@ -149,12 +149,10 @@ class Taxonomy extends AccessControlHierarchyBase {
         'id' => $term->tid,
         'label' => $term->name,
         'depth' => $term->depth + 1,
-      // @TODO: This doesn't return what we want.
         'parents' => $this->convertParents($term, $id),
         'weight' => $term->weight,
-      // @TODO: security
         'description' => $term->description__value,
-        'entity_uri' => 'entity:taxonomy_term/' . $term->tid,
+        'path' => 'taxonomy/term/' . $term->tid,
       ];
       foreach ($tree[$id][$term->tid]['parents'] as $key) {
         if (!empty($tree[$id][$key]['parents'])) {
