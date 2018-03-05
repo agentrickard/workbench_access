@@ -124,7 +124,7 @@ class AssignUserForm extends FormBase {
       $options = $this->getFormOptions($scheme);
       $role_sections = $this->roleSectionStorage->getRoleSections($scheme, $user);
       foreach ($options as $value => $label) {
-        if (in_array($value, $role_sections)) {
+        if (in_array($value, $role_sections, TRUE)) {
           $options[$value] = '<strong>' . $label . ' * </strong>';
         }
       }
