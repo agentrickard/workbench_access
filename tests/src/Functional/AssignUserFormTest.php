@@ -6,7 +6,6 @@ use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\taxonomy\Entity\Term;
-use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
