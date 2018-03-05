@@ -61,6 +61,11 @@ class Section extends FieldPluginBase {
       '#title' => $this->t('Separator'),
       '#default_value' => $this->options['separator'],
     ];
+    $form['make_link'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Link to Section entity'),
+      '#default_value' => $this->options['make_link'],
+    ];
     return $form;
   }
 
@@ -71,6 +76,9 @@ class Section extends FieldPluginBase {
     $options = parent::defineOptions();
     $options['separator'] = [
       'default' => ', ',
+    ];
+    $options['make_link'] = [
+      'default' => FALSE,
     ];
 
     return $options;
@@ -95,13 +103,12 @@ class Section extends FieldPluginBase {
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
           if (isset($data[$id])) {
-            // @TODO: This is being sanitzed on output.
-            if (isset($data[$id]['entity_uri'])) {
-              $output[] = \Drupal::l($data[$id]['label'], Url::fromUri($data[$id]['entity_uri']));
+            // Check for link.
+            if ($this->options['make_link'] && isset($data[$id]['entity_uri'])) {
+              $this->options['alter']['make_link'] = TRUE;
+              $this->options['alter']['url'] = Url::fromUri($data[$id]['entity_uri']);
             }
-            else {
-              $output[] = $this->sanitizeValue($data[$id]['label']);
-            }
+            $output[] = $this->sanitizeValue($data[$id]['label']);
           }
         }
       }
