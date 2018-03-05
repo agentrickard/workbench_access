@@ -5,7 +5,6 @@ namespace Drupal\workbench_access\Form;
 use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserInterface;
 use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\RoleSectionStorageInterface;
