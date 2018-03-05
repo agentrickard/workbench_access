@@ -2,7 +2,6 @@
 
 namespace Drupal\workbench_access\Form;
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -196,17 +195,6 @@ class AssignUserForm extends FormBase {
       }));
       $this->userSectionStorage->removeUser($item['scheme'], $this->user, $remove_sections);
     }
-  }
-
-  /**
-   * Checks access for the form.
-   *
-   * @return \Drupal\Core\Access\AccessResultInterface
-   *   The access result.
-   */
-  public function checkAccess() {
-    $permissions = ['assign workbench access', 'assign selected workbench access'];
-    return AccessResult::allowedifHasPermissions(\Drupal::currentUser(), $permissions, 'OR');
   }
 
   /**
