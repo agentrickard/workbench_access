@@ -104,6 +104,7 @@ class Menu extends AccessControlHierarchyBase {
         'parents' => [],
         'weight' => $link->link->getWeight(),
         'description' => $link->link->getDescription(),
+        'path' => $link->link->getUrlObject()->toString(),
       ];
       // Get the parents.
       if ($parent = $link->link->getParent()) {
