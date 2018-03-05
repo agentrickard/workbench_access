@@ -30,7 +30,7 @@ class UpdatePathTest extends UpdatePathTestBase {
       '_core' => \Drupal::config('workbench_access.settings')->get('_core'),
     ];
     $this->runUpdates();
-    
+
     // Tests that the first update was run.
     // workbench_access_post_update_convert_to_scheme()
     $this->assertEquals($expected_new_config, \Drupal::config('workbench_access.settings')->getRawData());
