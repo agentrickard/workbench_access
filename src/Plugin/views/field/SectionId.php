@@ -23,6 +23,12 @@ class SectionId extends FieldPluginBase {
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
+    $form['output_format'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Output format'),
+      '#options' => ['label' => $this->t('Section label'), 'id' => $this->t('Section id')],
+      '#default_value' => $this->options['output_format'],
+    ];
     $form['make_link'] = [
       '#type' => 'checkbox',
       '#title' => $this->t('Link to Section entity'),
@@ -36,10 +42,12 @@ class SectionId extends FieldPluginBase {
    */
   protected function defineOptions() {
     $options = parent::defineOptions();
+    $options['output_format'] = [
+      'default' => 'label',
+    ];
     $options['make_link'] = [
       'default' => FALSE,
     ];
-
     return $options;
   }
 
@@ -55,6 +63,7 @@ class SectionId extends FieldPluginBase {
    * {@inheritdoc}
    */
   public function render(ResultRow $values) {
+    $value = '';
     if ($entity = $this->getEntity($values)) {
       $scheme_id = $entity->getSchemeId();
       $section_id = $entity->get('section_id')->value;
@@ -66,10 +75,15 @@ class SectionId extends FieldPluginBase {
           $this->options['alter']['url'] = Url::fromUserInput('/' . trim($section['path'], '/'));
           $this->options['alter']['make_link'] = TRUE;
         }
-        return $this->sanitizeValue($section['label']);
+        if ($this->options['output_format'] == 'label') {
+          $value = $this->sanitizeValue($section['label']);
+        }
+        else {
+          $value = $this->sanitizeValue($section_id);
+        }
       }
     }
-    return '';
+    return $value;
   }
 
 }
