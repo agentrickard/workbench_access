@@ -69,8 +69,31 @@ class SectionId extends ManyToOne {
 
     $options['operator']['default'] = 'in';
     $options['value']['default'] = ['All'];
+    $options['output_format']['default'] = 'label';
 
     return $options;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function buildOptionsForm(&$form, FormStateInterface $form_state) {
+    parent::buildOptionsForm($form, $form_state);
+    $form['output_format'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Output format'),
+      '#options' => ['label' => $this->t('Section label'), 'id' => $this->t('Section id')],
+      '#default_value' => $this->options['output_format'],
+    ];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function defaultExposeOptions() {
+    parent::defaultExposeOptions();
+    $this->options['expose']['reduce'] = TRUE;
+    $this->options['output_format']['default'] = 'label';
   }
 
   /**
@@ -85,7 +108,8 @@ class SectionId extends ManyToOne {
       $tree = $scheme->getAccessScheme()->getTree();
       foreach ($tree as $items) {
         foreach ($items as $id => $item) {
-          $options[$id] = str_repeat('-', $item['depth']) . ' ' . $item['label'];
+          $text = ($this->options['output_format'] == 'label') ? $item['label'] : $id;
+          $options[$id] = str_repeat('-', $item['depth']) . ' ' . $text;
         }
       }
     }

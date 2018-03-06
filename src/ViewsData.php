@@ -29,7 +29,7 @@ class ViewsData extends EntityViewsData {
     ];
     $data['section_association']['section_id']['filter'] = [
       'id' => 'workbench_access_section_id',
-      'title' => $this->t('Section ID Test'),
+      'title' => $this->t('Section ID'),
     ];
     /* Some notes for later:
 
