@@ -71,6 +71,7 @@ class Menu extends AccessControlHierarchyBase {
           'parents' => [],
           'weight' => 0,
           'description' => $menu->label(),
+          'path' => 'admin/structure/menu/manage/' . $menu_id,
         ];
         $params = new MenuTreeParameters();
         $data = $this->menuTree->load($menu_id, $params);
