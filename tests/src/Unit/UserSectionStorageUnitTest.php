@@ -7,7 +7,6 @@ use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\Query\QueryAggregateInterface;
 use Drupal\Tests\UnitTestCase;
 use Drupal\user\UserInterface;
-use Drupal\user\UserStorageInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\UserSectionStorage;

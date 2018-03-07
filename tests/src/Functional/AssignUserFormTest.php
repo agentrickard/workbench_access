@@ -6,7 +6,6 @@ use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\taxonomy\Entity\Term;
-use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
@@ -151,11 +150,11 @@ class AssignUserFormTest extends BrowserTestBase {
     $assert->pageTextContains('Menu sections');
     foreach ($terms as $id => $term) {
       $assert->pageTextContains($term);
-      $assert->fieldExists('active_taxonomy_section['. $id .']');
+      $assert->fieldExists('active_taxonomy_section[' . $id . ']');
     }
     foreach ($links as $id => $link) {
       $assert->pageTextContains($link);
-      $assert->fieldExists('active_menu_section['. $id .']');
+      $assert->fieldExists('active_menu_section[' . $id . ']');
     }
 
     // Add the user to two taxonomy sections.
@@ -199,11 +198,11 @@ class AssignUserFormTest extends BrowserTestBase {
     $assert->pageTextContains('Menu sections');
     foreach ($terms as $id => $term) {
       $assert->pageTextNotContains($term);
-      $assert->fieldNotExists('active_taxonomy_section['. $id .']');
+      $assert->fieldNotExists('active_taxonomy_section[' . $id . ']');
     }
     foreach ($links as $id => $link) {
       $assert->pageTextContains($link);
-      $assert->fieldExists('active_menu_section['. $id .']');
+      $assert->fieldExists('active_menu_section[' . $id . ']');
     }
 
     // Add the user to two menu sections.

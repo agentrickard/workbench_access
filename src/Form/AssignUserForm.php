@@ -2,11 +2,9 @@
 
 namespace Drupal\workbench_access\Form;
 
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Session\AccountInterface;
 use Drupal\user\UserInterface;
 use Drupal\workbench_access\AccessControlHierarchyInterface;
 use Drupal\workbench_access\RoleSectionStorageInterface;
@@ -124,7 +122,7 @@ class AssignUserForm extends FormBase {
       $options = $this->getFormOptions($scheme);
       $role_sections = $this->roleSectionStorage->getRoleSections($scheme, $user);
       foreach ($options as $value => $label) {
-        if (in_array($value, $role_sections)) {
+        if (in_array($value, $role_sections, TRUE)) {
           $options[$value] = '<strong>' . $label . ' * </strong>';
         }
       }
@@ -196,17 +194,6 @@ class AssignUserForm extends FormBase {
       }));
       $this->userSectionStorage->removeUser($item['scheme'], $this->user, $remove_sections);
     }
-  }
-
-  /**
-   * Checks access for the form.
-   *
-   * @return \Drupal\Core\Access\AccessResultInterface
-   *   The access result.
-   */
-  public function checkAccess() {
-    $permissions = ['assign workbench access', 'assign selected workbench access'];
-    return AccessResult::allowedifHasPermissions(\Drupal::currentUser(), $permissions, 'OR');
   }
 
   /**

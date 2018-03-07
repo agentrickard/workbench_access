@@ -36,7 +36,7 @@ entity.section_association.edit:
     _form: 'Drupal\workbench_access\Form\AssignUserForm'
     _title: 'Workbench Access'
   requirements:
-    _custom_access: 'Drupal\workbench_access\Form\AssignUserForm::checkAccess'
+    _permission: 'assign workbench access+assign selected workbench access'
   options:
     _admin_route: TRUE
     user: \d+

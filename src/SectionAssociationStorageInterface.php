@@ -21,6 +21,7 @@ interface SectionAssociationStorageInterface extends SqlEntityStorageInterface {
    *   The id for a section within the access scheme.
    *
    * @return \Drupal\workbench_access\Entity\SectionAssociation | NULL.
+   *   The section entity or NULL if not found.
    */
   public function loadSection($access_scheme_id, $section_id);
 

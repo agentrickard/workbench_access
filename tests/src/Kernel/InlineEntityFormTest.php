@@ -17,6 +17,8 @@ use Symfony\Component\DomCrawler\Crawler;
  * Tests workbench access with inline entity form.
  *
  * @group workbench_access
+ *
+ * @requires module inline_entity_form
  */
 class InlineEntityFormTest extends KernelTestBase implements FormInterface {
 
