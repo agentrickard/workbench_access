@@ -46,20 +46,6 @@ class ViewsOutputTest extends BrowserTestBase {
   protected $user;
 
   /**
-   * Test user.
-   *
-   * @var \Drupal\user\UserInterface
-   */
-  protected $user2;
-
-  /**
-   * User section storage.
-   *
-   * @var \Drupal\workbench_access\UserSectionStorage
-   */
-  protected $userStorage;
-
-  /**
    * {@inheritdoc}
    */
   protected static $modules = [
@@ -134,13 +120,6 @@ class ViewsOutputTest extends BrowserTestBase {
     ];
     $this->user = $this->createUser($permissions);
     $this->user->save();
-    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
-    $this->scheme = AccessScheme::load('editorial_section');
-
-    $values = array_values(array_map(function (TermInterface $term) {
-      return $term->id();
-    }, $this->terms));
-    $this->userStorage->addUser($this->scheme, $this->user, $values);
   }
 
   /**
