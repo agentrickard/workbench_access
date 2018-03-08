@@ -141,11 +141,6 @@ class ViewsOutputTest extends BrowserTestBase {
       return $term->id();
     }, $this->terms));
     $this->userStorage->addUser($this->scheme, $this->user, $values);
-
-    $this->user2 = $this->createUser($permissions);
-    $this->user2->save();
-    $values = [reset($this->terms)->id()];
-    $this->userStorage->addUser($this->scheme, $this->user2, $values);
   }
 
   /**
