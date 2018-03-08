@@ -99,11 +99,6 @@ class ViewsUserOutputTest extends BrowserTestBase {
         'name' => $section . ' term',
       ]);
       $this->terms[$section]->save();
-      $this->links[$section] = MenuLinkContent::create([
-        'title' => $section,
-        'link' => [['uri' => 'route:<front>']],
-        'menu_name' => 'main',
-      ]);
       foreach ([' node 1', ' node 2'] as $stub) {
         $title = $section . $stub;
         $this->nodes[$title] = Node::create([
@@ -113,12 +108,6 @@ class ViewsUserOutputTest extends BrowserTestBase {
           'field_workbench_access' => $this->terms[$section],
         ]);
         $this->nodes[$title]->save();
-        _menu_ui_node_save($this->nodes[$title], [
-          'title' => $title . '-menu',
-          'menu_name' => 'main',
-          'description' => 'view bar',
-          'parent' => $this->links[$section]->getPluginId(),
-        ]);
       }
     }
 
@@ -146,14 +135,6 @@ class ViewsUserOutputTest extends BrowserTestBase {
     $this->user2 = $this->createUser($permissions);
     $this->user2->save();
     $this->userStorage->addUser($this->scheme, $this->user2, $values);
-
-    // Store menu schemes.
-    $this->scheme = AccessScheme::load('menu');
-    $values = array_values(array_map(function (MenuLinkContentInterface $link) {
-      return $link->getPluginId();
-    }, $this->links));
-    $this->userStorage->addUser($this->scheme, $this->user, $values);
-    $this->userStorage->addUser($this->scheme, $this->user2, $values);
   }
 
   /**
@@ -173,20 +154,6 @@ class ViewsUserOutputTest extends BrowserTestBase {
       $row = $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
       $assert->elementExists('css', '.views-row:contains("' . $section . '")', $row);
       $this->assertLinkByHref('/taxonomy/term/' . $term->id());
-    }
-    $this->userStorage->resetCache($this->scheme);
-    $this->drupalGet('user-sections-3');
-    $assert = $this->assertSession();
-    foreach ($this->links as $section => $link) {
-      $row = $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
-      $assert->elementExists('css', '.views-row:contains("' . $section . '")', $row);
-      $this->assertNoLink($section . ' node 1' . '-menu');
-    }
-    $this->drupalGet('user-sections-4');
-    foreach ($this->links as $section => $link) {
-      $row = $assert->elementExists('css', '.views-row:contains("' . $this->user->label() . '")');
-      $assert->elementExists('css', '.views-row:contains("' . $section . '")', $row);
-      $this->assertLink($section . ' node 1' . '-menu');
     }
   }
 
