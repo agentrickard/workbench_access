@@ -378,7 +378,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     foreach ($settings['validate'] as $index => $value) {
       $error = TRUE;
       foreach ($settings['vocabularies'] as $vocabulary) {
-        if (in_array($vocabulary, $value)) {
+        if (in_array($vocabulary, $value, TRUE)) {
           $error = FALSE;
         }
       }
