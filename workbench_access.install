@@ -16,7 +16,7 @@ function workbench_access_update_8001() {
 }
 
 /**
- * Update to new access-scheme config entity.
+ * Update to new access scheme config entity.
  */
 function workbench_access_update_8002() {
   // Stash this for later.
