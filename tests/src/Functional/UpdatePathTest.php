@@ -96,6 +96,9 @@ class UpdatePathTest extends UpdatePathTestBase {
     $field_storage_config = \Drupal::entityTypeManager()->getStorage('field_storage_config');
     $field = $field_storage_config->load(WorkbenchAccessManagerInterface::FIELD_NAME);
     $this->assertEmpty($field);
+
+    // Explicit test for https://www.drupal.org/project/workbench_access/issues/2946766
+    $this->drupalGet('user/register');
   }
 
 }
