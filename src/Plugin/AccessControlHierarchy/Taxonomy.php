@@ -322,17 +322,20 @@ class Taxonomy extends AccessControlHierarchyBase {
         foreach ($details['bundles'] as $bundle) {
           $field_definitions = $this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle);
           if (isset($field_definitions[$field_name]) && $field_definitions[$field_name]->getFieldStorageDefinition()->getSetting('target_type') === 'taxonomy_term') {
-            $taxonomy_fields[sprintf('%s:%s:%s', $entity_type_id, $bundle, $field_name)] = [
+            $handler_settings = $field_definitions[$field_name]->getSetting('handler_settings');
+            $key = sprintf('%s:%s:%s', $entity_type_id, $bundle, $field_name);
+            $taxonomy_fields[$key] = [
               'entity_type' => $this->entityTypeManager->getDefinition($entity_type_id)->getLabel(),
               'bundle' => $this->bundleInfo->getBundleInfo($entity_type_id)[$bundle]['label'],
               'field' => $field_definitions[$field_name]->getLabel(),
             ];
+            $validate[$key] = $handler_settings['target_bundles'];
           }
         }
       }
     }
     if (!$taxonomy_fields) {
-      $form['fields'] = ['#markup' => $this->t('There are no configured taxonomy fields, please create a new term reference field to continue')];
+      $form['fields'] = ['#markup' => $this->t('There are no configured taxonomy fields, please create a new term reference field on a content type to continue')];
       return $form;
     }
     $default_value = array_map(function (array $field) {
@@ -353,7 +356,37 @@ class Taxonomy extends AccessControlHierarchyBase {
       '#options' => $taxonomy_fields,
       '#default_value' => array_combine($default_value, $default_value),
     ];
+    $form['validate'] = ['#type' => 'value', '#value' => $validate];
     return $form;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
+    $settings = $form_state->getValues();
+    $validate = $settings['validate'];
+    $settings['vocabularies'] = array_values(array_filter($settings['vocabularies']));
+    $settings['fields'] = array_values(array_map(function ($item) {
+      list($entity_type, $bundle, $field_name) = explode(':', $item);
+      return [
+        'entity_type' => $entity_type,
+        'bundle' => $bundle,
+        'field' => $field_name,
+      ];
+    }, array_filter($settings['fields'])));
+    foreach ($settings['validate'] as $index => $value) {
+      $error = TRUE;
+      foreach ($settings['vocabularies'] as $vocabulary) {
+        if (in_array($vocabulary, $value)) {
+          $error = FALSE;
+        }
+      }
+      if ($error) {
+        $field = $form['fields']['#options'][$index];
+        $form_state->setErrorByName('scheme_settings][fields][' . $index, $this->t('The field @field on content type @type is not in the selected vocabularies.', ['@field' => $field['field'], '@type' => $field['bundle']]));
+      }
+    }
   }
 
   /**
