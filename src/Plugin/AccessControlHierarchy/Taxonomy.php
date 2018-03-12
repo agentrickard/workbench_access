@@ -10,6 +10,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 use Drupal\field\FieldConfigInterface;
 use Drupal\taxonomy\VocabularyInterface;
 use Drupal\workbench_access\AccessControlHierarchyBase;
@@ -152,7 +153,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         'parents' => $this->convertParents($term, $id),
         'weight' => $term->weight,
         'description' => $term->description__value,
-        'path' => $term->toUrl()->toString(),
+        'path' => Url::fromUri('entity:taxonomy_term/' . $term->tid)->toString(),
       ];
       foreach ($tree[$id][$term->tid]['parents'] as $key) {
         if (!empty($tree[$id][$key]['parents'])) {
