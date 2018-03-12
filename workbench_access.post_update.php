@@ -44,14 +44,9 @@ function workbench_access_post_update_convert_to_scheme() {
   }
   // Let other modules intervene for additional types.
   \Drupal::moduleHandler()->alter('workbench_access_scheme_update', $settings);
+
+  // No settings? Do nothing but mark the update.
   if (empty($settings)) {
-    $scheme = AccessScheme::create([
-      'id' => 'default',
-      'label' => 'Default scheme',
-      'plural_label' => 'Default schemes',
-      'scheme' => 'taxonomy',
-      'scheme_settings' => $settings,
-    ]);
     $message = t('Workbench Access has not been configured. Disabling the module is recommended.');
   }
   else {
@@ -62,8 +57,9 @@ function workbench_access_post_update_convert_to_scheme() {
       'scheme' => $config->get('scheme'),
       'scheme_settings' => $settings,
     ]);
+    $scheme->save();
   }
-  $scheme->save();
+
   \Drupal::state()->set('workbench_access_upgraded_scheme_id', 'default');
   /** @var \Drupal\node\NodeTypeInterface $node_type */
   foreach (\Drupal::entityTypeManager()->getStorage('node_type')->loadMultiple() as $node_type) {
