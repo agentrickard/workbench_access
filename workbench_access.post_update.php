@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Utility\UpdateException;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\RoleSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
@@ -159,8 +160,8 @@ function workbench_access_post_update_section_user_association(&$sandbox) {
  * Delete the old workbench_access field.
  */
 function workbench_access_post_update_workbench_access_field_delete(&$sandbox) {
-  $field_storage = \Drupal::entityTypeManager()->getStorage('field_config');
-  if ($field = $field_storage->load(WorkbenchAccessManagerInterface::FIELD_NAME)) {
-    $field->delete();
+  $field_storage = \Drupal::entityTypeManager()->getStorage('field_storage_config');
+  if ($field_storage = FieldStorageConfig::loadByName('user', WorkbenchAccessManagerInterface::FIELD_NAME)) {
+    $field_storage->delete();
   }
 }

@@ -23,6 +23,14 @@ class ViewsData extends EntityViewsData {
     $data['section_association__user_id']['entity_id']['field']['id'] = 'field';
     $data['section_association__user_id']['entity_id']['field']['title'] = $this->t('Section Association ID');
 
+    $data['section_association']['section_id']['field'] = [
+      'id' => 'workbench_access_section_id',
+      'title' => $this->t('Section ID'),
+    ];
+    $data['section_association']['section_id']['filter'] = [
+      'id' => 'workbench_access_section_id',
+      'title' => $this->t('Section ID'),
+    ];
     /* Some notes for later:
 
     - Decide which tables to JOIN to, if any.

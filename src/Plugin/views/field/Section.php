@@ -3,7 +3,9 @@
 namespace Drupal\workbench_access\Plugin\views\field;
 
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\views\Plugin\views\field\FieldPluginBase;
+use Drupal\Core\Url;
+use Drupal\views\Plugin\views\field\MultiItemsFieldHandlerInterface;
+use Drupal\views\Plugin\views\field\PrerenderList;
 use Drupal\views\ResultRow;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -11,15 +13,11 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Field handler to present the section assigned to the node.
  *
- * This is a very simple handler, mainly for testing.
- *
- * @TODO: Convert this to use a proper multi-value handler.
- *
  * @ingroup views_field_handlers
  *
  * @ViewsField("workbench_access_section")
  */
-class Section extends FieldPluginBase {
+class Section extends PrerenderList implements MultiItemsFieldHandlerInterface {
 
   /**
    * Scheme.
@@ -55,10 +53,10 @@ class Section extends FieldPluginBase {
    */
   public function buildOptionsForm(&$form, FormStateInterface $form_state) {
     parent::buildOptionsForm($form, $form_state);
-    $form['separator'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Separator'),
-      '#default_value' => $this->options['separator'],
+    $form['make_link'] = [
+      '#type' => 'checkbox',
+      '#title' => $this->t('Link to Section entity'),
+      '#default_value' => $this->options['make_link'],
     ];
     return $form;
   }
@@ -68,8 +66,8 @@ class Section extends FieldPluginBase {
    */
   protected function defineOptions() {
     $options = parent::defineOptions();
-    $options['separator'] = [
-      'default' => ', ',
+    $options['make_link'] = [
+      'default' => FALSE,
     ];
 
     return $options;
@@ -86,7 +84,15 @@ class Section extends FieldPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function render(ResultRow $values) {
+  public function render_item($count, $item) {
+    return $item['value'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getItems(ResultRow $values) {
+    $this->items = [];
     if ($entity = $this->getEntity($values)) {
       $scheme = $this->scheme->getAccessScheme();
       $sections = $scheme->getEntityValues($entity);
@@ -94,15 +100,17 @@ class Section extends FieldPluginBase {
       foreach ($sections as $id) {
         foreach ($tree as $root => $data) {
           if (isset($data[$id])) {
-            $output[] = $this->sanitizeValue($data[$id]['label']);
+            // Check for link.
+            if ($this->options['make_link'] && isset($data[$id]['path'])) {
+              $this->items[$id]['path'] = $data[$id]['path'];
+              $this->items[$id]['make_link'] = TRUE;
+            }
+            $this->items[$id]['value'] = $this->sanitizeValue($data[$id]['label']);
           }
         }
       }
-      if (isset($output)) {
-        return trim(implode($this->options['separator'], $output), $this->options['separator']);
-      }
     }
-    return '';
+    return $this->items;
   }
 
   /**

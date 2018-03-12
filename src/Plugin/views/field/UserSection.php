@@ -2,8 +2,10 @@
 
 namespace Drupal\workbench_access\Plugin\views\field;
 
-use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\Core\Url;
 use Drupal\views\ResultRow;
+use Drupal\views\Plugin\views\field\MultiItemsFieldHandlerInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
 use Drupal\workbench_access\WorkbenchAccessManager;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
@@ -12,15 +14,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Field handler to present the section assigned to the user.
  *
- * This is a very simple handler, mainly for testing.
- *
- * @TODO: Convert this to use a proper multi-value handler.
- *
- * @ingroup views_field_handlers
- *
  * @ViewsField("workbench_access_user_section")
  */
-class UserSection extends Section {
+class UserSection extends Section implements MultiItemsFieldHandlerInterface {
 
   /**
    * Scheme.
@@ -98,24 +94,29 @@ class UserSection extends Section {
   /**
    * {@inheritdoc}
    */
-  public function render(ResultRow $values) {
+  public function getItems(ResultRow $values) {
+    $this->items = [];
     $user = $this->getEntity($values);
     $all = $this->scheme->getAccessScheme()->getTree();
     if ($this->manager->userInAll($this->scheme, $user)) {
-      $sections = WorkbenchAccessManager::getAllSections($this->scheme, TRUE);
+      $sections = $this->manager->getAllSections($this->scheme, TRUE);
     }
     else {
       $sections = $this->userSectionStorage->getUserSections($this->scheme, $user);
     }
-    $output = [];
     foreach ($sections as $id) {
       foreach ($all as $root => $data) {
         if (isset($data[$id])) {
-          $output[] = $this->sanitizeValue($data[$id]['label']);
+          // Check for link.
+          if ($this->options['make_link'] && isset($data[$id]['path'])) {
+            $this->items[$id]['path'] = $data[$id]['path'];
+            $this->items[$id]['make_link'] = TRUE;
+          }
+          $this->items[$id]['value'] = $this->sanitizeValue($data[$id]['label']);
         }
       }
     }
-    return trim(implode($this->options['separator'], $output), $this->options['separator']);
+    return $this->items;
   }
 
 }

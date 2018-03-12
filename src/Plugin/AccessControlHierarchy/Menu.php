@@ -71,6 +71,7 @@ class Menu extends AccessControlHierarchyBase {
           'parents' => [],
           'weight' => 0,
           'description' => $menu->label(),
+          'path' => $menu->toUrl('edit-form')->toString(),
         ];
         $params = new MenuTreeParameters();
         $data = $this->menuTree->load($menu_id, $params);
@@ -104,6 +105,7 @@ class Menu extends AccessControlHierarchyBase {
         'parents' => [],
         'weight' => $link->link->getWeight(),
         'description' => $link->link->getDescription(),
+        'path' => $link->link->getUrlObject()->toString(),
       ];
       // Get the parents.
       if ($parent = $link->link->getParent()) {
