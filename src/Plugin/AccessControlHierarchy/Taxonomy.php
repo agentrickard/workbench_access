@@ -365,26 +365,21 @@ class Taxonomy extends AccessControlHierarchyBase {
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     $settings = $form_state->getValues();
-    $validate = $settings['validate'];
     $settings['vocabularies'] = array_values(array_filter($settings['vocabularies']));
-    $settings['fields'] = array_values(array_map(function ($item) {
-      list($entity_type, $bundle, $field_name) = explode(':', $item);
-      return [
-        'entity_type' => $entity_type,
-        'bundle' => $bundle,
-        'field' => $field_name,
-      ];
-    }, array_filter($settings['fields'])));
-    foreach ($settings['validate'] as $index => $value) {
-      $error = TRUE;
-      foreach ($settings['vocabularies'] as $vocabulary) {
-        if (in_array($vocabulary, $value, TRUE)) {
-          $error = FALSE;
+    $settings['fields'] = array_filter($settings['fields']);
+    foreach ($settings['fields'] as $field) {
+      if (isset($settings['validate'][$field])) {
+        $error = TRUE;
+        foreach ($settings['vocabularies'] as $vocabulary) {
+          if (in_array($vocabulary, $settings['validate'][$field], TRUE)) {
+            $error = FALSE;
+          }
         }
-      }
-      if ($error) {
-        $field = $form['fields']['#options'][$index];
-        $form_state->setErrorByName('scheme_settings][fields][' . $index, $this->t('The field @field on content type @type is not in the selected vocabularies.', ['@field' => $field['field'], '@type' => $field['bundle']]));
+        if ($error) {
+          $form_field = $form['fields']['#options'][$field];
+          list($entity_type, $bundle, $field_name) = explode(':', $field);
+          $form_state->setErrorByName('scheme_settings][fields][' . $field, $this->t('The field %field on %type entities of type %bundle is not in the selected vocabularies.', ['%field' => $form_field['field'], '%type' => $entity_type, '%bundle' => $form_field['bundle']]));
+        }
       }
     }
   }
