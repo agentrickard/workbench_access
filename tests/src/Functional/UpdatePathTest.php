@@ -13,11 +13,6 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 class UpdatePathTest extends UpdatePathTestBase {
 
   /**
-   * Modules to enable after the database is loaded.
-   */
-  protected static $modules = ['workbench_access_test'];
-
-  /**
    * Set database dump files to be used.
    */
   protected function setDatabaseDumpFiles() {
