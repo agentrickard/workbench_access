@@ -141,24 +141,25 @@ function workbench_access_views_data_alter(array &$data) {
   // Legacy support.
   // @todo Remove in 8.x-2.x.
   if ($default = \Drupal::state()->get('workbench_access_upgraded_scheme_id')) {
-    $scheme = $scheme_storage->load($default);
-    $data['users']['workbench_access_section'] = [
-      'title' => t('Workbench Section: @name (legacy)', [
-        '@name' => $scheme->label(),
-      ]),
-      'help' => t('The sections to which this user belongs for the @name scheme.', [
-        '@name' => $scheme->label(),
-      ]),
-      'field' => [
-        'id' => 'workbench_access_user_section',
-        'scheme' => $scheme->id(),
-      ],
-      'filter' => [
-        'field' => 'uid',
-        'scheme' => $scheme->id(),
-        'id' => 'workbench_access_section',
-      ],
-    ];
+    if ($scheme = $scheme_storage->load($default)) {
+      $data['users']['workbench_access_section'] = [
+        'title' => t('Workbench Section: @name (legacy)', [
+          '@name' => $scheme->label(),
+        ]),
+        'help' => t('The sections to which this user belongs for the @name scheme.', [
+          '@name' => $scheme->label(),
+        ]),
+        'field' => [
+          'id' => 'workbench_access_user_section',
+          'scheme' => $scheme->id(),
+        ],
+        'filter' => [
+          'field' => 'uid',
+          'scheme' => $scheme->id(),
+          'id' => 'workbench_access_section',
+        ],
+      ];
+    }
     if (isset($data['node']['workbench_access_section__default'])) {
       $data['node']['workbench_access_section'] = $data['node']['workbench_access_section__default'];
       $data['node']['workbench_access_section']['title'] = t('Workbench Section: @name (legacy)', [

@@ -16,7 +16,7 @@ function workbench_access_update_8001() {
 }
 
 /**
- * Update to new access-scheme config entity.
+ * Update to new access scheme config entity.
  */
 function workbench_access_update_8002() {
   // Stash this for later.
@@ -30,7 +30,7 @@ function workbench_access_update_8002() {
 }
 
 /**
- * Create the new entity type.
+ * Create the new access scheme entity type.
  */
 function workbench_access_update_8003() {
   $entity_manager = \Drupal::entityTypeManager();
@@ -43,7 +43,7 @@ function workbench_access_update_8003() {
 }
 
 /**
- * Create the new entity type.
+ * Create the new section association entity type.
  */
 function workbench_access_update_8004() {
   $entity_manager = \Drupal::entityTypeManager();
