@@ -3,6 +3,7 @@
 namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\Tests\BrowserTestBase;
+use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
@@ -70,6 +71,7 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     $this->assertAdminCannotAddArticleNodeTypeToScheme($scheme);
     $this->assertAdminCanAddEntityTestAccessControlledBundleToScheme($scheme);
     $this->assertAdminCannotAddEntityTestAccessAccessControlledBundleToScheme($scheme);
+    $this->assertAdminCannotAddUnselectedVocabulary($scheme);
   }
 
   /**
@@ -139,6 +141,26 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->assertSession()->fieldNotExists('scheme_settings[fields][entity_test:not_access_controlled:field_workbench_access]');
     $this->assertFalse($scheme->getAccessScheme()->applies('entity_test', 'not_access_controlled'));
+  }
+
+  /**
+   * Assert admin cannot add a field that is not in the assigned vocabularies.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   */
+  protected function assertAdminCannotAddUnselectedVocabulary(AccessSchemeInterface $scheme) {
+    $vocab = Vocabulary::create(['vid' => 'selected', 'name' => 'Selected Vocabulary']);
+    $vocab->save();
+    $this->drupalGet($scheme->toUrl('edit-form'));
+    $this->submitForm([
+      'scheme_settings[vocabularies][workbench_access]' => 0,
+      'scheme_settings[vocabularies][selected]' => 1,
+      'scheme_settings[fields][entity_test:access_controlled:field_workbench_access]' => 1,
+      'scheme_settings[fields][node:page:field_workbench_access]' => 0,
+    ], 'Save');
+    $this->assertSession()->pageTextContains('The field Section on entity_test entities of type access_controlled is not in the selected vocabularies.');
+    $this->assertSession()->pageTextNotContains('The field Section on node entities of type page is not in the selected vocabularies.');
   }
 
 }
