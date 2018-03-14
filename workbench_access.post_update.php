@@ -43,7 +43,7 @@ function workbench_access_post_update_convert_to_scheme() {
     ];
   }
   // Let other modules intervene for additional types.
-  \Drupal::moduleHandler()->alter('workbench_access_scheme_update', $settings);
+  \Drupal::moduleHandler()->alter('workbench_access_scheme_update', $config);
 
   // No settings? Do nothing but mark the update.
   if (empty($settings)) {
