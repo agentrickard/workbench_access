@@ -12,15 +12,15 @@
  *   An array of settings for the plugin. Likely empty. Be certain to only act
  *   on your plugin scheme.
  *
- * @param Drupal\Core\State\StateInterface $config
- *   Current state data for Workbench Access configuration.
+ * @param Drupal\Core\Config\Config $config
+ *   Current data object for Workbench Access configuration.
  *
  * @return
  *   No return value. Modify $settings by reference to match the array defined
  *   by your plugin's implementation of
  *   AccessControlHierarchyInterface::defaultConfiguration().
  */
-function hook_workbench_access_scheme_update(array &$settings, Drupal\Core\State\StateInterface $config) {
+function hook_workbench_access_scheme_update_alter(array &$settings, Drupal\Core\Config\Config $config) {
   if ($config->get('scheme') === 'my_plugin_scheme') {
     $fields = [];
     foreach ($config->get('fields') as $entity_type => $field_info) {

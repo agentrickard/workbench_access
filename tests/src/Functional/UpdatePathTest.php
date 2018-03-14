@@ -13,6 +13,11 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 class UpdatePathTest extends UpdatePathTestBase {
 
   /**
+   * Modules to enable after the database is loaded.
+   */
+  protected static $modules = ['workbench_access_test'];
+
+  /**
    * Set database dump files to be used.
    */
   protected function setDatabaseDumpFiles() {
@@ -99,6 +104,15 @@ class UpdatePathTest extends UpdatePathTestBase {
 
     // Explicit test for https://www.drupal.org/project/workbench_access/issues/2946766
     $this->drupalGet('user/register');
+
+    // Test hook_workbench_access_scheme_update_alter().
+    $installer = \Drupal::service('module_installer');
+    $installer->install(['workbench_access_upgrade']);
+    $settings = [];
+    $config = \Drupal::state()->get('workbench_access_original_configuration', FALSE);
+    \Drupal::moduleHandler()->alter('workbench_access_scheme_update', $settings, $config);
+    $expected = ['test' => 'test'];
+    $this->assertEquals($expected, $settings);
   }
 
 }
