@@ -102,7 +102,7 @@ class UpdatePathTest extends UpdatePathTestBase {
 
     // Test hook_workbench_access_scheme_update_alter().
     $installer = \Drupal::service('module_installer');
-    $installer->install(['workbench_access_upgrade']);
+    $installer->install(['workbench_access_hooks']);
     $settings = [];
     $config = \Drupal::state()->get('workbench_access_original_configuration', FALSE);
     \Drupal::moduleHandler()->alter('workbench_access_scheme_update', $settings, $config);
