@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\workbench_access\Kernel;
 
+use Drupal;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
@@ -129,14 +130,9 @@ class TaxonomyAccessTest extends KernelTestBase {
     $term->save();
     // Create two users with equal permissions but assign one of them to the
     // section.
-    $permissions = [
-      'create terms in tags',
-      'edit terms in tags',
-      'delete terms in tags',
-      'create terms in categories',
-      'edit terms in categories',
-      'delete terms in categories',
-    ];
+    $version = Drupal::VERSION;
+    $permissions = $this->getPermissions();
+
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
     $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
@@ -165,14 +161,7 @@ class TaxonomyAccessTest extends KernelTestBase {
     $term->save();
     // Create two users with equal permissions but assign one of them to the
     // section.
-    $permissions = [
-      'create terms in tags',
-      'edit terms in tags',
-      'delete terms in tags',
-      'create terms in categories',
-      'edit terms in categories',
-      'delete terms in categories',
-    ];
+    $permissions = $this->getPermissions();
     $allowed_editor = $this->createUser($permissions);
     $allowed_editor->save();
     $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
@@ -224,6 +213,32 @@ class TaxonomyAccessTest extends KernelTestBase {
     // Should now allow access.
     $this->accessHandler->resetCache();
     $this->assertTrue($this->accessHandler->access($entity2, 'update', $editor_with_no_access));
+  }
+
+  /**
+   * Gets permissions appropriate to a Drupal version.
+   */
+  private function getPermissions() {
+    if (substr_count(Drupal::VERSION, '8.4') > 0) {
+      $permissions = [
+        'administer taxonomy',
+        'edit terms in tags',
+        'delete terms in tags',
+        'edit terms in categories',
+        'delete terms in categories',
+      ];
+    }
+    else {
+      $permissions = [
+        'create terms in tags',
+        'edit terms in tags',
+        'delete terms in tags',
+        'create terms in categories',
+        'edit terms in categories',
+        'delete terms in categories',
+      ];
+    }
+    return $permissions;
   }
 
 }
