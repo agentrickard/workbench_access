@@ -51,19 +51,21 @@ trait WorkbenchAccessTestTrait {
    * @param string $vocabulary_id
    *   Vocabulary ID.
    * @param string $field_name
-   *   Field name.
+   *   Field machine name.
+   * @param string $title
+   *   Field display title.
    *
    * @return field
    *   The created field entity.
    */
-  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME) {
+  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section') {
     // Create an instance of the access field on the bundle.
     $handler_id = 'workbench_access:taxonomy_term:editorial_section';
     if (!AccessScheme::load('editorial_section')) {
       // The scheme doesn't exist yet so there is no plugin yet.
       $handler_id = 'default:taxonomy_term';
     }
-    $field = $this->createEntityReferenceField($entity_type_id, $bundle, $field_name, 'Section', 'taxonomy_term', $handler_id, [
+    $field = $this->createEntityReferenceField($entity_type_id, $bundle, $field_name, $title, 'taxonomy_term', $handler_id, [
       'target_bundles' => [
         $vocabulary_id => $vocabulary_id,
       ],

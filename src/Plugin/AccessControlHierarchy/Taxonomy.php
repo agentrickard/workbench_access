@@ -396,6 +396,8 @@ class Taxonomy extends AccessControlHierarchyBase {
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $settings = $form_state->getValues();
+    // Saving 'validate' can cause schema errors.
+    unset($settings['validate']);
     $settings['vocabularies'] = array_values(array_filter($settings['vocabularies']));
     $settings['fields'] = array_values(array_map(function ($item) {
       list($entity_type, $bundle, $field_name) = explode(':', $item);
