@@ -314,15 +314,22 @@ class Taxonomy extends AccessControlHierarchyBase {
       }, $this->entityTypeManager->getStorage('taxonomy_vocabulary')->loadMultiple()),
     ];
     $entity_reference_fields = $this->entityFieldManager->getFieldMapByFieldType('entity_reference');
-    // We don't allow taxonomy terms to manage taxonomy terms.
-    unset($entity_reference_fields['taxonomy_term']);
     $taxonomy_fields = [];
     foreach ($entity_reference_fields as $entity_type_id => $fields) {
       foreach ($fields as $field_name => $details) {
+        // Parent fields on taxonomy terms would create infinite loops. Deny.
+        if ($entity_type_id == 'taxonomy_term' && $field_name == 'parent') {
+          continue;
+        }
         foreach ($details['bundles'] as $bundle) {
           $field_definitions = $this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle);
           if (isset($field_definitions[$field_name]) && $field_definitions[$field_name]->getFieldStorageDefinition()->getSetting('target_type') === 'taxonomy_term') {
             $handler_settings = $field_definitions[$field_name]->getSetting('handler_settings');
+            // Must refer to a target and bundles referring to themselves would
+            // create an infinite loop. Deny.
+            if (!isset($handler_settings['target_bundles']) || in_array($bundle, $handler_settings['target_bundles'], TRUE)) {
+              continue;
+            }
             $key = sprintf('%s:%s:%s', $entity_type_id, $bundle, $field_name);
             $taxonomy_fields[$key] = [
               'entity_type' => $this->entityTypeManager->getDefinition($entity_type_id)->getLabel(),
