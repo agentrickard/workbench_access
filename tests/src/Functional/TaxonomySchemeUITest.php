@@ -12,7 +12,7 @@ use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
  *
  * @group workbench_access
  */
-class TaxonomySchemeUiTest extends BrowserTestBase {
+class TaxonomySchemeUITest extends BrowserTestBase {
 
   use WorkbenchAccessTestTrait;
 
