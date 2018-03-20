@@ -7,8 +7,8 @@ When creating and editing content, users will be asked to place the content in
 an editorial section. Other users within that section or its parents will be
 able to edit the content.
 
-A user may be granted editorial rights to a section specific to his account or
-by her assigned role on the site. Content may only be placed in sections that
+A user may be granted editorial rights to a section specific to their account or
+by their assigned role on the site. Content may only be placed in sections that
 the user has rights to.
 
 ## Table of Contents
@@ -36,10 +36,7 @@ the user has rights to.
 
 ## Overview
 
-The Workbench Access module creates editorial access controls based on [access hierarchies](#access-hierarchies). The module provides an extensible system that
-supports structures created by [supported Drupal modules](#supported-drupal-modules). To use the module, you must configure at
-least one [access control field](#access-control-fields) on each of the [entity types](#entity-types) for which you
-wish to restrict editorial access.
+The Workbench Access module creates editorial access controls based on [access hierarchies](#access-hierarchies). The module provides an extensible system that supports structures created by [supported Drupal modules](#supported-drupal-modules). To use the module, you must configure at least one [access control field](#access-control-fields) on each of the [entity types](#entity-types) for which you wish to restrict editorial access.
 
 Note that Workbench Access only denies access to untrusted users. Some other
 permission set -- such as `Article: Edit any content` -- must be available to
@@ -262,8 +259,8 @@ When creating and editing content, users will be asked to place the content in
 an editorial section. Other users within that section or its parents will be
 able to edit the content.
 
-A user may be granted editorial rights to a section specific to his account or
-by her assigned role on the site. To create, edit and delete content in a
+A user may be granted editorial rights to a section specific to their account or
+by their assigned role on the site. To create, edit and delete content in a
 section, the user must have the core node module permission (e.g. `Edit all
 Article content`) *and* the content must be assigned to the same section.
 
