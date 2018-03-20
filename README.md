@@ -5,8 +5,11 @@ an extensible system that supports structures created by other Drupal modules.
 
 When creating and editing content, users will be asked to place the content in
 an editorial section. Other users within that section or its parents will be
-able to edit the content. A user may be granted editorial rights to a section
-specific to his account or by her assigned role on the site.
+able to edit the content.
+
+A user may be granted editorial rights to a section specific to his account or
+by her assigned role on the site. Content may only be placed in sections that
+the user has rights to.
 
 ## Table of Contents
 
