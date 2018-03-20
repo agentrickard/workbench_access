@@ -182,7 +182,7 @@ the _create_, _edit_, and _delete_ operations for assigned content types.
 managed by a specific plugin. Schemes are generally referred to by their parent
 modules (i.e. _the Taxonomy scheme_).
 
-* *Bundle*: A subtype of an _entity type_ such as an _Article_ node.
+* *Bundle*: A subtype of an _entity type_ such as an _Article_ content type.
 
 * *Children*: A _section_ in a hierarchy that has one or more parents.
 
@@ -190,7 +190,7 @@ modules (i.e. _the Taxonomy scheme_).
 Assigning editors to a section removes the *deny* placed on that user when
 performing editorial actions under _access control_.
 
-* *Entity type*: A content type defined by a Drupal site, such as _node_,
+* *Entity type*: A content type defined by a Drupal site, such as _content_,
 _term_, and _custom block_.
 
 * *Field*: A data element attached to a specific _bundle_ on an _entity type_.
@@ -218,7 +218,7 @@ contributed and custom modules may provide additional support.
 
 Access controls may only be placed on entity types that have fields governed by
 supported modules. By default, that means that the *Menu* scheme only applies to
-node content, because that is the only entity type with default Menu support.
+Content, because that is the only entity type with default Menu support.
 
 For *Taxonomy* schemes, any entity type that contains a Taxonomy Term entity
 reference field may be placed under access control.
@@ -232,7 +232,7 @@ When you configure an _access scheme_, you will be able to select from a list of
 entity types that are meet the requirements of the scheme. Under default usage,
 that means:
 
-* *Menu* schemes will support any node type (also called a _bundle_).
+* *Menu* schemes will support any Content type (also called a _bundle_).
 
 * *Taxonomy* schemes will support any entity type that has a Taxonomy Term
 entity reference field, so long as that field does not create an infinite loop
@@ -261,7 +261,7 @@ able to edit the content.
 
 A user may be granted editorial rights to a section specific to their account or
 by their assigned role on the site. To create, edit and delete content in a
-section, the user must have the core node module permission (e.g. `Edit all
+section, the user must have the core Node module permission (e.g. `Edit all
 Article content`) *and* the content must be assigned to the same section.
 
 Note that the module only controls access to content editing. It does not
@@ -284,7 +284,7 @@ denied.
 
 ## Access Controls
 Workbench Access applies to all content entities if you use the Taxonomy scheme,
-the Menu scheme only works for nodes.
+the Menu scheme only works for Content.
 
 By design, Workbench Access never _allows_ access. It only responds with
 `neutral` or `deny`. The intention is that normal editing permissions should
