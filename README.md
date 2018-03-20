@@ -13,7 +13,7 @@ the user has rights to.
 
 ## Table of Contents
 
-* [Installation](#installation-and-configuration)
+* [Installation and Configuration](#installation-and-configuration)
   * [Overview](#overview)
   * [Installation](#installation)
   * [Configuration](#configuration)
