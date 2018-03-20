@@ -1,0 +1,12 @@
+<?php
+
+/**
+ * Implements hook_workbench_access_scheme_update_alter().
+ */
+function workbench_access_hooks_workbench_access_scheme_update_alter(array &$settings, Drupal\Core\Config\Config $config) {
+ if ($config->get('scheme')) {
+    $settings = [
+      'test' => 'test',
+   ];
+ }
+}

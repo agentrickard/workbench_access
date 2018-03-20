@@ -1,0 +1,7 @@
+name: Workbench access hooks test
+description: Test code for workbench access hooks and events
+type: module
+core: 8.x
+hidden: true
+dependencies:
+  - workbench_access
