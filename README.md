@@ -54,8 +54,8 @@ Tip: It is best if you create your hierarchy (say a Taxonomy Vocabulary called
 `Editorial section` before configuring the module.
 
 If you want to test how the system works, you can run the drush command `drush
-wa-test` to install a sample taxonomy hierarchy and field. You will then need to
-configure a taxonomy scheme.
+wa-test` to install a sample Taxonomy hierarchy and field. You will then need to
+configure a Taxonomy scheme.
 
 ## Configuration
 
@@ -155,8 +155,8 @@ A user or role assigned to `Alumni` will also have access to `Events` and
 to `College` will have access to all six sections shown above.
 
 Parent-child relationships are governed by the access scheme, so changes to the
-scheme structure (say, the addition of a new taxonomy term, or the
-re-organization of a menu) will affect how permissions are enforced. Workbench
+scheme structure (say, the addition of a new Taxonomy Term, or the
+re-organization of a Menu) will affect how permissions are enforced. Workbench
 Access mirrors the configuration of its scheme's provider.
 
 ## Module Settings
@@ -180,7 +180,7 @@ the _create_, _edit_, and _delete_ operations for assigned content types.
 
 * *Access scheme* (or _scheme_): A defined system for controlling access,
 managed by a specific plugin. Schemes are generally referred to by their parent
-modules (i.e. _the taxonomy scheme_).
+modules (i.e. _the Taxonomy scheme_).
 
 * *Bundle*: A subtype of an _entity type_ such as an _Article_ node.
 
@@ -206,7 +206,7 @@ _section_ of a _scheme_. Assigning roles to a section removes the *deny* placed
 on all users of that role when performing editorial actions under _access
 control_.
 
-* *Root*: The top-level of a hierarchy, such as a taxonomy vocabulary or a menu.
+* *Root*: The top-level of a hierarchy, such as a Taxonomy Vocabulary or a Menu.
 
 * *Section*: An element of a _scheme_ that content and users may be assigned to
 in order to determine access control.
@@ -218,7 +218,7 @@ contributed and custom modules may provide additional support.
 
 Access controls may only be placed on entity types that have fields governed by
 supported modules. By default, that means that the *Menu* scheme only applies to
-node content, because that is the only entity type with default menu support.
+node content, because that is the only entity type with default Menu support.
 
 For *Taxonomy* schemes, any entity type that contains a Taxonomy Term entity
 reference field may be placed under access control.
@@ -234,7 +234,7 @@ that means:
 
 * *Menu* schemes will support any node type (also called a _bundle_).
 
-* *Taxonomy* schemes will support any entity type that has a taxonomy term
+* *Taxonomy* schemes will support any entity type that has a Taxonomy Term
 entity reference field, so long as that field does not create an infinite loop
 by referring to itself.
 
@@ -283,8 +283,8 @@ denied.
 # Developer Notes
 
 ## Access Controls
-Workbench Access applies to all content entities if you use the taxonomy scheme,
-the menu scheme only works for nodes.
+Workbench Access applies to all content entities if you use the Taxonomy scheme,
+the Menu scheme only works for nodes.
 
 By design, Workbench Access never _allows_ access. It only responds with
 `neutral` or `deny`. The intention is that normal editing permissions should
