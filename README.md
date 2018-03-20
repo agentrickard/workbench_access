@@ -33,14 +33,13 @@ specific to his account or by her assigned role on the site.
 
 ## Overview
 
-The Workbench Access module creates editorial access controls based on _access
-hierarchies_. The module provides an extensible system that supports structures
-created by _supported Drupal modules_. To use the module, you must configure at
-least one _access control field_ on each of the _entity types_ for which you
+The Workbench Access module creates editorial access controls based on [access hierarchies](#access-hierarchies). The module provides an extensible system that
+supports structures created by [supported Drupal modules](#supported-drupal-modules). To use the module, you must configure at
+least one [access control field](#access-control-fields) on each of the [entity types](#entity-types) for which you
 wish to restrict editorial access.
 
 Note that Workbench Access only denies access to untrusted users. Some other
-permission set -- such as "Article: Edit any content" -- must be available to
+permission set -- such as `Article: Edit any content` -- must be available to
 the user in order to perform the desired action.
 
 While Workbench Access is part of a larger module suite, it may be run as a
