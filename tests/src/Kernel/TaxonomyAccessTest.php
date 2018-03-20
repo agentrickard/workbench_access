@@ -6,7 +6,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\user\Traits\UserCreationTrait;
-use Drupal\Tests\workbench_access\Functional\WorkbenchAccessTestTrait;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Entity\AccessScheme;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
@@ -47,6 +47,13 @@ class TaxonomyAccessTest extends KernelTestBase {
    * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
    */
   protected $scheme;
+
+  /**
+   * User section storage.
+   *
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  protected $userStorage;
 
   /**
    * {@inheritdoc}
@@ -98,13 +105,13 @@ class TaxonomyAccessTest extends KernelTestBase {
     ]);
     $this->scheme->save();
     $this->installEntitySchema('user');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
     $this->vocabulary = $this->setUpVocabulary();
     $this->accessHandler = $this->container->get('entity_type.manager')
       ->getAccessControlHandler('taxonomy_term');
     $this->setUpTaxonomyFieldForEntityType('taxonomy_term', 'tags', $this->vocabulary->id());
+    $this->userStorage = \Drupal::service('workbench_access.user_section_storage');
   }
 
   /**
@@ -131,8 +138,9 @@ class TaxonomyAccessTest extends KernelTestBase {
       'delete terms in categories',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
     $editor_with_bypass_access = $this->createUser($permissions);
@@ -166,8 +174,9 @@ class TaxonomyAccessTest extends KernelTestBase {
       'delete terms in categories',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:' . $term->id();
     $allowed_editor->save();
+    $this->userStorage->addUser($this->scheme, $allowed_editor, [$term->id()]);
+
     $editor_with_no_access = $this->createUser($permissions);
 
     // Test an entity that is not subject to access control.

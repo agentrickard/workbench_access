@@ -325,8 +325,8 @@ class Taxonomy extends AccessControlHierarchyBase {
           $field_definitions = $this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle);
           if (isset($field_definitions[$field_name]) && $field_definitions[$field_name]->getFieldStorageDefinition()->getSetting('target_type') === 'taxonomy_term') {
             $handler_settings = $field_definitions[$field_name]->getSetting('handler_settings');
-            // Must refer to a target and bundles referring to themselves would
-            // create an infinite loop. Deny.
+            // Must refer to a proper target. Target bundles referring to
+            // themselves would create an infinite loop. Deny.
             if (!isset($handler_settings['target_bundles']) || in_array($bundle, $handler_settings['target_bundles'], TRUE)) {
               continue;
             }
