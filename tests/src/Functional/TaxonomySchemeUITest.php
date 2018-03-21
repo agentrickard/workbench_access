@@ -12,7 +12,7 @@ use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
  *
  * @group workbench_access
  */
-class TaxonomySchemeUiTest extends BrowserTestBase {
+class TaxonomySchemeUITest extends BrowserTestBase {
 
   use WorkbenchAccessTestTrait;
 
@@ -53,6 +53,10 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->setUpTaxonomyFieldForEntityType('node', 'page', $this->vocabulary->id());
+    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $this->vocabulary->id(), $this->vocabulary->id(), 'recursive', 'Recursive Field');
+    $vocab = Vocabulary::create(['vid' => 'selected', 'name' => 'Selected Vocabulary']);
+    $vocab->save();
+    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $vocab->id(), $this->vocabulary->id(), 'non_recursive', 'Allowed Field');
     entity_test_create_bundle('access_controlled');
     entity_test_create_bundle('notaccess_controlled');
     $this->setUpTaxonomyFieldForEntityType('entity_test', 'access_controlled', $this->vocabulary->id());
@@ -72,6 +76,7 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     $this->assertAdminCanAddEntityTestAccessControlledBundleToScheme($scheme);
     $this->assertAdminCannotAddEntityTestAccessAccessControlledBundleToScheme($scheme);
     $this->assertAdminCannotAddUnselectedVocabulary($scheme);
+    $this->assertAdminCannotAddRecursiveTaxonomy($scheme);
   }
 
   /**
@@ -150,8 +155,6 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
    *   Access scheme.
    */
   protected function assertAdminCannotAddUnselectedVocabulary(AccessSchemeInterface $scheme) {
-    $vocab = Vocabulary::create(['vid' => 'selected', 'name' => 'Selected Vocabulary']);
-    $vocab->save();
     $this->drupalGet($scheme->toUrl('edit-form'));
     $this->submitForm([
       'scheme_settings[vocabularies][workbench_access]' => 0,
@@ -161,6 +164,20 @@ class TaxonomySchemeUiTest extends BrowserTestBase {
     ], 'Save');
     $this->assertSession()->pageTextContains('The field Section on entity_test entities of type access_controlled is not in the selected vocabularies.');
     $this->assertSession()->pageTextNotContains('The field Section on node entities of type page is not in the selected vocabularies.');
+  }
+
+
+  /**
+   * Assert admin cannot add a field that references its own vocabulary.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   */
+  protected function assertAdminCannotAddRecursiveTaxonomy(AccessSchemeInterface $scheme) {
+    $this->drupalGet($scheme->toUrl('edit-form'));
+    $this->assertSession()->pageTextContains('Allowed Field');
+    $this->assertSession()->pageTextNotContains('Recursive Field');
+    $this->assertSession()->pageTextNotContains('Term Parents');
   }
 
 }

@@ -12,7 +12,7 @@ use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
  *
  * @group workbench_access
  */
-class MenuSchemeUiTest extends BrowserTestBase {
+class MenuSchemeUITest extends BrowserTestBase {
 
   use WorkbenchAccessTestTrait;
 
