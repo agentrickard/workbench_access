@@ -208,6 +208,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         foreach ($element['widget'] as $key => $item) {
           if (is_array($item) && isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
             $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term:' . $scheme->id();
+            $element['widget'][$key]['target_id']['#validate_reference'] = TRUE;
           }
         }
       }
