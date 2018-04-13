@@ -256,4 +256,23 @@ trait WorkbenchAccessTestTrait {
       ->loadUnchanged($scheme_id);
   }
 
+  /**
+   * Sets the field type.
+   *
+   * @param string $entity_type_id
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle ID.
+   * @param $type
+   *   The field type to use.
+   * @param string $field_name
+   *   Field machine name.
+   */
+  protected function setFieldType($entity_type_id, $bundle, $type = 'options_select', $field_name = WorkbenchAccessManagerInterface::FIELD_NAME) {
+    // Set the field to display as a dropdown on the form.
+    $form_display = EntityFormDisplay::load("$entity_type_id.$bundle.default");
+    $form_display->setComponent($field_name, ['type' => $type]);
+    $form_display->save();
+  }
+
 }

@@ -87,6 +87,23 @@ class NodeFormTest extends BrowserTestBase {
     $this->drupalGet('node/add/page');
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
 
+    // Test that we cannot use autocomplete to save a term we cannot access.
+    $this->setFieldType('node', 'page', 'entity_reference_autocomplete');
+
+    $this->drupalGet('node/add/page');
+    $session = $this->getSession();
+    $page = $session->getPage();
+    $field = WorkbenchAccessManagerInterface::FIELD_NAME . "[0][target_id]";
+    $this->submitForm([$field => 'garbage', 'title' => 'Foo'], 'Save');
+    $web_assert->pageTextContains('There are no entities matching "garbage".');
+
+    $this->submitForm([$field => $staff_term->label() . ' (' . $staff_term->id() . ')', 'title' => 'Foo'], 'Save');
+    $web_assert->pageTextContains('There are no entities matching ' . $staff_term->label());
+
+
+
+    // Reset the form
+    $this->setFieldType('node', 'page');
     // Add the super staff role and check both options exist.
     $editor->addRole($super_staff_rid);
     $editor->save();
