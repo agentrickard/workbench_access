@@ -139,8 +139,45 @@ class AssignUserFormTest extends BrowserTestBase {
     ], 'none');
     $none_user = $this->createUserWithRole($none_rid);
 
+    // No workbench.
+    $empty_rid = $this->createRole([
+      'create page content',
+      'edit any page content',
+      'delete any page content',
+      'create article content',
+      'edit any article content',
+      'delete any article content',
+      'access user profiles',
+    ], 'empty');
+    $empty_user = $this->createUserWithRole($empty_rid);
+
     // Check page access.
+
+    // As normal user.
+    $this->drupalLogin($empty_user);
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(403);
+
+    // As low-level admin.
+    $this->drupalLogin($partial_user);
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $empty_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(403);
+
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(200);
+
+    // As admin user.
     $this->drupalLogin($admin_user);
+
+    // The page for a user without Workbench Access should by 403.
+    $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $empty_user->id()]));
+    $assert = $this->assertSession();
+    $assert->statusCodeEquals(403);
+
+    // Get the page for a normal user.
     $this->drupalGet(Url::fromRoute('entity.section_association.edit', ['user' => $none_user->id()]));
     $assert = $this->assertSession();
     $assert->statusCodeEquals(200);
