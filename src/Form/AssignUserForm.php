@@ -2,6 +2,8 @@
 
 namespace Drupal\workbench_access\Form;
 
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Config\Entity\ConfigEntityStorageInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -96,6 +98,20 @@ class AssignUserForm extends FormBase {
       $container->get('workbench_access.user_section_storage'),
       $container->get('workbench_access.role_section_storage')
     );
+  }
+  /**
+   * Checks access to the form from the route.
+   *
+   * This form is only visible on accounts that can use Workbench Access,
+   * regardless of the current user's permissions.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The account accessing the form.
+   * @param \Drupal\Core\Session\AccountInterface $user
+   *   The user being edited.
+   */
+  public function access(AccountInterface $account, AccountInterface $user) {
+    return AccessResult::allowedIf($user->hasPermission('use workbench access'));
   }
 
   /**
