@@ -147,4 +147,23 @@ class TaxonomyHierarchySelection extends TermSelection {
     return $options;
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function validateReferenceableEntities(array $ids) {
+    $valid = [];
+    if ($allowed = $this->getReferenceableEntities()) {
+      foreach ($ids as $id) {
+        foreach ($allowed as $parent => $child) {
+          if (isset($child[$id])) {
+            $valid[$id] = $id;
+            break;
+          }
+        }
+      }
+    }
+    return $valid;
+  }
+
+
 }

@@ -87,9 +87,32 @@ class NodeFormTest extends BrowserTestBase {
     $this->drupalGet('node/add/page');
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
 
+    // Test that we cannot use autocomplete to save a term we cannot access.
+    $this->setFieldType('node', 'page', 'entity_reference_autocomplete');
+
+    $this->drupalGet('node/add/page');
+    $field = WorkbenchAccessManagerInterface::FIELD_NAME . "[0][target_id]";
+
+    // Try to save something that doesn't exist.
+    $this->submitForm([$field => 'garbage', 'title[0][value]' => 'Foo'], 'Save');
+    $web_assert->pageTextContains('There are no entities matching "garbage".');
+
+    // Try to force an invalid selection.
+    $this->submitForm([$field => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
+    $web_assert->pageTextContains('The referenced entity (taxonomy_term: 2) does not exist.');
+
     // Add the super staff role and check both options exist.
     $editor->addRole($super_staff_rid);
     $editor->save();
+
+    // Save a valid selection.
+    $this->submitForm([$field => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
+    $web_assert->pageTextNotContains('The referenced entity (taxonomy_term: 2) does not exist.');
+
+    // Reset the form
+    $this->setFieldType('node', 'page');
+    // Test the select widget.
+
     $this->drupalGet('node/add/page');
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $super_staff_term->getName());
