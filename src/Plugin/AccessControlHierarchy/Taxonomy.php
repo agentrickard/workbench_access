@@ -285,6 +285,23 @@ class Taxonomy extends AccessControlHierarchyBase {
           ],
         ];
       }
+      if (($revision_table = $entity_type->getRevisionTable()) && ($id = $entity_type->getKey('id'))) {
+        $data[$revision_table]['workbench_access_section__' . $scheme->id()] = [
+          'title' => t('Workbench access @name', ['@name' => $scheme->label()]),
+          'help' => t('The sections to which this content belongs in the @name scheme.', [
+            '@name' => $scheme->label(),
+          ]),
+          'field' => [
+            'scheme' => $scheme->id(),
+            'id' => 'workbench_access_section',
+          ],
+          'filter' => [
+            'field' => $id,
+            'scheme' => $scheme->id(),
+            'id' => 'workbench_access_section',
+          ],
+        ];
+      }
     }
   }
 
