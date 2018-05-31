@@ -96,7 +96,7 @@ class AccessSchemeAddForm extends EntityForm {
     $access_scheme = $this->entity;
     $access_scheme->save();
 
-    drupal_set_message($this->t('Saved the %label Access scheme.', [
+    \Drupal::messenger()->addMessage($this->t('Saved the %label Access scheme.', [
       '%label' => $access_scheme->label(),
     ]));
     $form_state->setRedirectUrl($access_scheme->toUrl('edit-form'));
