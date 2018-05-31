@@ -203,7 +203,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         $this->addEditors($uids_added, $section_id, $existing_editors);
       }
       else {
-        drupal_set_message($this->t('No valid users were selected to add'), 'warning');
+        \Drupal::messenger()->addMessage($this->t('No valid users were selected to add'), 'warning');
       }
     }
 
@@ -213,7 +213,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         $this->removeEditors($remove_editors, $section_id, $existing_editors);
       }
       else {
-        drupal_set_message($this->t('No users were selected to remove.'), 'warning');
+        \Drupal::messenger()->addMessage($this->t('No users were selected to remove.'), 'warning');
       }
     }
   }
@@ -261,7 +261,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         'Users added: @user',
         ['@user' => implode(', ', $editors_added)]
       );
-      drupal_set_message($text);
+      \Drupal::messenger()->addMessage($text);
     }
   }
 
@@ -291,7 +291,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         'Users removed: @user',
         ['@user' => implode(', ', $editors_removed)]
       );
-      drupal_set_message($text);
+      \Drupal::messenger()->addMessage($text);
     }
   }
 

@@ -38,7 +38,7 @@ class AccessSchemeDeleteForm extends EntityConfirmFormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->entity->delete();
 
-    drupal_set_message($this->t('Deleted access scheme @label.', [
+    \Drupal::messenger()->addMessage($this->t('Deleted access scheme @label.', [
       '@label' => $this->entity->label(),
     ]));
 

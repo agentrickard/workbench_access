@@ -116,7 +116,7 @@ class AccessSchemeForm extends EntityForm {
         ->submitConfigurationForm($form['scheme_settings'], $subform_state);
     }
     $access_scheme->save();
-    drupal_set_message($this->t('Saved the %label Access scheme.', [
+    \Drupal::messenger()->addMessage($this->t('Saved the %label Access scheme.', [
       '%label' => $access_scheme->label(),
     ]));
     $form_state->setRedirectUrl($access_scheme->toUrl('collection'));
