@@ -277,6 +277,7 @@ class Taxonomy extends AccessControlHierarchyBase {
           'field' => [
             'scheme' => $scheme->id(),
             'id' => 'workbench_access_section',
+            'click sortable' => TRUE,
           ],
           'filter' => [
             'field' => $id,
@@ -294,6 +295,7 @@ class Taxonomy extends AccessControlHierarchyBase {
           'field' => [
             'scheme' => $scheme->id(),
             'id' => 'workbench_access_section',
+            'click sortable' => TRUE,
           ],
           'filter' => [
             'field' => $id,
