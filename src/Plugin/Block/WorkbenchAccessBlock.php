@@ -24,12 +24,14 @@ class WorkbenchAccessBlock extends BlockBase {
   public function build() {
     $build = [];
     if ($node = \Drupal::routeMatch()->getParameter('node')) {
-      $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
-      if ($scheme = $manager->getActiveScheme()) {
-
-        if ($field = $scheme->fields('node', $node->getType())) {
-          foreach ($scheme->getEntityValues($node, $field) as $value) {
-            if ($element = $manager->getElement($value)) {
+      $scheme_storage = \Drupal::entityTypeManager()->getStorage('access_scheme');
+      if ($schemes = $scheme_storage->loadMultiple()) {
+        /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
+        foreach ($schemes as $id => $scheme) {
+          $active = $scheme->getAccessScheme();
+          if ($values = $active->getEntityValues($node)) {
+            foreach ($values as $value) {
+              $element = $active->load($value);
               // @TODO: This needs to be tested better.
               $build['#theme'] = 'item_list';
               $build['#items']['#title'] = $this->t('Editorial sections:');
