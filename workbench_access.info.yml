@@ -5,10 +5,10 @@ core: 8.x
 configure: workbench_access.admin
 package: Workbench
 dependencies:
-  - node
-  - taxonomy
-  - options
-  - menu_ui
-  - menu_link_content
+  - drupal:menu_ui
+  - drupal:menu_link_content
+  - drupal:node
+  - drupal:options
+  - drupal:taxonomy
 tests_dependencies:
   - inline_entity_form:inline_entity_form
