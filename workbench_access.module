@@ -668,7 +668,7 @@ function workbench_access_node_presave($node) {
     return;
   }
   // Only run this on enabled node types.
-  if (!variable_get('workbench_access_node_type_' . $node->type, 1)) {
+  if (!isset($node->type) || !variable_get('workbench_access_node_type_' . $node->type, 1)) {
     return;
   }
   // Did we use the default field form?
@@ -732,13 +732,15 @@ function workbench_access_prepare_field_save($node) {
   if (empty($node->workbench_access_fields) && !empty($scheme['form_field'])) {
     $node->workbench_access_fields[] = $scheme['form_field'];
   }
-  else {
+  elseif (isset($node->type))  {
     $fields = workbench_access_get_assigned_fields($node->type);
     foreach ($fields as $field => $info) {
       $node->workbench_access_fields[] = $field;
     }
   }
-
+  if (!isset($node->workbench_access_fields)) {
+    return;
+  }
   // Make sure that the required fields are present, even if they're empty.
   foreach ($node->workbench_access_fields as $field) {
     if (!isset($node->{$field})) {
