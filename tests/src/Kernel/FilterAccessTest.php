@@ -47,6 +47,7 @@ class FilterAccessTest extends KernelTestBase {
     'text',
     'system',
     'user',
+    'entity_test',
     'workbench_access',
     'workbench_access_filter_test',
     'field',
