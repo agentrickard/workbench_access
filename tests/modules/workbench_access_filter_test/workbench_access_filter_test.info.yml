@@ -1,0 +1,7 @@
+name: Workbench access filter test
+description: Test access plugin
+hidden: true
+type: module
+core: 8.x
+dependencies:
+  - workbench_access
