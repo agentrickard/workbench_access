@@ -12,4 +12,3 @@ dependencies:
   - drupal:taxonomy
 tests_dependencies:
   - inline_entity_form:inline_entity_form
-  - entity_test:entity_test

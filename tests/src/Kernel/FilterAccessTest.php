@@ -79,11 +79,9 @@ class FilterAccessTest extends KernelTestBase {
     ]);
     $this->scheme->save();
     $this->installEntitySchema('user');
+    $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    module_load_install('workbench_access');
-    workbench_access_install();
-    $this->accessHandler = $this->container->get('entity_type.manager')
-      ->getAccessControlHandler('filter_format');
+    $this->accessHandler = $this->container->get('entity_type.manager')->getAccessControlHandler('filter_format');
 
     $this->filterFormat1 = FilterFormat::create([
       'format' => 'full_html',
@@ -115,7 +113,7 @@ class FilterAccessTest extends KernelTestBase {
       'administer filters',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:filter_html_escape';
+    $this->container->get('workbench_access.user_section_storage')->addUser($this->scheme, $allowed_editor, ['filter_html_escape']);
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
     $permissions[] = 'bypass workbench access';
@@ -139,7 +137,7 @@ class FilterAccessTest extends KernelTestBase {
       'administer filters',
     ];
     $allowed_editor = $this->createUser($permissions);
-    $allowed_editor->{WorkbenchAccessManagerInterface::FIELD_NAME} = 'editorial_section:filter_html_escape';
+    $this->container->get('workbench_access.user_section_storage')->addUser($this->scheme, $allowed_editor, ['filter_html_escape']);
     $allowed_editor->save();
     $editor_with_no_access = $this->createUser($permissions);
 
