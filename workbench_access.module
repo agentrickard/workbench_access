@@ -55,6 +55,7 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
     return;
   }
   \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($form, $form, $form_state, $entity);
+
 }
 
 /**
@@ -187,4 +188,23 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
     return $element;
   }
   return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $form_state, $entity);
+}
+
+/**
+ * Implements hook_form_alter().
+ *
+ * If the user is not allowed to delete a taxonomy term, prevent it from
+ * happening by hiding the 'delete' action.
+ */
+function workbench_access_form_taxonomy_vocabulary_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $container = \Drupal::getContainer();
+
+  /** @var \Drupal\workbench_access\Access\TaxonomyDeleteAccessCheck $taxonomy_check */
+  $taxonomy_check = $container->get('anl_taxonomy_checks.taxonomy_delete_access_check');
+  $ok = $taxonomy_check->isDeleteAllowed();
+
+  if ($ok == FALSE) {
+    unset($form['actions']['delete']);
+  }
+
 }

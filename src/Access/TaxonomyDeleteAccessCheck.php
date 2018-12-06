@@ -1,0 +1,212 @@
+<?php
+
+namespace Drupal\workbench_access\Access;
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Routing\Access\AccessInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\taxonomy\TermInterface;
+use Drupal\field\Entity\FieldStorageConfig;
+
+/**
+ * Class TaxonomyDeleteAccessCheck.
+ *
+ * @package Drupal\workbench_access\Access
+ */
+class TaxonomyDeleteAccessCheck implements AccessInterface {
+
+  /**
+   * This method is used to determine if it is OK to delete.
+   *
+   * The check is based on whether or not it is being actively used for access
+   * control, and if content is assigned to it. If either of these statements
+   * is true, then 'forbidden' will be returned to prevent the term
+   * from being deleted.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   Ignored in this method (not doing user-based access).
+   *
+   * @return \Drupal\Core\Access\AccessResultAllowed|\Drupal\Core\Access\AccessResultForbidden
+   *   Returns 'forbidden' if the term is being used for access control.
+   *   Returns 'allowed' if the term is not being used for access control.
+   */
+  public function access(AccountInterface $account) {
+
+    if ($this->isDeleteAllowed()) {
+      return AccessResult::allowed();
+    }
+    return AccessResult::forbidden();
+  }
+
+  /**
+   * Determine if this term may be deleted.
+   *
+   * @return bool
+   *   TRUE if it may be deleted, FALSE otherwise.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  public function isDeleteAllowed() {
+    /** @var \Drupal\taxonomy\TermInterface $term */
+    $term = $this->getRouteEntity();
+
+    $retval = TRUE;
+
+    if ($term instanceof TermInterface) {
+      $hasAccessControlMembers = $this->doesTermHaveMembers($term);
+      $assigned_content = $this->isAssignedToContent($term);
+
+      /*
+       * If this term does not have users assigned to it for access
+       * control, and the term is not assigned to any pieces of content,
+       * it is OK to delete it.
+       */
+      if ($hasAccessControlMembers || $assigned_content) {
+
+        /** @var \Drupal\Core\Session\AccountProxyInterface $user */
+        $user = \Drupal::currentUser();
+
+        $override_allowed = $user->hasPermission('allow taxonomy term delete');
+
+        if ($assigned_content && !$override_allowed) {
+          drupal_set_message(t("The term %term is being used to tag content and may not be deleted.",
+            ['%term' => $term->getName()]), 'warning');
+          $retval = FALSE;
+        }
+        elseif ($assigned_content) {
+          drupal_set_message(t("The term %term is being used to tag content.",
+            ['%term' => $term->getName()]), 'warning');
+          $retval = TRUE;
+        }
+
+        if ($hasAccessControlMembers) {
+          drupal_set_message(t("The term %term is being used for access control and may not be deleted.",
+           ['%term' => $term->getName()]), 'warning');
+          $retval = FALSE;
+        }
+
+      }
+    }
+
+    return $retval;
+
+  }
+
+  /**
+   * Determines if this term has active members in it.
+   *
+   * @return bool
+   *   TRUE if the term has members, FALSE otherwise.
+   */
+  private function doesTermHaveMembers(TermInterface $term) {
+
+    /** @var array $sections */
+    $sections = $this->getActiveSections($term);
+
+    if (count($sections) > 0) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * Helper function to extract the entity for the supplied route.
+   *
+   * @return null|TermInterface
+   *   A term interface object if the term exists. NULL otherwise.
+   */
+  private function getRouteEntity() {
+    $route_match = \Drupal::routeMatch();
+    // Entity will be found in the route parameters.
+    if (($route = $route_match->getRouteObject()) && ($parameters = $route->getOption('parameters'))) {
+      // Determine if the current route represents an entity.
+      foreach ($parameters as $name => $options) {
+        if (isset($options['type']) && strpos($options['type'], 'entity:') === 0) {
+          $entity = $route_match->getParameter($name);
+          if ($entity instanceof TermInterface) {
+            return $entity;
+          }
+
+          // Since entity was found, no need to iterate further.
+          return NULL;
+        }
+      }
+    }
+  }
+
+  /**
+   * Inspect the given taxonomy term.
+   *
+   * This will determine if there are any active users assigned to it.
+   *
+   * @param \Drupal\taxonomy\TermInterface $term
+   *   The Taxonomy Term to inspect.
+   *
+   * @return array
+   *   An array of the users assigned to this section.
+   */
+  private function getActiveSections(TermInterface $term) {
+    $container = \Drupal::getContainer();
+    /** @var \Drupal\workbench_access\UserSectionStorageInterface $sectionStorage */
+    $sectionStorage = $container->get('workbench_access.user_section_storage');
+
+    /** @var \Drupal\Core\Config\Entity\ConfigEntityStorage $scheme */
+    $scheme = $container->get('entity_type.manager')
+      ->getStorage('access_scheme');
+
+    $access = $scheme->load("default");
+
+    $sections = $sectionStorage->getEditors($access, $term->id());
+
+    return $sections;
+  }
+
+  /**
+   * Determine if tagged content exists.
+   *
+   * This method will determine if any entities exist in the system that are
+   * tagged with the term.
+   *
+   * @param \Drupal\taxonomy\TermInterface $term
+   *   The Taxonomy Term to inspect.
+   *
+   * @return bool
+   *   TRUE if content is assigned to this term.
+   *   FALSE if content is not assigned to this term.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  private function isAssignedToContent(TermInterface $term) {
+
+    /** @var \Drupal\Core\Entity\EntityFieldManager $fieldManager */
+    $fieldManager = \Drupal::getContainer()->get("entity_field.manager");
+
+    $map = $fieldManager->getFieldMap();
+
+    foreach ($map as $entity_type => $fields) {
+      foreach ($fields as $name => $field) {
+        if ($field['type'] == 'entity_reference') {
+          // Get the entity reference and determine if it's a taxonomy.
+          /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
+          $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
+          if ($fieldConfig instanceof FieldStorageConfig &&
+            $fieldConfig->getSettings()['target_type'] == 'taxonomy_term') {
+            $entities = \Drupal::entityTypeManager()->getStorage($entity_type)->loadByProperties([
+              $name => $term->id(),
+            ]);
+            if (count($entities) > 0) {
+              return TRUE;
+            }
+          }
+        }
+      }
+    }
+
+    return FALSE;
+
+  }
+
+}

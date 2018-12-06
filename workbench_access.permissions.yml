@@ -32,3 +32,8 @@ view workbench access information:
   description: 'View the editorial access status of each content page.'
   title: 'View Workbench Access information'
   restrict access: FALSE
+
+'allow taxonomy term delete':
+  title: 'Allow Taxonomy Term Delete'
+  description: 'Do not allow terms to be deleted if content is tagged with the term.'
+  restrict access: TRUE
