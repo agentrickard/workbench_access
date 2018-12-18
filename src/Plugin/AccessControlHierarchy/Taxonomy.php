@@ -319,7 +319,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     foreach ($entity_reference_fields as $entity_type_id => $fields) {
       foreach ($fields as $field_name => $details) {
         // Parent fields on taxonomy terms would create infinite loops. Deny.
-        if ($entity_type_id == 'taxonomy_term' && $field_name == 'parent') {
+        if ($entity_type_id !== 'taxonomy_term' || ($entity_type_id == 'taxonomy_term' && $field_name == 'parent')) {
           continue;
         }
         foreach ($details['bundles'] as $bundle) {
