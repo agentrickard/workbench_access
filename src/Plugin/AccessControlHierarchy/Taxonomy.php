@@ -316,10 +316,11 @@ class Taxonomy extends AccessControlHierarchyBase {
     ];
     $entity_reference_fields = $this->entityFieldManager->getFieldMapByFieldType('entity_reference');
     $taxonomy_fields = [];
+
     foreach ($entity_reference_fields as $entity_type_id => $fields) {
       foreach ($fields as $field_name => $details) {
         // Parent fields on taxonomy terms would create infinite loops. Deny.
-        if ($entity_type_id !== 'taxonomy_term' || ($entity_type_id == 'taxonomy_term' && $field_name == 'parent')) {
+        if ($entity_type_id == 'taxonomy_term' && $field_name == 'parent') {
           continue;
         }
         foreach ($details['bundles'] as $bundle) {
@@ -328,7 +329,11 @@ class Taxonomy extends AccessControlHierarchyBase {
             $handler_settings = $field_definitions[$field_name]->getSetting('handler_settings');
             // Must refer to a proper target. Target bundles referring to
             // themselves would create an infinite loop. Deny.
-            if (!isset($handler_settings['target_bundles']) || in_array($bundle, $handler_settings['target_bundles'], TRUE)) {
+            if ($entity_type_id == 'taxonomy_term' && in_array($bundle, $this->configuration['vocabularies'])) {
+              continue;
+            }
+            $allowed = array_intersect($handler_settings['target_bundles'], $this->configuration['vocabularies']);
+            if (!isset($handler_settings['target_bundles']) || empty($allowed)) {
               continue;
             }
             $key = sprintf('%s:%s:%s', $entity_type_id, $bundle, $field_name);
@@ -374,19 +379,21 @@ class Taxonomy extends AccessControlHierarchyBase {
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     $settings = $form_state->getValues();
     $settings['vocabularies'] = array_values(array_filter($settings['vocabularies']));
-    $settings['fields'] = array_filter($settings['fields']);
-    foreach ($settings['fields'] as $field) {
-      if (isset($settings['validate'][$field])) {
-        $error = TRUE;
-        foreach ($settings['vocabularies'] as $vocabulary) {
-          if (in_array($vocabulary, $settings['validate'][$field], TRUE)) {
-            $error = FALSE;
+    if (!empty($settings['fields'])) {
+      $settings['fields'] = array_filter($settings['fields']);
+      foreach ($settings['fields'] as $field) {
+        if (isset($settings['validate'][$field])) {
+          $error = TRUE;
+          foreach ($settings['vocabularies'] as $vocabulary) {
+            if (in_array($vocabulary, $settings['validate'][$field], TRUE)) {
+              $error = FALSE;
+            }
           }
-        }
-        if ($error) {
-          $form_field = $form['fields']['#options'][$field];
-          list($entity_type, $bundle, $field_name) = explode(':', $field);
-          $form_state->setErrorByName('scheme_settings][fields][' . $field, $this->t('The field %field on %type entities of type %bundle is not in the selected vocabularies.', ['%field' => $form_field['field'], '%type' => $entity_type, '%bundle' => $form_field['bundle']]));
+         if ($error) {
+            $form_field = $form['fields']['#options'][$field];
+            list($entity_type, $bundle, $field_name) = explode(':', $field);
+            $form_state->setErrorByName('scheme_settings][fields][' . $field, $this->t('The field %field on %type entities of type %bundle is not in the selected vocabularies.', ['%field' => $form_field['field'], '%type' => $entity_type, '%bundle' => $form_field['bundle']]));
+          }
         }
       }
     }
@@ -397,6 +404,9 @@ class Taxonomy extends AccessControlHierarchyBase {
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $settings = $form_state->getValues();
+    if (empty($settings['fields'])) {
+      $settings['fields'] = [];
+    }
     // Saving 'validate' can cause schema errors.
     unset($settings['validate']);
     $settings['vocabularies'] = array_values(array_filter($settings['vocabularies']));
@@ -408,6 +418,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         'field' => $field_name,
       ];
     }, array_filter($settings['fields'])));
+
     $this->configuration = $settings;
   }
 
