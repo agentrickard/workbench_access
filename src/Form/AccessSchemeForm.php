@@ -119,7 +119,6 @@ class AccessSchemeForm extends EntityForm {
     \Drupal::messenger()->addMessage($this->t('Saved the %label Access scheme.', [
       '%label' => $access_scheme->label(),
     ]));
-    $form_state->setRedirectUrl($access_scheme->toUrl('collection'));
   }
 
 }
