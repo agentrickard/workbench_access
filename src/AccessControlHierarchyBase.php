@@ -169,14 +169,63 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * Check to see if this entity is acting as Access Control.
+   *
+   * Any entity that is not being used for Access Control needs to return
+   * FALSE.
+   *
+   * @param EntityInterface $entity
+   *   An entity to check to see if it is acting as Access Control.
+   *
+   * @return bool
+   *   TRUE if Access Control entity, FALSE otherwise.
+   */
+  protected abstract function isAccessControlEntity(EntityInterface $entity);
+
+
+  /**
    * {@inheritdoc}
    */
   public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account) {
+
+    /*
+     * Is the entity we're checking access on an Access Control entity or controlled (node) entity?
+     * If it's an Access Control entity, run special checks.
+     */
+    if ($this->isAccessControlEntity($entity)) {
+      return $this->checkControllerEntityAccess($scheme, $entity, $op, $account);
+    }
+
+    return $this->checkControlledEntityAccess($scheme, $entity, $op, $account);
+
+  }
+
+
+  /**
+   * Responds to request for access to an entity that is access controlled.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The node being checked. In future this may handle other entity types.
+   * @param string $op
+   *   The operation, e.g. update, delete.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The user requesting access to the node.
+   *
+   * @return \Drupal\Core\Access\AccessResultInterface
+   *   An access result response. By design, this is either neutral or deny.
+   *
+   * @see workbench_access_entity_access()
+   */
+  protected function checkControlledEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account) {
     // We don't care about the View operation right now.
+
     if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
       // Return early.
       return AccessResult::neutral();
     }
+
 
     if (!$this->applies($entity->getEntityTypeId(), $entity->bundle())) {
       return AccessResult::neutral();
@@ -204,6 +253,33 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * Responds to request for access to an entity that is acting as access
+   * control.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The node being checked. In future this may handle other entity types.
+   * @param string $op
+   *   The operation, e.g. update, delete.
+   * @param \Drupal\Core\Session\AccountInterface $account
+   *   The user requesting access to the node.
+   *
+   * @return \Drupal\Core\Access\AccessResultInterface
+   *   An access result response. By design, this is either neutral or deny.
+   *
+   * @see workbench_access_entity_access()
+   */
+  protected function checkControllerEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account) {
+
+    if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
+      // Return early.
+      return AccessResult::neutral();
+    }
+
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function disallowedOptions($field) {
@@ -219,9 +295,14 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state) {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
-    foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
+    foreach (\Drupal::entityTypeManager()
+               ->getStorage('access_scheme')
+               ->loadMultiple() as $access_scheme) {
       $scheme = $access_scheme->getAccessScheme();
-      $hidden_values = $form_state->getValue(['workbench_access_disallowed', $access_scheme->id()]);
+      $hidden_values = $form_state->getValue([
+        'workbench_access_disallowed',
+        $access_scheme->id(),
+      ]);
       if (!empty($values)) {
 
         $entity = $form_state->getFormObject()->getEntity();

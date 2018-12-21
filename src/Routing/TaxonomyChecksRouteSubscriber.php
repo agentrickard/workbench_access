@@ -26,7 +26,7 @@ class TaxonomyChecksRouteSubscriber extends RouteSubscriberBase {
     $route = $collection->get($this->taxonomyDeleteRoute);
 
     if ($route instanceof Route) {
-      $route->setRequirement('_taxonomy_delete_access_check', 'TRUE');
+  //    $route->setRequirement('_taxonomy_delete_access_check', 'TRUE');
     }
 
   }

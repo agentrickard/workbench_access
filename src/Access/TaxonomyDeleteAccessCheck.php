@@ -156,7 +156,7 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
     $scheme = $container->get('entity_type.manager')
       ->getStorage('access_scheme');
 
-    $access = $scheme->load("default");
+    $access = $scheme->load("access_section");
 
     $sections = $sectionStorage->getEditors($access, $term->id());
 

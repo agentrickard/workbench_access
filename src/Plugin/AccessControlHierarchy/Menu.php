@@ -298,7 +298,8 @@ class Menu extends AccessControlHierarchyBase {
     ];
     $dependencies = [];
     foreach ($entity_type_map as $entity_type => $configuration_key) {
-      $dependencies = array_merge($dependencies, $this->entityTypeManager->getStorage($entity_type)->loadMultiple($this->configuration[$configuration_key]));
+      $dependencies = array_merge($dependencies, $this->entityTypeManager->getStorage($entity_type)
+        ->loadMultiple($this->configuration[$configuration_key]));
     }
     return array_reduce($dependencies, function (array $carry, ConfigEntityInterface $entity) {
       $carry[$entity->getConfigDependencyKey()][] = $entity->getConfigDependencyName();
@@ -329,5 +330,38 @@ class Menu extends AccessControlHierarchyBase {
     $this->configuration['bundles'] = $bundles;
     return $changed;
   }
+
+  /**
+   * Check to see if this entity is acting as Access Control.
+   *
+   * Any entity that is not being used for Access Control needs to return
+   * FALSE.
+   *
+   * @param EntityInterface $entity
+   *   An entity to check to see if it is acting as Access Control.
+   *
+   * @return bool
+   *   TRUE if Access Control entity, FALSE otherwise.
+   */
+  protected function isAccessControlEntity(EntityInterface $entity) {
+
+    if ($entity->getEntityType() == 'menu_item') {
+      return TRUE;
+    }
+
+    return FALSE;
+
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  protected function checkControllerEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account) {
+
+    // no opinion at this time.
+    return AccessResult::neutral();
+
+  }
+
 
 }

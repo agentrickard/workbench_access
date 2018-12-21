@@ -64,7 +64,16 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   public function load($id);
 
   /**
-   * Responds to request for node access.
+   * Responds to request for entity access.
+   *
+   * This method controls both entities being access controlled (e.g. nodes),
+   * and entities acting as the access controller. The actual logic is farmed
+   * out to two helper methods, one for each, so that the logic can be
+   * selectively over-ridden by classes that are part of this inheritance tree.
+   *
+   * Any external routines that need to check entity access related to
+   * Workbench Access use this method so that the question is asked at a single
+   * point.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
