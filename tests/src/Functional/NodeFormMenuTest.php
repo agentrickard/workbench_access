@@ -128,6 +128,31 @@ class NodeFormMenuTest extends BrowserTestBase {
     $web_assert->optionExists('menu[menu_parent]', $base_link->label());
     $web_assert->optionExists('menu[menu_parent]', $staff_link->label());
     $web_assert->optionExists('menu[menu_parent]', $super_staff_link->label());
+
+    // Explicit testing for issue
+    // https://www.drupal.org/project/workbench_access/issues/3024159
+
+    // Add the user to the root menu section.
+    $user_storage->addUser($scheme, $editor, ['main']);
+    $this->drupalGet('node/add/page');
+    $web_assert->optionExists('menu[menu_parent]', 'main:');
+    $web_assert->optionExists('menu[menu_parent]', $base_link->label());
+    $web_assert->optionExists('menu[menu_parent]', $staff_link->label());
+    $web_assert->optionExists('menu[menu_parent]', $super_staff_link->label());
+
+    // Save the node.
+    $edit['title[0][value]'] = 'Test node';
+    $edit['menu[title]'] = 'Test node';
+    $edit['menu[menu_parent]'] = 'main:' . $base_link->getPluginId();
+    $this->drupalPostForm('node/add/page', $edit, 'Save');
+
+    $this->drupalGet('node/1/edit');
+    $web_assert->optionExists('menu[menu_parent]', 'main:');
+    $web_assert->optionExists('menu[menu_parent]', $base_link->label());
+    $web_assert->optionExists('menu[menu_parent]', $staff_link->label());
+    $web_assert->optionExists('menu[menu_parent]', $super_staff_link->label());
+    // May not declare self as parent.
+    $web_assert->optionNotExists('menu[menu_parent]', 'Test node');
   }
 
 }
