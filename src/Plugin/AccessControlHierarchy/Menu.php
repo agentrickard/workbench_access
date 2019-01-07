@@ -147,8 +147,15 @@ class Menu extends AccessControlHierarchyBase {
     foreach ($element['link']['menu_parent']['#options'] as $id => $data) {
       // The menu value here prepends the menu name. Remove that.
       $parts = explode(':', $id);
-      $menu = array_shift($parts);
-      $sections = [implode(':', $parts)];
+      $menu = $parts[0];
+      // If the second element is empty, this is the root element which is
+      // checked by menu name.
+      if (empty($parts[1])) {
+        $sections = [$menu];
+      }
+      else {
+        $sections = [$parts[1]];
+      }
       // Remove unusable elements, except the existing parent.
       if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
         unset($element['link']['menu_parent']['#options'][$id]);
