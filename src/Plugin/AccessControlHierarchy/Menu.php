@@ -147,14 +147,13 @@ class Menu extends AccessControlHierarchyBase {
     foreach ($element['link']['menu_parent']['#options'] as $id => $data) {
       // The menu value here prepends the menu name. Remove that.
       $parts = explode(':', $id);
-      $menu = $parts[0];
+      $menu = array_shift($parts);
       // If the second element is empty, this is the root element which is
       // checked by menu name.
-      if (empty($parts[1])) {
+      if (empty($parts)) {
         $sections = [$menu];
       }
       else {
-        array_shift($parts);
         $sections = [implode(':', $parts)];
       }
       // Remove unusable elements, except the existing parent.
