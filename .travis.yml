@@ -1,0 +1,91 @@
+language: php
+sudo: false
+
+matrix:
+  fast_finish: true
+  include:
+    - env: DRUPAL=8.5.x
+      php: 7.2
+    - env: DRUPAL=8.5.x
+      php: 7.1
+    - env: DRUPAL=8.5.x
+      php: 7.0
+    - env: DRUPAL=8.5.x
+      php: 5.6
+    - env: DRUPAL=8.5.x
+      php: 5.5
+    - env: DRUPAL=8.6.x
+      php: 7.2
+    - env: DRUPAL=8.6.x
+      php: 7.1
+    - env: DRUPAL=8.6.x
+      php: 7.0
+    - env: DRUPAL=8.6.x
+      php: 5.6
+    - env: DRUPAL=8.6.x
+      php: 5.5
+
+cache:
+  directories:
+    - $HOME/.composer/cache/files
+
+mysql:
+  database: wa
+  username: root
+  encoding: utf8
+
+notifications:
+  email: false
+
+before_install:
+  # Add composer's global bin directory to the path
+  # see: https://github.com/drush-ops/drush#install---composer
+  - export PATH="$HOME/.composer/vendor/bin:$PATH"
+
+  # Remove Xdebug. Not an issue for PHP 7.
+  - phpenv config-rm xdebug.ini || true
+
+  - composer self-update
+
+install:
+  # Install Drush. We need to pin this to 8.1.5 because there are compatability
+  # issues with symfony/console 2.8/3.0 in later versions.
+  - composer global require drush/drush:8.1.5
+  - phpenv rehash
+
+  # Create database.
+  - mysql -e 'create database wa'
+
+before_script:
+  # Remember the current rules test directory for later use in the Drupal installation.
+  - TESTDIR=$(pwd)
+  # Navigate out of module directory to prevent blown stack by recursive module lookup.
+  - cd ..
+
+  # Download Drupal 8 core.
+  - travis_retry drush dl drupal-$DRUPAL --drupal-project-rename=drupal
+  - cd drupal
+
+  # Update PHPUnit.
+  - composer run-script drupal-phpunit-upgrade
+
+  # Make the module appear in the correct place
+  - ln -s $TESTDIR modules/workbench_access
+
+  # Install drupal default profile
+  - /usr/bin/env PHP_OPTIONS="-d sendmail_path=$(which true)" drush --yes --verbose site-install minimal --db-url=mysql://root:@127.0.0.1/wa
+  # Install modules
+  - travis_retry drush dl inline_entity_form
+  - drush --yes en simpletest workbench_access taxonomy
+  - drush cr
+
+  # Start a web server on port 8080 in the background.
+  - nohup php -S 0.0.0.0:8080 > /dev/null 2>&1 &
+
+  # Wait until the web server is responding.
+  - until curl -s localhost:8080; do true; done > /dev/null
+
+script:
+  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
+  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Kernel" --php `which php` --url http://localhost:8080 "workbench_access"
+  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Unit" --php `which php` --url http://localhost:8080 "workbench_access"
