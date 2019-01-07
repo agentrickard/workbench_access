@@ -154,7 +154,8 @@ class Menu extends AccessControlHierarchyBase {
         $sections = [$menu];
       }
       else {
-        $sections = [$parts[1]];
+        array_shift($parts);
+        $sections = [implode(':', $parts)];
       }
       // Remove unusable elements, except the existing parent.
       if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
