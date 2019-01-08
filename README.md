@@ -332,8 +332,6 @@ The module has complete coverage. New features of bugfixes are required to have
 passing tests. All pull requests will automatically run tests in TravisCI. Test
 coverage runs against the following:
 
-1. PHP 5.5, 5.6, 7.0, and 7.1.
-2. The stable, Release Candidate (if available), and DEV branches of Drupal
-core.
+1. PHP 7.1 and 7.2.
+2. The stable (8.6) and DEV (8.7) branches of Drupal core.
 
-[![Build Status](https://travis-ci.org/agentrickard/workbench_access.svg?branch=8.x-1.x)](https://travis-ci.org/agentrickard/workbench_access)
