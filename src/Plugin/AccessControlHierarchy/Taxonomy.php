@@ -329,13 +329,19 @@ class Taxonomy extends AccessControlHierarchyBase {
             $handler_settings = $field_definitions[$field_name]->getSetting('handler_settings');
             // Must refer to a proper target. Target bundles referring to
             // themselves would create an infinite loop. Deny.
-            if ($entity_type_id == 'taxonomy_term' && in_array($bundle, $this->configuration['vocabularies'])) {
+            if ($entity_type_id == 'taxonomy_term' && in_array($bundle, $this->configuration['vocabularies'], TRUE)) {
               continue;
             }
+            // Must have a proper target.
+            if (!isset($handler_settings['target_bundles'])) {
+              continue;
+            }
+            // At least one target must be configured for access control.
             $allowed = array_intersect($handler_settings['target_bundles'], $this->configuration['vocabularies']);
-            if (!isset($handler_settings['target_bundles']) || empty($allowed)) {
+            if (empty($allowed)) {
               continue;
             }
+            // Create a unique key for each option.
             $key = sprintf('%s:%s:%s', $entity_type_id, $bundle, $field_name);
             $taxonomy_fields[$key] = [
               'entity_type' => $this->entityTypeManager->getDefinition($entity_type_id)->getLabel(),
