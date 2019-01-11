@@ -3,6 +3,7 @@
 namespace Drupal\workbench_access\Access;
 
 use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\taxonomy\TermInterface;
@@ -39,22 +40,30 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
    */
   private $fieldManager;
 
+
   /**
    * @var \Drupal\Core\Messenger\MessengerInterface
    */
   private $messenger;
 
+  /**
+   * @var \Drupal\Core\Entity\EntityTypeManager
+   */
+  private $entityTypeManager;
+
   public function __construct(AccountInterface $account,
                               CurrentRouteMatch $route,
                               UserSectionStorage $userSectionStorage,
                               EntityFieldManager $fieldManager,
-                              MessengerInterface $messenger) {
+                              MessengerInterface $messenger,
+                              EntityTypeManager $entityTypeManager) {
 
     $this->account = $account;
     $this->route = $route;
     $this->userSectionStorage = $userSectionStorage;
     $this->fieldManager = $fieldManager;
     $this->messenger = $messenger;
+    $this->entityTypeManager = $entityTypeManager;
 
   }
 
@@ -188,13 +197,11 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
    *   An array of the users assigned to this section.
    */
   private function getActiveSections(TermInterface $term) {
-    $container = \Drupal::getContainer();
     /** @var \Drupal\workbench_access\UserSectionStorageInterface $sectionStorage */
-    $sectionStorage = $container->get('workbench_access.user_section_storage');
+    $sectionStorage = $this->userSectionStorage;
 
     /** @var \Drupal\Core\Config\Entity\ConfigEntityStorage $scheme */
-    $scheme = $container->get('entity_type.manager')
-      ->getStorage('access_scheme');
+    $scheme = $this->entityTypeManager->getStorage('access_scheme');
 
     $access = $scheme->load("access_section");
 
