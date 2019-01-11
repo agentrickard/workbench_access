@@ -7,6 +7,10 @@ use Drupal\Core\Routing\Access\AccessInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\taxonomy\TermInterface;
 use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Core\Routing\CurrentRouteMatch;
+use Drupal\workbench_access\UserSectionStorage;
+use Drupal\Core\Entity\EntityFieldManager;
+use Drupal\Core\Messenger\MessengerInterface;
 
 /**
  * Class TaxonomyDeleteAccessCheck.
@@ -16,6 +20,45 @@ use Drupal\field\Entity\FieldStorageConfig;
 class TaxonomyDeleteAccessCheck implements AccessInterface {
 
   /**
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  private $account;
+
+  /**
+   * @var \Drupal\Core\Routing\CurrentRouteMatch;
+   */
+  private $route;
+
+  /**
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  private $userSectionStorage;
+
+  /**
+   * @var \Drupal\Core\Entity\EntityFieldManager
+   */
+  private $fieldManager;
+
+  /**
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  private $messenger;
+
+  public function __construct(AccountInterface $account,
+                              CurrentRouteMatch $route,
+                              UserSectionStorage $userSectionStorage,
+                              EntityFieldManager $fieldManager,
+                              MessengerInterface $messenger) {
+
+    $this->account = $account;
+    $this->route = $route;
+    $this->userSectionStorage = $userSectionStorage;
+    $this->fieldManager = $fieldManager;
+    $this->messenger = $messenger;
+
+  }
+
+  /**
    * This method is used to determine if it is OK to delete.
    *
    * The check is based on whether or not it is being actively used for access
@@ -23,14 +66,14 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
    * is true, then 'forbidden' will be returned to prevent the term
    * from being deleted.
    *
-   * @param \Drupal\Core\Session\AccountInterface $account
-   *   Ignored in this method (not doing user-based access).
-   *
    * @return \Drupal\Core\Access\AccessResultAllowed|\Drupal\Core\Access\AccessResultForbidden
    *   Returns 'forbidden' if the term is being used for access control.
    *   Returns 'allowed' if the term is not being used for access control.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  public function access(AccountInterface $account) {
+  public function access() {
 
     if ($this->isDeleteAllowed()) {
       return AccessResult::allowed();
@@ -64,25 +107,22 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
        */
       if ($hasAccessControlMembers || $assigned_content) {
 
-        /** @var \Drupal\Core\Session\AccountProxyInterface $user */
-        $user = \Drupal::currentUser();
-
-        $override_allowed = $user->hasPermission('allow taxonomy term delete');
+        $override_allowed = $this->account->hasPermission('allow taxonomy term delete');
 
         if ($assigned_content && !$override_allowed) {
-          drupal_set_message(t("The term %term is being used to tag content and may not be deleted.",
-            ['%term' => $term->getName()]), 'warning');
+          $this->messenger->addWarning(t("The term %term is being used to tag content and may not be deleted.",
+            ['%term' => $term->getName()]));
           $retval = FALSE;
         }
         elseif ($assigned_content) {
-          drupal_set_message(t("The term %term is being used to tag content.",
-            ['%term' => $term->getName()]), 'warning');
+          $this->messenger->addWarning(t("The term %term is being used to tag content.",
+            ['%term' => $term->getName()]));
           $retval = TRUE;
         }
 
         if ($hasAccessControlMembers) {
-          drupal_set_message(t("The term %term is being used for access control and may not be deleted.",
-           ['%term' => $term->getName()]), 'warning');
+          $this->messenger->addWarning(t("The term %term is being used for access control and may not be deleted.",
+           ['%term' => $term->getName()]));
           $retval = FALSE;
         }
 
@@ -118,7 +158,7 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
    *   A term interface object if the term exists. NULL otherwise.
    */
   private function getRouteEntity() {
-    $route_match = \Drupal::routeMatch();
+    $route_match = $this->route;
     // Entity will be found in the route parameters.
     if (($route = $route_match->getRouteObject()) && ($parameters = $route->getOption('parameters'))) {
       // Determine if the current route represents an entity.
@@ -181,10 +221,7 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
    */
   private function isAssignedToContent(TermInterface $term) {
 
-    /** @var \Drupal\Core\Entity\EntityFieldManager $fieldManager */
-    $fieldManager = \Drupal::getContainer()->get("entity_field.manager");
-
-    $map = $fieldManager->getFieldMap();
+    $map = $this->fieldManager->getFieldMap();
 
     foreach ($map as $entity_type => $fields) {
       foreach ($fields as $name => $field) {
@@ -193,7 +230,7 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
           /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
           $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
           if ($fieldConfig instanceof FieldStorageConfig &&
-            $fieldConfig->getSettings()['target_type'] == 'taxonomy_term') {
+            $fieldConfig->getSettings()['target_type'] === 'taxonomy_term') {
             $entities = \Drupal::entityTypeManager()->getStorage($entity_type)->loadByProperties([
               $name => $term->id(),
             ]);

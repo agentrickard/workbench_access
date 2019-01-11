@@ -172,7 +172,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * Check to see if this entity is acting as Access Control.
    *
    * Any entity that is not being used for Access Control needs to return
-   * FALSE.
+   * FALSE. This is the default behavior.
    *
    * @param EntityInterface $entity
    *   An entity to check to see if it is acting as Access Control.
@@ -180,7 +180,9 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * @return bool
    *   TRUE if Access Control entity, FALSE otherwise.
    */
-  protected abstract function isAccessControlEntity(EntityInterface $entity);
+  protected function isAccessControlEntity(EntityInterface $entity) {
+    return FALSE;
+  }
 
 
   /**

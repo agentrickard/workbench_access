@@ -10,3 +10,4 @@ services:
     arguments: ['@state', '@entity_type.manager']
   workbench_access.taxonomy_delete_access_check:
     class: Drupal\workbench_access\Access\TaxonomyDeleteAccessCheck
+    arguments: ['@current_user', '@current_route_match', '@workbench_access.user_section_storage', '@entity_field.manager', '@messenger']

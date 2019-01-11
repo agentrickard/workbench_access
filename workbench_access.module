@@ -203,8 +203,8 @@ function workbench_access_form_taxonomy_vocabulary_form_alter(&$form, FormStateI
   $taxonomy_check = $container->get('workbench_access.taxonomy_delete_access_check');
   $ok = $taxonomy_check->isDeleteAllowed();
 
-  if ($ok == FALSE) {
-    unset($form['actions']['delete']);
+  if ($ok === FALSE) {
+  //  unset($form['actions']['delete']);
   }
 
 }
