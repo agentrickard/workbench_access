@@ -30,8 +30,7 @@ use Drupal\Core\Access\AccessResult;
  *   module = "taxonomy",
  *   entity = "taxonomy_term",
  *   label = @Translation("Taxonomy"),
- *   description = @Translation("Uses a taxonomy vocabulary as an access
- *   control hierarchy.")
+ *   description = @Translation("Uses a taxonomy vocabulary as an access control hierarchy.")
  * )
  */
 class Taxonomy extends AccessControlHierarchyBase {
@@ -156,8 +155,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         'parents' => $this->convertParents($term, $id),
         'weight' => $term->weight,
         'description' => $term->description__value,
-        'path' => Url::fromUri('entity:taxonomy_term/' . $term->tid)
-          ->toString(),
+        'path' => Url::fromUri('entity:taxonomy_term/' . $term->tid)->toString(),
       ];
       foreach ($tree[$id][$term->tid]['parents'] as $key) {
         if (!empty($tree[$id][$key]['parents'])) {
@@ -316,8 +314,7 @@ class Taxonomy extends AccessControlHierarchyBase {
       '#default_value' => $this->configuration['vocabularies'],
       '#options' => array_map(function (VocabularyInterface $vocabulary) {
         return $vocabulary->label();
-      }, $this->entityTypeManager->getStorage('taxonomy_vocabulary')
-        ->loadMultiple()),
+      }, $this->entityTypeManager->getStorage('taxonomy_vocabulary')->loadMultiple()),
     ];
     $entity_reference_fields = $this->entityFieldManager->getFieldMapByFieldType('entity_reference');
     $taxonomy_fields = [];
@@ -329,8 +326,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         }
         foreach ($details['bundles'] as $bundle) {
           $field_definitions = $this->entityFieldManager->getFieldDefinitions($entity_type_id, $bundle);
-          if (isset($field_definitions[$field_name]) && $field_definitions[$field_name]->getFieldStorageDefinition()
-              ->getSetting('target_type') === 'taxonomy_term') {
+          if (isset($field_definitions[$field_name]) && $field_definitions[$field_name]->getFieldStorageDefinition()->getSetting('target_type') === 'taxonomy_term') {
             $handler_settings = $field_definitions[$field_name]->getSetting('handler_settings');
             // Must refer to a proper target. Target bundles referring to
             // themselves would create an infinite loop. Deny.
@@ -339,8 +335,7 @@ class Taxonomy extends AccessControlHierarchyBase {
             }
             $key = sprintf('%s:%s:%s', $entity_type_id, $bundle, $field_name);
             $taxonomy_fields[$key] = [
-              'entity_type' => $this->entityTypeManager->getDefinition($entity_type_id)
-                ->getLabel(),
+              'entity_type' => $this->entityTypeManager->getDefinition($entity_type_id)->getLabel(),
               'bundle' => $this->bundleInfo->getBundleInfo($entity_type_id)[$bundle]['label'],
               'field' => $field_definitions[$field_name]->getLabel(),
             ];
@@ -393,11 +388,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         if ($error) {
           $form_field = $form['fields']['#options'][$field];
           list($entity_type, $bundle, $field_name) = explode(':', $field);
-          $form_state->setErrorByName('scheme_settings][fields][' . $field, $this->t('The field %field on %type entities of type %bundle is not in the selected vocabularies.', [
-            '%field' => $form_field['field'],
-            '%type' => $entity_type,
-            '%bundle' => $form_field['bundle'],
-          ]));
+          $form_state->setErrorByName('scheme_settings][fields][' . $field, $this->t('The field %field on %type entities of type %bundle is not in the selected vocabularies.', ['%field' => $form_field['field'], '%type' => $entity_type, '%bundle' => $form_field['bundle']]));
         }
       }
     }
@@ -426,17 +417,15 @@ class Taxonomy extends AccessControlHierarchyBase {
    * {@inheritdoc}
    */
   public function calculateDependencies() {
-    $dependent_entities = $this->entityTypeManager->getStorage('taxonomy_vocabulary')
-      ->loadMultiple($this->configuration['vocabularies']);
-    $dependent_entities = array_merge($dependent_entities, $this->entityTypeManager->getStorage('field_config')
-      ->loadMultiple(array_map(function (array $field) {
-        $field += [
-          'entity_type' => NULL,
-          'bundle' => NULL,
-          'field' => '',
-        ];
-        return sprintf('%s.%s.%s', $field['entity_type'], $field['bundle'], $field['field']);
-      }, $this->configuration['fields'])));
+    $dependent_entities = $this->entityTypeManager->getStorage('taxonomy_vocabulary')->loadMultiple($this->configuration['vocabularies']);
+    $dependent_entities = array_merge($dependent_entities, $this->entityTypeManager->getStorage('field_config')->loadMultiple(array_map(function (array $field) {
+      $field += [
+        'entity_type' => NULL,
+        'bundle' => NULL,
+        'field' => '',
+      ];
+      return sprintf('%s.%s.%s', $field['entity_type'], $field['bundle'], $field['field']);
+    }, $this->configuration['fields'])));
     return array_reduce($dependent_entities, function (array $carry, ConfigEntityInterface $entity) {
       $carry[$entity->getConfigDependencyKey()][] = $entity->getConfigDependencyName();
       return $carry;
