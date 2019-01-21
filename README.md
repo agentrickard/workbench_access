@@ -326,7 +326,7 @@ will roll a beta release on Drupal.org.
 We would like to tackle issues in that order, but feel free to work on what
 motivates you.
 
-## Testing
+## Testing [![Build Status](https://travis-ci.com/agentrickard/workbench_access.svg?branch=8.x-1.x)](https://travis-ci.com/agentrickard/workbench_access)
 
 The module has complete coverage. New features of bugfixes are required to have
 passing tests. All pull requests will automatically run tests in TravisCI. Test
