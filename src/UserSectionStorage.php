@@ -173,12 +173,23 @@ class UserSectionStorage implements UserSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getPotentialEditors($id) {
+    // Get all role IDs that have the configured permissions.
+    $roles = user_role_names(TRUE, 'use workbench access');
+    // user_role_names() returns an array with the role IDs as keys, so take
+    // the array keys and merge them with previously found role IDs.
+    $rids = array_keys($roles);
     $query = $this->userStorage()->getQuery();
-    $users = $query
-      ->condition('status', 1)
-      ->sort('name')
-      ->execute();
-    return $this->filterByPermission($users);
+    $query->condition('status', 1)
+          ->sort('name');
+    if (!in_array(AccountInterface::AUTHENTICATED_ROLE, $rids, TRUE)) {
+      $query->condition('roles', $rids, 'IN');
+    }
+    $users = $query->execute();
+    // The anon user is not in the database.
+    if (in_array(AccountInterface::ANONYMOUS_ROLE, $rids, TRUE)) {
+      $users[0] = 0;
+    }
+    return $users;
   }
 
   /**
@@ -189,7 +200,17 @@ class UserSectionStorage implements UserSectionStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Filters a user list by permission.
+   *
+   * @param array $users
+   *   An array of users keyed by id.
+   * @return array
+   *
+   * @deprecated
+   *   This method causes performance issues. Filter at the query level.
+   *
+   * @link
+   *   https://www.drupal.org/project/workbench_access/issues/3025466
    */
   protected function filterByPermission($users = []) {
     $list = [];
