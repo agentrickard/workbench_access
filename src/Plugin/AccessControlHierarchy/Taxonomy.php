@@ -513,9 +513,16 @@ class Taxonomy extends AccessControlHierarchyBase {
   /**
    * @{inheritdoc}
    */
-  protected function isAccessControlEntity(EntityInterface $entity) {
+  protected function isAccessControlEntity(AccessSchemeInterface $scheme, EntityInterface $entity) {
 
     if ($entity->getEntityType()->id() == 'taxonomy_term') {
+      // We can't just assume that because this is a taxonomy term
+      // that it is an access control entity. We need to check to see
+      // if the entity being checked is access controlled or not.
+      if ($scheme->getAccessScheme()->getConfiguration()['vocabularies'][0] !== $entity->bundle()) {
+        return FALSE;
+      }
+
       return TRUE;
     }
 
@@ -528,22 +535,22 @@ class Taxonomy extends AccessControlHierarchyBase {
    */
   protected function checkControllerEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account) {
 
-    if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
+    if ($op === 'view' || $op === 'view label' || $account->hasPermission(   'bypass workbench access')) {
       // Return early.
       return AccessResult::neutral();
     }
 
-    $container = \Drupal::getContainer();
+      $container = \Drupal::getContainer();
 
-    if ($op === 'delete') {
+      if ($op === 'delete') {
 
-      /** @var \Drupal\workbench_access\Access\TaxonomyDeleteAccessCheck $taxonomy_check */
-      $taxonomy_check = $container->get('workbench_access.taxonomy_delete_access_check');
-      if (!$taxonomy_check->isDeleteAllowed()){
-        return AccessResult::forbidden("User not allowed to delete term.");
+        /** @var \Drupal\workbench_access\Access\TaxonomyDeleteAccessCheck $taxonomy_check */
+        $taxonomy_check = $container->get('workbench_access.taxonomy_delete_access_check');
+        if (!$taxonomy_check->isDeleteAllowed()){
+          return AccessResult::forbidden("User not allowed to delete term.");
+        }
+
       }
-
-    }
 
     // If we get down here, no opinion.
     return AccessResult::neutral();

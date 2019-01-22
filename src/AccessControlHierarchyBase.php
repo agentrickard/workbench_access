@@ -17,7 +17,6 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-
 /**
  * Defines a base hierarchy class that others may extend.
  */
@@ -180,7 +179,7 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * @return bool
    *   TRUE if Access Control entity, FALSE otherwise.
    */
-  protected function isAccessControlEntity(EntityInterface $entity) {
+  protected function isAccessControlEntity(AccessSchemeInterface $scheme, EntityInterface $entity) {
     return FALSE;
   }
 
@@ -194,11 +193,13 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
      * Is the entity we're checking access on an Access Control entity or controlled (node) entity?
      * If it's an Access Control entity, run special checks.
      */
-    if ($this->isAccessControlEntity($entity)) {
+    if ($this->isAccessControlEntity($scheme, $entity)) {
       return $this->checkControllerEntityAccess($scheme, $entity, $op, $account);
     }
 
-    return $this->checkControlledEntityAccess($scheme, $entity, $op, $account);
+    $retval = $this->checkControlledEntityAccess($scheme, $entity, $op, $account);
+
+    return $retval;
 
   }
 
@@ -278,6 +279,8 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
       // Return early.
       return AccessResult::neutral();
     }
+
+    return AccessResult::neutral();
 
   }
 

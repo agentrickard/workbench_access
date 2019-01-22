@@ -14,6 +14,7 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Menu\MenuTreeParameters;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Session\AccountInterface;
 
 /**
  * Defines a hierarchy based on a Menu.
@@ -343,7 +344,7 @@ class Menu extends AccessControlHierarchyBase {
    * @return bool
    *   TRUE if Access Control entity, FALSE otherwise.
    */
-  protected function isAccessControlEntity(EntityInterface $entity) {
+  protected function isAccessControlEntity(AccessSchemeInterface $scheme, EntityInterface $entity) {
 
     if ($entity->getEntityType() == 'menu_item') {
       return TRUE;
