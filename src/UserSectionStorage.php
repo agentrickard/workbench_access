@@ -174,7 +174,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
    */
   public function getPotentialEditors($id) {
     // Get all role IDs that have the configured permissions.
-    $roles = user_role_names(TRUE, 'use workbench access');
+    $roles = user_role_names(FALSE, 'use workbench access');
     // user_role_names() returns an array with the role IDs as keys, so take
     // the array keys and merge them with previously found role IDs.
     $rids = array_keys($roles);
@@ -187,7 +187,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     $users = $query->execute();
     // The anon user is not in the database.
     if (in_array(AccountInterface::ANONYMOUS_ROLE, $rids, TRUE)) {
-      $users[0] = 0;
+      $users[0] = '0';
     }
     return $users;
   }
