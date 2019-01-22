@@ -160,11 +160,13 @@ class UserSectionStorage implements UserSectionStorageInterface {
     $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
-      ->groupBy('user_id.target_id')->execute();
-    $list = array_column($query, 'user_id_target_id');
+      ->groupBy('user_id.target_id')
+      ->groupBy('user_id.entity.name');
+    $data = $query->execute();
+    $list = array_column($data, 'name', 'user_id_target_id');
     // $list may return an array with a NULL element, which is not 'empty.'.
     if (current($list)) {
-      return $this->filterByPermission($list);
+      return $list;
     }
     return [];
   }
@@ -185,10 +187,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
       $query->condition('roles', $rids, 'IN');
     }
     $users = $query->execute();
-    // The anon user is not in the database.
-    if (in_array(AccountInterface::ANONYMOUS_ROLE, $rids, TRUE)) {
-      $users[0] = '0';
-    }
+
     return $users;
   }
 
@@ -202,12 +201,12 @@ class UserSectionStorage implements UserSectionStorageInterface {
   /**
    * Filters a user list by permission.
    *
+   * Note that with a high number of users, this method causes performance
+   * issues. Try to filter at the query level.
+   *
    * @param array $users
    *   An array of users keyed by id.
    * @return array
-   *
-   * @deprecated
-   *   This method causes performance issues. Filter at the query level.
    *
    * @link
    *   https://www.drupal.org/project/workbench_access/issues/3025466
