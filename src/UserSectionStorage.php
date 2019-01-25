@@ -160,11 +160,13 @@ class UserSectionStorage implements UserSectionStorageInterface {
     $query = $this->sectionStorage()->getAggregateQuery()
       ->condition('access_scheme', $scheme->id())
       ->condition('section_id', $id)
-      ->groupBy('user_id.target_id')->execute();
-    $list = array_column($query, 'user_id_target_id');
+      ->groupBy('user_id.target_id')
+      ->groupBy('user_id.entity.name');
+    $data = $query->execute();
+    $list = array_column($data, 'name', 'user_id_target_id');
     // $list may return an array with a NULL element, which is not 'empty.'.
     if (current($list)) {
-      return $this->filterByPermission($list);
+      return $list;
     }
     return [];
   }
@@ -173,12 +175,20 @@ class UserSectionStorage implements UserSectionStorageInterface {
    * {@inheritdoc}
    */
   public function getPotentialEditors($id) {
+    // Get all role IDs that have the configured permissions.
+    $roles = user_role_names(FALSE, 'use workbench access');
+    // user_role_names() returns an array with the role IDs as keys, so take
+    // the array keys and merge them with previously found role IDs.
+    $rids = array_keys($roles);
     $query = $this->userStorage()->getQuery();
-    $users = $query
-      ->condition('status', 1)
-      ->sort('name')
-      ->execute();
-    return $this->filterByPermission($users);
+    $query->condition('status', 1)
+          ->sort('name');
+    if (!in_array(AccountInterface::AUTHENTICATED_ROLE, $rids, TRUE)) {
+      $query->condition('roles', $rids, 'IN');
+    }
+    $users = $query->execute();
+
+    return $users;
   }
 
   /**
@@ -189,9 +199,28 @@ class UserSectionStorage implements UserSectionStorageInterface {
   }
 
   /**
-   * {@inheritdoc}
+   * Filters a user list by permission.
+   *
+   * Note that with a high number of users, this method causes performance
+   * issues. Try to filter at the query level.
+   *
+   * @param array $users
+   *   An array of users keyed by id with names as the value.
+   * @return array
+   *   An array of users keyed by id with names as the value.
+   *
+   * @deprecated and will be removed before the 8.x-1.0 stable release.
+   *   Instead, you should filter at the query level by using role permissions.
+   *
+   * @see UserSectionStorage::getPotentialEditors()
+   *
+   * @link
+   *   https://www.drupal.org/project/workbench_access/issues/3025466
    */
   protected function filterByPermission($users = []) {
+    @trigger_error('UserSectionStorage::filterByPermission() is deprecated and
+      will be removed before the 8.x-1.0 stable release. Instead, you should
+      filter at the query level by using role permissions.');
     $list = [];
     if (!empty($users)) {
       $entities = $this->userStorage()->loadMultiple($users);
