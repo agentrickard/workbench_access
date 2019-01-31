@@ -15,6 +15,10 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  * Convert configuration into a scheme.
  */
 function workbench_access_post_update_convert_to_scheme() {
+  $module_schema = drupal_get_installed_schema_version('workbench_access');
+  if ($module_schema >= 8004) {
+    return;
+  }
   $config = \Drupal::state()->get('workbench_access_original_configuration', FALSE);
   if (!$config) {
     throw new UpdateException('Did not find expected original configuration');
@@ -75,6 +79,10 @@ function workbench_access_post_update_convert_to_scheme() {
  * Convert role storage.
  */
 function workbench_access_post_update_convert_role_storage_keys() {
+  $module_schema = drupal_get_installed_schema_version('workbench_access');
+  if ($module_schema >= 8004) {
+    return;
+  }
   foreach (\Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple() as $rid => $role) {
     $old_key = RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid;
     $new_key = RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . 'default__' . $rid;
@@ -90,6 +98,10 @@ function workbench_access_post_update_convert_role_storage_keys() {
  * Convert user storage.
  */
 function workbench_access_post_update_convert_user_storage_keys(array &$sandbox) {
+  $module_schema = drupal_get_installed_schema_version('workbench_access');
+  if ($module_schema >= 8004) {
+    return;
+  }
   $user_storage = \Drupal::entityTypeManager()->getStorage('user');
   if (!isset($sandbox['ids'])) {
     $sandbox['ids'] = $user_storage
@@ -115,6 +127,10 @@ function workbench_access_post_update_convert_user_storage_keys(array &$sandbox)
  * Transform existing role data to new storage.
  */
 function workbench_access_post_update_section_role_association(&$sandbox) {
+  $module_schema = drupal_get_installed_schema_version('workbench_access');
+  if ($module_schema >= 8004) {
+    return;
+  }
   $schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple();
   $storage = \Drupal::service('workbench_access.role_section_storage');
   $state = \Drupal::state();
@@ -140,6 +156,10 @@ function workbench_access_post_update_section_role_association(&$sandbox) {
  * Transform existing user data to new storage.
  */
 function workbench_access_post_update_section_user_association(&$sandbox) {
+  $module_schema = drupal_get_installed_schema_version('workbench_access');
+  if ($module_schema >= 8004) {
+    return;
+  }
   $schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple();
   $storage = \Drupal::service('workbench_access.user_section_storage');
   $user_storage = \Drupal::entityTypeManager()->getStorage('user');
@@ -173,10 +193,12 @@ function workbench_access_post_update_section_user_association(&$sandbox) {
  * Delete the old workbench_access field.
  */
 function workbench_access_post_update_workbench_access_field_delete(&$sandbox) {
+  $module_schema = drupal_get_installed_schema_version('workbench_access');
+  if ($module_schema >= 8004) {
+    return;
+  }
   $field_storage = \Drupal::entityTypeManager()->getStorage('field_storage_config');
   if ($field_storage = FieldStorageConfig::loadByName('user', WorkbenchAccessManagerInterface::FIELD_NAME)) {
-    if (!$field_storage->isDeleted()) {
-      $field_storage->delete();
-    }
+    $field_storage->delete();
   }
 }
