@@ -199,6 +199,8 @@ function workbench_access_post_update_workbench_access_field_delete(&$sandbox) {
   }
   $field_storage = \Drupal::entityTypeManager()->getStorage('field_storage_config');
   if ($field_storage = FieldStorageConfig::loadByName('user', WorkbenchAccessManagerInterface::FIELD_NAME)) {
-    $field_storage->delete();
+    if (!$field_storage->isDeleted()) {
+      $field_storage->delete();
+    }
   }
 }
