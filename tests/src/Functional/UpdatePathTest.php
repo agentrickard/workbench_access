@@ -25,6 +25,7 @@ class UpdatePathTest extends UpdatePathTestBase {
    * Tests workbench_access_update_8002, 8003(), and 8004().
    */
   public function testUpdatePath() {
+    drupal_set_installed_schema_version('workbench_access', 8000);
     $expected_new_config = [
       'deny_on_empty' => \Drupal::config('workbench_access.settings')->get('deny_on_empty'),
       '_core' => \Drupal::config('workbench_access.settings')->get('_core'),
