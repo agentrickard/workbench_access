@@ -667,6 +667,12 @@ function workbench_access_node_presave($node) {
   if (empty($node->nid)) {
     return;
   }
+  // hook_node_operations() does not retuen a full node.
+  // See https://www.drupal.org/node/2895338.
+  if (!isset($node->type)) {
+    $query = db_query('SELECT type FROM {node} WHERE nid = :nid', array(':nid' => $node->nid));
+    $node->type = $query->fetchField();
+  }
   // Only run this on enabled node types.
   if (!isset($node->type) || !variable_get('workbench_access_node_type_' . $node->type, 1)) {
     return;
