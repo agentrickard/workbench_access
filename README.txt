@@ -13,6 +13,7 @@ documentation, including installation and configuration walkthroughs.
 Version history
 ----------------
 
+7.x-1.6 16-FEB-2017
 7.x-1.5 21-JAN-2017
 7.x-1.4 11-OCT-2015
 7.x-1.3 02-AUG-2015
