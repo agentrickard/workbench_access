@@ -519,8 +519,12 @@ class Taxonomy extends AccessControlHierarchyBase {
       // We can't just assume that because this is a taxonomy term
       // that it is an access control entity. We need to check to see
       // if the entity being checked is access controlled or not.
-      if ($scheme->getAccessScheme()->getConfiguration()['vocabularies'][0] !== $entity->bundle()) {
-        return FALSE;
+      if (count($scheme->getAccessScheme()
+          ->getConfiguration()['vocabularies']) > 0)   {
+        if ($scheme->getAccessScheme()
+            ->getConfiguration()['vocabularies'][0] !== $entity->bundle()) {
+          return FALSE;
+        }
       }
 
       return TRUE;
