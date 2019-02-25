@@ -105,7 +105,7 @@ trait WorkbenchAccessTestTrait {
   }
 
   /**
-   * Sets up a user with an editor role that has access to content.
+   * Sets up a user with an editor & admin role that has access to content.
    *
    * @param array $additional_permissions
    *   Array of additional permissions beyond 'access administration pages' and
@@ -122,6 +122,23 @@ trait WorkbenchAccessTestTrait {
 
     return $this->createUserWithRole($admin_rid);
   }
+
+  /**
+   * Sets up a user the specific permissions and a unique role.
+   *
+   * @param array $additional_permissions
+   *   Array of additional permissions beyond 'access administration pages' and
+   *   'assign workbench access'.
+   *
+   * @return \Drupal\user\Entity\User
+   *   The user entity.
+   */
+  protected function setUpUserUniqueRole($permissions) {
+    $role = $this->createRole($permissions);
+    return $this->createUserWithRole($role);
+  }
+
+
 
   /**
    * Sets up a user with a given role and saves it.

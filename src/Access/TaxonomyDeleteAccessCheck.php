@@ -12,6 +12,7 @@ use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\workbench_access\UserSectionStorage;
 use Drupal\Core\Entity\EntityFieldManager;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
  * Class TaxonomyDeleteAccessCheck.
@@ -203,11 +204,18 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
     /** @var \Drupal\Core\Config\Entity\ConfigEntityStorage $scheme */
     $scheme = $this->entityTypeManager->getStorage('access_scheme');
 
-    $access = $scheme->load("access_section");
+//    $access = $scheme->load("access_section");
+    ////
+    ////    $sections = $sectionStorage->getEditors($access, $term->id());
+    ////
+    ////    return $sections;
+    $editors = array_reduce($this->entityTypeManager->getStorage('access_scheme')->loadMultiple(),
+      function (array $editors, AccessSchemeInterface $scheme) use ($sectionStorage, $term) {
+      $editors += $sectionStorage->getEditors($scheme, $term->id());
+      return $editors;
+    }, []);
 
-    $sections = $sectionStorage->getEditors($access, $term->id());
-
-    return $sections;
+    return $editors;
   }
 
   /**

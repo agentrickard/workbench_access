@@ -26,6 +26,13 @@ class TaxonomySchemeUITest extends BrowserTestBase {
   protected $admin;
 
   /**
+   * Admin user, without ability to delete terms.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $admin2;
+
+  /**
    * Vocabulary.
    *
    * @var \Drupal\taxonomy\VocabularyInterface
@@ -83,6 +90,16 @@ class TaxonomySchemeUITest extends BrowserTestBase {
       'delete terms in workbench_access',
       'create terms in workbench_access',
     ]);
+    $this->admin2 = $this->setUpUserUniqueRole([
+      'administer workbench access',
+      'assign workbench access',
+      'edit terms in workbench_access',
+      'delete terms in workbench_access',
+      'create terms in workbench_access',
+      'access administration pages',
+      'access taxonomy overview',
+      'administer taxonomy',
+    ]);
     $this->placeBlock('local_actions_block');
 
     $this->setUpTestContent();
@@ -90,11 +107,11 @@ class TaxonomySchemeUITest extends BrowserTestBase {
 
   }
 
-  protected function tearDown() {
-    parent::tearDown();
-    $this->term->delete();
-    $this->testNode->delete();
-  }
+//  protected function tearDown() {
+//    parent::tearDown();
+//    // $this->term->delete();
+//    $this->testNode->delete();
+//  }
 
   protected function setUpTestContent() {
     // create a test term
@@ -115,9 +132,6 @@ class TaxonomySchemeUITest extends BrowserTestBase {
       ]
     );
 
-    $permissions = \Drupal::service('user.permissions')->getPermissions();
-
-
     $this->testNode->save();
   }
 
@@ -125,16 +139,17 @@ class TaxonomySchemeUITest extends BrowserTestBase {
    * Tests scheme UI.
    */
   public function testSchemeUi() {
-//    $this->assertThatUnprivilegedUsersCannotAccessAdminPages();
-      $scheme = $this->assertCreatingAnAccessSchemeAsAdmin();
-      $this->assertAdminCanSelectVocabularies($scheme);
-      $this->assertAdminCanAddPageNodeTypeToScheme($scheme);
-//    $this->assertAdminCannotAddArticleNodeTypeToScheme($scheme);
-      $this->assertAdminCanAddEntityTestAccessControlledBundleToScheme($scheme);
-//    $this->assertAdminCannotAddEntityTestAccessAccessControlledBundleToScheme($scheme);
-//    $this->assertAdminCannotAddUnselectedVocabulary($scheme);
-//    $this->assertAdminCannotAddRecursiveTaxonomy($scheme);
-    $this->assertAdminCanDeleteTaxonomy($scheme);
+    $this->assertThatUnprivilegedUsersCannotAccessAdminPages();
+    $scheme = $this->assertCreatingAnAccessSchemeAsAdmin();
+    $this->assertAdminCanSelectVocabularies($scheme);
+    $this->assertAdminCanAddPageNodeTypeToScheme($scheme);
+    $this->assertAdminCannotAddArticleNodeTypeToScheme($scheme);
+    $this->assertAdminCanAddEntityTestAccessControlledBundleToScheme($scheme);
+    $this->assertAdminCannotAddEntityTestAccessAccessControlledBundleToScheme($scheme);
+    $this->assertAdminCannotAddUnselectedVocabulary($scheme);
+    $this->assertAdminCannotAddRecursiveTaxonomy($scheme);
+    $this->assertAdminCanDeleteTaxonomy();
+    $this->assertNonAdminCannotDeleteTaxonomy();
   }
 
   /**
@@ -238,20 +253,40 @@ class TaxonomySchemeUITest extends BrowserTestBase {
     $this->assertSession()->pageTextNotContains('Term Parents');
   }
 
-  protected function assertAdminCanDeleteTaxonomy(AccessSchemeInterface $scheme) {
-
-    $this->drupalGet("/user");
-    $x = $this->getSession()->getPage()->getHtml();
-
-
-    // Note: May need to inser user into section here
+  protected function assertAdminCanDeleteTaxonomy() {
 
     $path = '/taxonomy/term/' . $this->term->id()  . '/edit';
     $this->drupalGet($path);
+    $this->assertSession()->pageTextContains('The term Test Term is being used to tag content');
+    $this->assertSession()->pageTextNotContains("The term Test Term is being used to tag content and may not be deleted.");
+    $this->assertSession()->linkExists("Delete");
 
-    $html = $this->getSession()->getPage()->getHtml();
-
-    $this->assertSession()->pageTextContains('tag content');
   }
+
+  protected function assertNonAdminCannotDeleteTaxonomy() {
+
+    // Switch user to the non-privileged account.
+    $this->drupalLogout();
+    $this->drupalLogin($this->admin2);
+
+    $path = '/taxonomy/term/' . $this->term->id()  . '/edit';
+    $this->drupalGet($path);
+    $this->assertSession()->pageTextContains('The term Test Term is being used to tag content');
+    $this->assertSession()->pageTextContains("The term Test Term is being used to tag content and may not be deleted.");
+    $this->assertSession()->linkNotExists("Delete");
+
+    $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
+
+    $this->drupalGet($delete_path);
+    $this->assertSession()->statusCodeEquals(403);
+    $this->assertSession()->pageTextContains("The term Test Term is being used to tag content and may not be deleted.");
+
+    // Switch user back to the privileged account.
+    $this->drupalLogout();
+    $this->drupalLogin($this->admin);
+
+  }
+
+
 
 }
