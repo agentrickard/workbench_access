@@ -48,6 +48,12 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
   private $messenger;
 
   /**
+   * @var array
+   * A list of messages to be printed when access denied.
+   */
+  private $messages = [];
+
+  /**
    * @var \Drupal\Core\Entity\EntityTypeManager
    */
   private $entityTypeManager;
@@ -88,11 +94,73 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
     if ($this->isDeleteAllowed()) {
       return AccessResult::allowed();
     }
+
     return AccessResult::forbidden();
   }
 
   /**
    * Determine if this term may be deleted.
+   *
+   * @param TermInterface $term
+   *   The term to check.
+   *
+   * @return bool
+   *   TRUE if it may be deleted, FALSE otherwise.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  public function isDeleteAllowedForTerm(TermInterface $term) {
+    $retval = TRUE;
+
+    if ($term instanceof TermInterface) {
+      /*
+       * Check to see if this user has stock permission to delete this term.
+       * If not, there are no checks to do and return control.
+       */
+      $user_may_delete = $this->account->hasPermission('delete terms in ' . $term->bundle());
+      if ($user_may_delete === FALSE) {
+        $retval = FALSE;
+      }
+      if ($user_may_delete) {
+
+        $hasAccessControlMembers = $this->doesTermHaveMembers($term);
+        $assigned_content = $this->isAssignedToContent($term);
+
+        /*
+         * If this term does not have users assigned to it for access
+         * control, and the term is not assigned to any pieces of content,
+         * it is OK to delete it.
+         */
+        if ($hasAccessControlMembers || $assigned_content) {
+
+          $override_allowed = $this->account->hasPermission('allow taxonomy term delete');
+
+          if ($assigned_content && !$override_allowed) {
+            $this->messages[] = t("The term %term is being used to tag content and may not be deleted.",
+              ['%term' => $term->getName()]);
+            $retval = FALSE;
+          }
+          elseif ($assigned_content) {
+            $this->messages[] = t("The term %term is being used to tag content.",
+              ['%term' => $term->getName()]);
+            $retval = TRUE;
+          }
+
+          if ($hasAccessControlMembers && !$override_allowed) {
+            $this->messages[] = t("The term %term is being used for access control and may not be deleted.",
+              ['%term' => $term->getName()]);
+            $retval = FALSE;
+          }
+        }
+      }
+    }
+
+    return $retval;
+  }
+
+  /**
+   * Determine if the term represented by the current path may be deleted.
    *
    * @return bool
    *   TRUE if it may be deleted, FALSE otherwise.
@@ -103,44 +171,12 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
   public function isDeleteAllowed() {
     /** @var \Drupal\taxonomy\TermInterface $term */
     $term = $this->getRouteEntity();
-
-    $retval = TRUE;
-
     if ($term instanceof TermInterface) {
-      $hasAccessControlMembers = $this->doesTermHaveMembers($term);
-      $assigned_content = $this->isAssignedToContent($term);
-
-      /*
-       * If this term does not have users assigned to it for access
-       * control, and the term is not assigned to any pieces of content,
-       * it is OK to delete it.
-       */
-      if ($hasAccessControlMembers || $assigned_content) {
-
-        $override_allowed = $this->account->hasPermission('allow taxonomy term delete');
-
-        if ($assigned_content && !$override_allowed) {
-          $this->messenger->addWarning(t("The term %term is being used to tag content and may not be deleted.",
-            ['%term' => $term->getName()]));
-          $retval = FALSE;
-        }
-        elseif ($assigned_content) {
-          $this->messenger->addWarning(t("The term %term is being used to tag content.",
-            ['%term' => $term->getName()]));
-          $retval = TRUE;
-        }
-
-        if ($hasAccessControlMembers) {
-          $this->messenger->addWarning(t("The term %term is being used for access control and may not be deleted.",
-           ['%term' => $term->getName()]));
-          $retval = FALSE;
-        }
-
-      }
+      $retval = $this->isDeleteAllowedForTerm($term);
+      $this->printAccessMessages();
+      return $retval;
     }
-
-    return $retval;
-
+    return TRUE;
   }
 
   /**
@@ -148,6 +184,9 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
    *
    * @return bool
    *   TRUE if the term has members, FALSE otherwise.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   private function doesTermHaveMembers(TermInterface $term) {
 
@@ -196,19 +235,14 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
    *
    * @return array
    *   An array of the users assigned to this section.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   private function getActiveSections(TermInterface $term) {
     /** @var \Drupal\workbench_access\UserSectionStorageInterface $sectionStorage */
     $sectionStorage = $this->userSectionStorage;
 
-    /** @var \Drupal\Core\Config\Entity\ConfigEntityStorage $scheme */
-    $scheme = $this->entityTypeManager->getStorage('access_scheme');
-
-//    $access = $scheme->load("access_section");
-    ////
-    ////    $sections = $sectionStorage->getEditors($access, $term->id());
-    ////
-    ////    return $sections;
     $editors = array_reduce($this->entityTypeManager->getStorage('access_scheme')->loadMultiple(),
       function (array $editors, AccessSchemeInterface $scheme) use ($sectionStorage, $term) {
       $editors += $sectionStorage->getEditors($scheme, $term->id());
@@ -259,6 +293,15 @@ class TaxonomyDeleteAccessCheck implements AccessInterface {
 
     return FALSE;
 
+  }
+
+  /**
+   * Print access messages where necessary.
+   */
+  public function printAccessMessages() {
+    foreach ($this->messages as $message) {
+      $this->messenger->addWarning($message);
+    }
   }
 
 }

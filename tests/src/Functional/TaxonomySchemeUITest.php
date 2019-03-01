@@ -47,6 +47,14 @@ class TaxonomySchemeUITest extends BrowserTestBase {
   protected $term;
 
   /**
+   * A Test term that is never tagged in content.
+   *
+   * @var \Drupal\taxonomy\Entity\Term;
+   */
+  protected $emptyTerm;
+
+
+  /**
    * A Test Node
    *
    * @var \Drupal\node\Entity\Node;
@@ -122,6 +130,14 @@ class TaxonomySchemeUITest extends BrowserTestBase {
 
     $this->term->save();
 
+    $this->emptyTerm = Term::create([
+      'name' => 'Empty Test Term',
+      'vid' => $this->vocabulary->id(),
+    ]);
+
+    $this->emptyTerm->save();
+
+
     // create some test nodes
     $this->testNode = $this->createNode(
       [
@@ -150,6 +166,8 @@ class TaxonomySchemeUITest extends BrowserTestBase {
     $this->assertAdminCannotAddRecursiveTaxonomy($scheme);
     $this->assertAdminCanDeleteTaxonomy();
     $this->assertNonAdminCannotDeleteTaxonomy();
+    $this->assertAnonymousGetsNoMessages();
+    $this->assertUntaggedTermsMayBeDeleted();
   }
 
   /**
@@ -253,6 +271,13 @@ class TaxonomySchemeUITest extends BrowserTestBase {
     $this->assertSession()->pageTextNotContains('Term Parents');
   }
 
+  /**
+   * Assert that an administrator can delete a term that is actively used
+   * to tag content.
+   *
+   * @throws \Behat\Mink\Exception\ExpectationException
+   * @throws \Behat\Mink\Exception\ResponseTextException
+   */
   protected function assertAdminCanDeleteTaxonomy() {
 
     $path = '/taxonomy/term/' . $this->term->id()  . '/edit';
@@ -263,6 +288,12 @@ class TaxonomySchemeUITest extends BrowserTestBase {
 
   }
 
+  /**
+   * Asset a non-administrator cannot delete terms that are actively used
+   *
+   * @throws \Behat\Mink\Exception\ExpectationException
+   * @throws \Behat\Mink\Exception\ResponseTextException
+   */
   protected function assertNonAdminCannotDeleteTaxonomy() {
 
     // Switch user to the non-privileged account.
@@ -281,10 +312,61 @@ class TaxonomySchemeUITest extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(403);
     $this->assertSession()->pageTextContains("The term Test Term is being used to tag content and may not be deleted.");
 
+    // Test the overview page to make sure that a delete is not present.
+    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/overview';
+    $this->drupalGet($vocab_path);
+    $this->assertSession()->linkByHrefNotExists($delete_path);
+
     // Switch user back to the privileged account.
     $this->drupalLogout();
     $this->drupalLogin($this->admin);
 
+  }
+
+  /**
+   * Assert that anonymous visitors are not told anything additional about
+   * this term, besides the existence of the URL as provided by Drupal.
+   *
+   * @throws \Behat\Mink\Exception\ExpectationException
+   * @throws \Behat\Mink\Exception\ResponseTextException
+   */
+  protected function assertAnonymousGetsNoMessages() {
+
+    $this->drupalLogout();
+    $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
+
+    $this->drupalGet($delete_path);
+    $this->assertSession()->statusCodeEquals(403);
+    $this->assertSession()->pageTextNotContains("The term Test Term is being used to tag content and may not be deleted.");
+    $this->drupalLogin($this->admin);
+
+  }
+
+  protected function assertUntaggedTermsMayBeDeleted()  {
+    // Switch user to the non-privileged account.
+    $this->drupalLogout();
+    $this->drupalLogin($this->admin2);
+
+    $path = '/taxonomy/term/' . $this->emptyTerm->id()  . '/edit';
+    $this->drupalGet($path);
+    $this->assertSession()->pageTextNotContains('The term Empty Test Term is being used to tag content');
+    $this->assertSession()->pageTextNotContains("The term Empty Test Term is being used to tag content and may not be deleted.");
+    $this->assertSession()->linkExists("Delete");
+
+    $delete_path = '/taxonomy/term/' . $this->emptyTerm->id() . '/delete';
+
+    $this->drupalGet($delete_path);
+    $this->assertSession()->statusCodeEquals(200);
+    $this->assertSession()->pageTextNotContains("The term Empty Test Term is being used to tag content and may not be deleted.");
+
+    // Test the overview page to make sure that a delete is present.
+    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/overview';
+    $this->drupalGet($vocab_path);
+    $this->assertSession()->linkByHrefExists($delete_path);
+
+    // Switch user back to the privileged account.
+    $this->drupalLogout();
+    $this->drupalLogin($this->admin);
   }
 
 

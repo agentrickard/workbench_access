@@ -14,6 +14,7 @@ use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\FormAlterHelper;
+use Drupal\Core\Entity\ContentEntityType;
 
 /**
  * Defines the name of the node access control field.
@@ -56,6 +57,12 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
   }
   \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($form, $form, $form_state, $entity);
 
+  // If the term edit form, check to see if there are message to print.
+  if ($form_object instanceof \Drupal\taxonomy\TermForm) {
+    /** @var \Drupal\workbench_access\Access\TaxonomyDeleteAccessCheck $taxonomy_check */
+    $taxonomy_check = \Drupal::getContainer()->get('workbench_access.taxonomy_delete_access_check');
+    $taxonomy_check->printAccessMessages();
+  }
 }
 
 /**
@@ -190,21 +197,37 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
   return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $form_state, $entity);
 }
 
+///**
+// * Implements hook_form_alter().
+// *
+// * If the user is not allowed to delete a taxonomy term, prevent it from
+// * happening by hiding the 'delete' action.
+// */
+//function workbench_access_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+//  $container = \Drupal::getContainer();
+//
+//  /** @var \Drupal\workbench_access\Access\TaxonomyDeleteAccessCheck $taxonomy_check */
+//  $taxonomy_check = $container->get('workbench_access.taxonomy_delete_access_check');
+//
+//
+//  $taxonomy_check->printAccessMessages();
+//
+//
+//}
+
 /**
- * Implements hook_form_alter().
+ * Implements hook_entity_type_build().
  *
- * If the user is not allowed to delete a taxonomy term, prevent it from
- * happening by hiding the 'delete' action.
+ * Alter the access handler so that we can handle our taxonomy terms
+ * appropriately.
  */
-function workbench_access_form_taxonomy_vocabulary_form_alter(&$form, FormStateInterface $form_state, $form_id) {
-  $container = \Drupal::getContainer();
+function workbench_access_entity_type_alter(array &$entity_types) {
 
-  /** @var \Drupal\workbench_access\Access\TaxonomyDeleteAccessCheck $taxonomy_check */
-  $taxonomy_check = $container->get('workbench_access.taxonomy_delete_access_check');
-  $ok = $taxonomy_check->isDeleteAllowed();
+  if ($entity_types['taxonomy_term'] instanceof ContentEntityType) {
 
-  if ($ok === FALSE) {
-  //  unset($form['actions']['delete']);
+    /** @var \Drupal\Core\Config\Entity\ContentEntityType $taxonomy_term */
+    $taxonomy_term = $entity_types['taxonomy_term'];
+    $taxonomy_term->setHandlerClass('access', "Drupal\workbench_access\WorkbenchAccessTermAccessControlHandler");
+
   }
-
 }
