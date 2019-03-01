@@ -223,7 +223,8 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
  */
 function workbench_access_entity_type_alter(array &$entity_types) {
 
-  if ($entity_types['taxonomy_term'] instanceof ContentEntityType) {
+  if (isset($entity_types['taxonomy_term']) 
+    && $entity_types['taxonomy_term'] instanceof ContentEntityType) {
 
     /** @var \Drupal\Core\Config\Entity\ContentEntityType $taxonomy_term */
     $taxonomy_term = $entity_types['taxonomy_term'];
