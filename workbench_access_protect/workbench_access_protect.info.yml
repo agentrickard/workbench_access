@@ -1,0 +1,7 @@
+name: Workbench Access Protect
+type: module
+description: Prevents deletion
+core: 8.x
+package: Workbench
+dependencies:
+  - workbench_access:workbench_access

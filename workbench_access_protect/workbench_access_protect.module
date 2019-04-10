@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Contains workbench_access_protect.module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Session\AccountInterface;
+
+/**
+ * Implements hook_entity_access().
+ */
+function workbench_access_protect_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
+  // Return net result of all enabled access schemes. If one scheme allows
+  // access, then it is granted.
+  if ($op == 'delete') {
+    if ($protect->providesBundles($entity)) {
+      // check all bundles...
+    }
+    else {
+      // check this bundle
+    }
+  }
+  #$manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+}
