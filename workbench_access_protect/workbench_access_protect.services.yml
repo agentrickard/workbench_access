@@ -1,0 +1,4 @@
+services:
+  workbench_access_protect.taxonomy:
+    class: Drupal\workbench_access_protect\Access\TaxonomyDeleteAccessCheck
+    arguments: ['@current_user', '@current_route_match', '@workbench_access.user_section_storage', '@entity_field.manager', '@messenger', '@entity_type.manager']

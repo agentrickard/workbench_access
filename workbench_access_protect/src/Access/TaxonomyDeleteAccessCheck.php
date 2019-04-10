@@ -1,0 +1,264 @@
+<?php
+
+namespace Drupal\workbench_access\Access;
+
+use Drupal\Core\Access\AccessResult;
+use Drupal\Core\Entity\EntityTypeManager;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\taxonomy\TermInterface;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\Core\Routing\CurrentRouteMatch;
+use Drupal\workbench_access\UserSectionStorage;
+use Drupal\Core\Entity\EntityFieldManager;
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
+
+/**
+ * Class TaxonomyDeleteAccessCheck.
+ *
+ * @package Drupal\workbench_access\Access
+ */
+class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
+
+  /**
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  private $account;
+
+  /**
+   * @var \Drupal\Core\Routing\CurrentRouteMatch;
+   */
+  private $route;
+
+  /**
+   * @var \Drupal\workbench_access\UserSectionStorage
+   */
+  private $userSectionStorage;
+
+  /**
+   * @var \Drupal\Core\Entity\EntityFieldManager
+   */
+  private $fieldManager;
+
+
+  /**
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  private $messenger;
+
+  /**
+   * @var array
+   * A list of messages to be printed when access denied.
+   */
+  private $messages = [];
+
+  /**
+   * @var \Drupal\Core\Entity\EntityTypeManager
+   */
+  private $entityTypeManager;
+
+  public function __construct(AccountInterface $account,
+                              CurrentRouteMatch $route,
+                              UserSectionStorage $userSectionStorage,
+                              EntityFieldManager $fieldManager,
+                              MessengerInterface $messenger,
+                              EntityTypeManager $entityTypeManager) {
+
+    $this->account = $account;
+    $this->route = $route;
+    $this->userSectionStorage = $userSectionStorage;
+    $this->fieldManager = $fieldManager;
+    $this->messenger = $messenger;
+    $this->entityTypeManager = $entityTypeManager;
+
+  }
+
+  /**
+   * This method is used to determine if it is OK to delete.
+   *
+   * The check is based on whether or not it is being actively used for access
+   * control, and if content is assigned to it. If either of these statements
+   * is true, then 'forbidden' will be returned to prevent the term
+   * from being deleted.
+   *
+   * @return \Drupal\Core\Access\AccessResultAllowed|\Drupal\Core\Access\AccessResultForbidden
+   *   Returns 'forbidden' if the term is being used for access control.
+   *   Returns 'allowed' if the term is not being used for access control.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  public function access() {
+
+    if ($this->isDeleteAllowed()) {
+      return AccessResult::allowed();
+    }
+
+    return AccessResult::forbidden();
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function isDeleteAllowed(EntityInterface $term) {
+    $retval = TRUE;
+
+    if ($term instanceof TermInterface) {
+      /*
+       * Check to see if this user has stock permission to delete this term.
+       * If not, there are no checks to do and return control.
+       */
+      $user_may_delete = $this->account->hasPermission('delete terms in ' . $term->bundle());
+      if ($user_may_delete === FALSE) {
+        $retval = FALSE;
+      }
+      if ($user_may_delete) {
+
+        $hasAccessControlMembers = $this->doesTermHaveMembers($term);
+        $assigned_content = $this->isAssignedToContent($term);
+
+        /*
+         * If this term does not have users assigned to it for access
+         * control, and the term is not assigned to any pieces of content,
+         * it is OK to delete it.
+         */
+        if ($hasAccessControlMembers || $assigned_content) {
+
+          $override_allowed = $this->account->hasPermission('allow taxonomy term delete');
+
+          if ($assigned_content && !$override_allowed) {
+            $this->messages[] = t("The term %term is being used to tag content and may not be deleted.",
+              ['%term' => $term->getName()]);
+            $retval = FALSE;
+          }
+          elseif ($assigned_content) {
+            $this->messages[] = t("The term %term is being used to tag content.",
+              ['%term' => $term->getName()]);
+            $retval = TRUE;
+          }
+
+          if ($hasAccessControlMembers && !$override_allowed) {
+            $this->messages[] = t("The term %term is being used for access control and may not be deleted.",
+              ['%term' => $term->getName()]);
+            $retval = FALSE;
+          }
+        }
+      }
+    }
+
+    return $retval;
+  }
+
+  public function hasBundles(EntityInterface $term) {
+    if ($term->bundle() === 'term') {
+      return FALSE;
+    }
+    return TRUE;
+  }
+
+  public function getBundles() {
+    return \Drupal::service('entity_type.bundle.info')->getBundleInfo('taxonomy');
+  }
+
+  /**
+   * @{inheritdoc}
+   */
+  public function checkBundle(EntityInterface $term) {
+    // TODO: Implement checkBundle() method.
+  }
+
+
+  /**
+   * Determines if this term has active members in it.
+   *
+   * @return bool
+   *   TRUE if the term has members, FALSE otherwise.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  private function doesTermHaveMembers(TermInterface $term) {
+
+    /** @var array $sections */
+    $sections = $this->getActiveSections($term);
+
+    if (count($sections) > 0) {
+      return TRUE;
+    }
+
+    return FALSE;
+  }
+
+
+  /**
+   * Inspect the given taxonomy term.
+   *
+   * This will determine if there are any active users assigned to it.
+   *
+   * @param \Drupal\taxonomy\TermInterface $term
+   *   The Taxonomy Term to inspect.
+   *
+   * @return array
+   *   An array of the users assigned to this section.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  private function getActiveSections(TermInterface $term) {
+    /** @var \Drupal\workbench_access\UserSectionStorageInterface $sectionStorage */
+    $sectionStorage = $this->userSectionStorage;
+
+    $editors = array_reduce($this->entityTypeManager->getStorage('access_scheme')->loadMultiple(),
+      function (array $editors, AccessSchemeInterface $scheme) use ($sectionStorage, $term) {
+      $editors += $sectionStorage->getEditors($scheme, $term->id());
+      return $editors;
+    }, []);
+
+    return $editors;
+  }
+
+  /**
+   * Determine if tagged content exists.
+   *
+   * This method will determine if any entities exist in the system that are
+   * tagged with the term.
+   *
+   * @param \Drupal\taxonomy\TermInterface $term
+   *   The Taxonomy Term to inspect.
+   *
+   * @return bool
+   *   TRUE if content is assigned to this term.
+   *   FALSE if content is not assigned to this term.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   */
+  private function isAssignedToContent(TermInterface $term) {
+
+    $map = $this->fieldManager->getFieldMap();
+
+    foreach ($map as $entity_type => $fields) {
+      foreach ($fields as $name => $field) {
+        if ($field['type'] == 'entity_reference') {
+          // Get the entity reference and determine if it's a taxonomy.
+          /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
+          $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
+          if ($fieldConfig instanceof FieldStorageConfig &&
+            $fieldConfig->getSettings()['target_type'] === 'taxonomy_term') {
+            $entities = \Drupal::entityTypeManager()->getStorage($entity_type)->loadByProperties([
+              $name => $term->id(),
+            ]);
+            if (count($entities) > 0) {
+              return TRUE;
+            }
+          }
+        }
+      }
+    }
+
+    return FALSE;
+
+  }
+
+}

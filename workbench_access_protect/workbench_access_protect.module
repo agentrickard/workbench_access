@@ -6,7 +6,6 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Session\AccountInterface;
 
 /**
@@ -15,13 +14,28 @@ use Drupal\Core\Session\AccountInterface;
 function workbench_access_protect_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
   // Return net result of all enabled access schemes. If one scheme allows
   // access, then it is granted.
+
+
+  /** @var Drupal\workbench_access_protect\Access\TaxonomyDeleteAccessCheck $protect */
+  // Need to get the check that is relevant to our acccess type
+  $protect = new Drupal\workbench_access_protect\Access\TaxonomyDeleteAccessCheck();
+
   if ($op == 'delete') {
     if ($protect->providesBundles($entity)) {
-      // check all bundles...
+      foreach ($protect->getBundles() as $bundle) {
+        if ($protect->checkBundle($bundle) === FALSE) {
+          return \Drupal\Core\Access\AccessResult::forbidden();
+        }
+      }
     }
     else {
-      // check this bundle
+      // We're at the leaf entity and can check the specific entity.
+      if ($protect->isDeleteAllowed($entity) === FALSE) {
+        return \Drupal\Core\Access\AccessResult::forbidden();
+      }
+
     }
   }
-  #$manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+
+  return \Drupal\Core\Access\AccessResult::neutral();
 }
