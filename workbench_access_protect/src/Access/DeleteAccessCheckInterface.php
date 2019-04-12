@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\workbench_access\Access;
+namespace Drupal\workbench_access_protect\Access;
 
 use Drupal\Core\Entity\EntityInterface;
 
@@ -29,22 +29,26 @@ interface DeleteAccessCheckInterface {
   /**
    * Determine if this entity has bundles or not.
    *
+   * Use this to determine if the entity has children bundles.
+   *
    * @param EntityInterface $entity
    *
-   * @return mixed
+   * @return bool
+   *    TRUE if the entity has bundles, FALSE otherwise
    */
   public function hasBundles(EntityInterface $entity);
 
-  public function getBundles();
-
   /**
    * Check a specific bundle to determine if it is in use or not.
+   * Use this to determine if this is the 'leaf' entity that actually
+   * needs to check to see if is deletec.
    *
    * @param \Drupal\Core\Entity\EntityInterface $term
    *
-   * @return mixed
+   * @return bool
+   *   TRUE
    */
-  public function checkBundle(EntityInterface $term);
+  public function checkBundle(EntityInterface $entity);
 
 
 

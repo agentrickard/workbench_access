@@ -1,12 +1,10 @@
 <?php
 
-namespace Drupal\workbench_access\Access;
+namespace Drupal\workbench_access_protect\Access;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Entity\EntityTypeManager;
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Session\AccountInterface;
-use Drupal\taxonomy\TermInterface;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\workbench_access\UserSectionStorage;
@@ -19,7 +17,7 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
  *
  * @package Drupal\workbench_access\Access
  */
-class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
+class DeleteAccessCheck implements DeleteAccessCheckInterface {
 
   /**
    * @var \Drupal\Core\Session\AccountInterface
@@ -58,14 +56,12 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
    */
   private $entityTypeManager;
 
-  public function __construct(AccountInterface $account,
-                              CurrentRouteMatch $route,
+  public function __construct(CurrentRouteMatch $route,
                               UserSectionStorage $userSectionStorage,
                               EntityFieldManager $fieldManager,
                               MessengerInterface $messenger,
                               EntityTypeManager $entityTypeManager) {
 
-    $this->account = $account;
     $this->route = $route;
     $this->userSectionStorage = $userSectionStorage;
     $this->fieldManager = $fieldManager;
@@ -101,65 +97,43 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
   /**
    * @{inheritdoc}
    */
-  public function isDeleteAllowed(EntityInterface $term) {
+  public function isDeleteAllowed(EntityInterface $entity) {
+
     $retval = TRUE;
 
-    if ($term instanceof TermInterface) {
+    if ($entity instanceof EntityInterface) {
+
+      $hasAccessControlMembers = $this->doesTermHaveMembers($entity);
+      $assigned_content = $this->isAssignedToContent($entity);
+
       /*
-       * Check to see if this user has stock permission to delete this term.
-       * If not, there are no checks to do and return control.
+       * If this term does not have users assigned to it for access
+       * control, and the term is not assigned to any pieces of content,
+       * it is OK to delete it.
        */
-      $user_may_delete = $this->account->hasPermission('delete terms in ' . $term->bundle());
-      if ($user_may_delete === FALSE) {
-        $retval = FALSE;
-      }
-      if ($user_may_delete) {
+      if ($hasAccessControlMembers || $assigned_content) {
 
-        $hasAccessControlMembers = $this->doesTermHaveMembers($term);
-        $assigned_content = $this->isAssignedToContent($term);
+        if ($assigned_content) {
+          $retval = FALSE;
+        }
 
-        /*
-         * If this term does not have users assigned to it for access
-         * control, and the term is not assigned to any pieces of content,
-         * it is OK to delete it.
-         */
-        if ($hasAccessControlMembers || $assigned_content) {
-
-          $override_allowed = $this->account->hasPermission('allow taxonomy term delete');
-
-          if ($assigned_content && !$override_allowed) {
-            $this->messages[] = t("The term %term is being used to tag content and may not be deleted.",
-              ['%term' => $term->getName()]);
-            $retval = FALSE;
-          }
-          elseif ($assigned_content) {
-            $this->messages[] = t("The term %term is being used to tag content.",
-              ['%term' => $term->getName()]);
-            $retval = TRUE;
-          }
-
-          if ($hasAccessControlMembers && !$override_allowed) {
-            $this->messages[] = t("The term %term is being used for access control and may not be deleted.",
-              ['%term' => $term->getName()]);
-            $retval = FALSE;
-          }
+        if ($hasAccessControlMembers) {
+          $retval = FALSE;
         }
       }
+
     }
 
     return $retval;
   }
 
-  public function hasBundles(EntityInterface $term) {
-    if ($term->bundle() === 'term') {
-      return FALSE;
-    }
-    return TRUE;
+  public function hasBundles(EntityInterface $entity) {
+    return \Drupal::service('entity_type.bundle.info')->getBundleInfo($entity->label());
   }
 
-  public function getBundles() {
-    return \Drupal::service('entity_type.bundle.info')->getBundleInfo('taxonomy');
-  }
+//  public function getBundles(EntityInterface $entity) {
+//    return \Drupal::service('entity_type.bundle.info')->getBundleInfo($entity->label());
+//  }
 
   /**
    * @{inheritdoc}
@@ -167,7 +141,6 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
   public function checkBundle(EntityInterface $term) {
     // TODO: Implement checkBundle() method.
   }
-
 
   /**
    * Determines if this term has active members in it.
@@ -178,10 +151,10 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  private function doesTermHaveMembers(TermInterface $term) {
+  private function doesTermHaveMembers(EntityInterface $entity) {
 
     /** @var array $sections */
-    $sections = $this->getActiveSections($term);
+    $sections = $this->getActiveSections($entity);
 
     if (count($sections) > 0) {
       return TRUE;
@@ -196,7 +169,7 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
    *
    * This will determine if there are any active users assigned to it.
    *
-   * @param \Drupal\taxonomy\TermInterface $term
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The Taxonomy Term to inspect.
    *
    * @return array
@@ -205,13 +178,13 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  private function getActiveSections(TermInterface $term) {
+  private function getActiveSections(EntityInterface $entity) {
     /** @var \Drupal\workbench_access\UserSectionStorageInterface $sectionStorage */
     $sectionStorage = $this->userSectionStorage;
 
     $editors = array_reduce($this->entityTypeManager->getStorage('access_scheme')->loadMultiple(),
-      function (array $editors, AccessSchemeInterface $scheme) use ($sectionStorage, $term) {
-      $editors += $sectionStorage->getEditors($scheme, $term->id());
+      function (array $editors, AccessSchemeInterface $scheme) use ($sectionStorage, $entity) {
+      $editors += $sectionStorage->getEditors($scheme, $entity->id());
       return $editors;
     }, []);
 
@@ -224,8 +197,8 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
    * This method will determine if any entities exist in the system that are
    * tagged with the term.
    *
-   * @param \Drupal\taxonomy\TermInterface $term
-   *   The Taxonomy Term to inspect.
+   * @param \Drupal\Core\Entity\EntityInterface $term
+   *   The Entity to inspect.
    *
    * @return bool
    *   TRUE if content is assigned to this term.
@@ -234,7 +207,7 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
    * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
    * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
-  private function isAssignedToContent(TermInterface $term) {
+  private function isAssignedToContent(EntityInterface $entity) {
 
     $map = $this->fieldManager->getFieldMap();
 
@@ -244,10 +217,9 @@ class TaxonomyDeleteAccessCheck implements DeleteAccessCheckInterface {
           // Get the entity reference and determine if it's a taxonomy.
           /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
           $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
-          if ($fieldConfig instanceof FieldStorageConfig &&
-            $fieldConfig->getSettings()['target_type'] === 'taxonomy_term') {
+          if ($fieldConfig instanceof FieldStorageConfig) {
             $entities = \Drupal::entityTypeManager()->getStorage($entity_type)->loadByProperties([
-              $name => $term->id(),
+              $name => $entity->id(),
             ]);
             if (count($entities) > 0) {
               return TRUE;

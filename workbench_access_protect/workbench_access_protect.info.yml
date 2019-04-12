@@ -1,6 +1,6 @@
 name: Workbench Access Protect
 type: module
-description: Prevents deletion
+description: Enable `Workbench Access Protect` to prevent entities from being
 core: 8.x
 package: Workbench
 dependencies:

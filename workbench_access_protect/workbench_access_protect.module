@@ -7,6 +7,8 @@
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\workbench_access_protect\Access\Taxonomy;
 
 /**
  * Implements hook_entity_access().
@@ -15,27 +17,26 @@ function workbench_access_protect_entity_access(EntityInterface $entity, $op, Ac
   // Return net result of all enabled access schemes. If one scheme allows
   // access, then it is granted.
 
-
-  /** @var Drupal\workbench_access_protect\Access\TaxonomyDeleteAccessCheck $protect */
-  // Need to get the check that is relevant to our acccess type
-  $protect = new Drupal\workbench_access_protect\Access\TaxonomyDeleteAccessCheck();
+  /** @var Drupal\workbench_access_protect\Access\DeleteAccessCheck $protect */
+  $protect = \Drupal::service('workbench_access_protect.delete');
 
   if ($op == 'delete') {
-    if ($protect->providesBundles($entity)) {
+    if ($protect->hasBundles($entity)) {
       foreach ($protect->getBundles() as $bundle) {
         if ($protect->checkBundle($bundle) === FALSE) {
-          return \Drupal\Core\Access\AccessResult::forbidden();
+          return AccessResult::forbidden();
         }
       }
     }
     else {
       // We're at the leaf entity and can check the specific entity.
       if ($protect->isDeleteAllowed($entity) === FALSE) {
-        return \Drupal\Core\Access\AccessResult::forbidden();
+        return AccessResult::forbidden();
       }
 
     }
   }
 
-  return \Drupal\Core\Access\AccessResult::neutral();
+  return AccessResult::neutral();
+
 }
