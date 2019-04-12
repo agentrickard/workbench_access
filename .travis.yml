@@ -77,3 +77,4 @@ script:
   - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
   - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Kernel" --php `which php` --url http://localhost:8080 "workbench_access"
   - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Unit" --php `which php` --url http://localhost:8080 "workbench_access"
+  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access_protect"
