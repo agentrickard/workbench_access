@@ -4,7 +4,6 @@ namespace Drupal\Tests\workbench_access_protect\Functional;
 
 use Drupal\Tests\BrowserTestBase;
 use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
