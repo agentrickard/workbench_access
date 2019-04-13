@@ -172,12 +172,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account) {
-    // We don't care about the View operation right now.
-    if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
-      // Return early.
-      return AccessResult::neutral();
-    }
-
     if (!$this->applies($entity->getEntityTypeId(), $entity->bundle())) {
       return AccessResult::neutral();
     }

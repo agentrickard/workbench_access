@@ -63,7 +63,11 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
 function workbench_access_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
   // Return net result of all enabled access schemes. If one scheme allows
   // access, then it is granted.
-  $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+  // We don't care about the View operation right now.
+  if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
+    // Return early.
+    return AccessResult::neutral();
+  }
   return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResult $carry, AccessSchemeInterface $scheme) use ($entity, $op, $account) {
     $carry->addCacheableDependency($scheme)->cachePerPermissions()->addCacheableDependency($entity);
     return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account));
