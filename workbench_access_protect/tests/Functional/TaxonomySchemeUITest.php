@@ -11,7 +11,7 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 /**
  * Defines a class for testing the UI to create and configure schemes.
  *
- * @group workbench_access
+ * @group workbench_access_protect
  */
 class TaxonomySchemeUITest extends BrowserTestBase {
 
@@ -114,12 +114,6 @@ class TaxonomySchemeUITest extends BrowserTestBase {
 
 
   }
-
-  //  protected function tearDown() {
-  //    parent::tearDown();
-  //    // $this->term->delete();
-  //    $this->testNode->delete();
-  //  }
 
   protected function setUpTestContent() {
     // create a test term
