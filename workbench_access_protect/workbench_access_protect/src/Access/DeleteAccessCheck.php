@@ -222,33 +222,61 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    *   TRUE if content is assigned to this term.
    *   FALSE if content is not assigned to this term.
    *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   private function isAssignedToContent(EntityInterface $entity) {
 
-    $map = $this->fieldManager->getFieldMap();
 
-    foreach ($map as $entity_type => $fields) {
-      foreach ($fields as $name => $field) {
-        if ($field['type'] == 'entity_reference') {
-          // Get the entity reference and determine if it's a taxonomy.
-          /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
-          $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
-          if ($fieldConfig instanceof FieldStorageConfig) {
-            $entities = $this->entityTypeManager->getStorage($entity_type)->loadByProperties([
-              $name => $entity->id(),
-            ]);
-            if (count($entities) > 0) {
-              return TRUE;
+    $reference_fields = $this->getAllReferenceFields($entity);
+
+    foreach ($reference_fields as $name => $fieldConfig) {
+        // Get the entity reference and determine if it's a taxonomy.
+        if ($fieldConfig instanceof FieldStorageConfig) {
+          $entities = \Drupal::entityQuery($fieldConfig->get('entity_type'))
+            ->condition($fieldConfig->get('field_name'), $entity->id())
+            ->range(0, 1)
+            ->execute();
+
+          if (count($entities) > 0) {
+            return TRUE;
+          }
+        }
+    }
+
+
+    return FALSE;
+
+  }
+
+  private function getAllReferenceFields(EntityInterface $entity) {
+    // First, we are going to try to retrieve a cached instance.
+    $found_fields = \Drupal::cache()->get('workbench_access_protect');
+
+    if ($found_fields === FALSE) {
+      $map = $this->fieldManager->getFieldMap();
+      $found_fields = [];
+      foreach ($map as $entity_type => $fields) {
+        foreach ($fields as $name => $field) {
+          if ($field['type'] === 'entity_reference') {
+            // Get the entity reference and determine if it's a taxonomy.
+            /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
+            $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
+            if ($fieldConfig !== NULL &&
+                $fieldConfig->getSetting('target_type') === $entity->getEntityType()->id()) {
+                $found_fields[$name] = $fieldConfig;
+              }
             }
           }
         }
       }
+
+    else {
+      $found_fields = $found_fields->data;
     }
 
-    return FALSE;
+    \Drupal::cache()
+      ->set('workbench_access_protect', $found_fields, REQUEST_TIME + 60);
 
+    return $found_fields;
   }
 
 }
