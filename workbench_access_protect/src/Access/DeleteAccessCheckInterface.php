@@ -57,5 +57,20 @@ interface DeleteAccessCheckInterface {
    */
    public function isDeleteAllowedBundle($bundle, $entity);
 
+  /**
+   * Helper method to determine if the entity is used for access control.
+   *
+   * This method is used to determine if we should actually perform the usage
+   * check or skip.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   An entity object.
+   *
+   * @return bool
+   *   TRUE if used, FALSE otherwise
+   */
+   public function isAccessControlled(EntityInterface $entity);
+
+
 
 }

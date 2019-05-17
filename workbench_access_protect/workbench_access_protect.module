@@ -21,20 +21,22 @@ function workbench_access_protect_entity_access(EntityInterface $entity, $op, Ac
     /** @var Drupal\workbench_access_protect\Access\DeleteAccessCheck $protect */
     $protect = \Drupal::service('workbench_access_protect.delete');
 
-    if ($protect->hasBundles($entity)) {
-      $bundle = $protect->getBundles($entity)[$entity->id()];
-      // Check the entire bundle to see if any term is in use.
-      if ($protect->isDeleteAllowedBundle($bundle, $entity) === FALSE) {
-        return AccessResult::forbidden();
-      }
-    }
-    else {
-      // We're at the leaf entity and can check the specific entity.
-      if ($protect->isDeleteAllowed($entity) === FALSE) {
+    // First, let's check to see if this is an entity we are tracking.
+      if ($protect->hasBundles($entity)) {
+        $bundle = $protect->getBundles($entity)[$entity->id()];
+        // Check the entire bundle to see if any term is in use.
+        if ($protect->isDeleteAllowedBundle($bundle, $entity) === FALSE) {
           return AccessResult::forbidden();
+        }
+      }
+      else {
+        // We're at the leaf entity and can check the specific entity.
+        if ($protect->isAccessControlled($entity) &&
+          $protect->isDeleteAllowed($entity) === FALSE) {
+          return AccessResult::forbidden();
+        }
       }
 
-    }
   }
 
   return AccessResult::neutral();

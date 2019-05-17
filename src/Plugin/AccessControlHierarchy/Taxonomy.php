@@ -125,6 +125,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     $defaults = [
       'fields' => [],
       'vocabularies' => [],
+      'ids' => [],
     ];
     return $defaults + parent::defaultConfiguration();
   }
@@ -416,6 +417,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     // Saving 'validate' can cause schema errors.
     unset($settings['validate']);
     $settings['vocabularies'] = array_values(array_filter($settings['vocabularies']));
+    $settings['ids'] = $settings['vocabularies'];
     $settings['fields'] = array_values(array_map(function ($item) {
       list($entity_type, $bundle, $field_name) = explode(':', $item);
       return [

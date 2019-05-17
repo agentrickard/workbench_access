@@ -225,7 +225,6 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    */
   private function isAssignedToContent(EntityInterface $entity) {
 
-
     $reference_fields = $this->getAllReferenceFields($entity);
 
     foreach ($reference_fields as $name => $fieldConfig) {
@@ -274,9 +273,22 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
     }
 
     \Drupal::cache()
-      ->set('workbench_access_protect', $found_fields, REQUEST_TIME + 60);
+      ->set('workbench_access_protect', $found_fields, \Drupal::time()->getRequestTime() + 60);
 
     return $found_fields;
+  }
+
+  public function isAccessControlled(EntityInterface $entity) {
+    $schemes = $this->entityTypeManager->getStorage('access_scheme')->loadMultiple();
+    /** @var \Drupal\workbench_access\Entity\AccessScheme $scheme */
+    foreach ($schemes as $scheme) {
+      foreach ($scheme->getAccessScheme()->getConfiguration() as $config) {
+        if (in_array($entity->bundle(), $config)) {
+          return TRUE;
+        }
+      }
+    }
+    return FALSE;
   }
 
 }
