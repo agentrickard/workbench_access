@@ -89,7 +89,7 @@ workbench_access.scheme_settings.menu:
         label: 'Bundle'
     ids:
       type: sequence
-      label: "Vocabulary IDs"
+      label: "Menu IDs"
       sequence:
         type: integer
-        label: "Vocabulary ID"
+        label: "Menu ID"
