@@ -52,6 +52,7 @@ class UpdatePathTest extends UpdatePathTestBase {
         ],
       ],
       'vocabularies' => ['tags'],
+      'ids' => [],
     ], $scheme->getAccessScheme()->getConfiguration());
 
     // Test that user storage was updated.
