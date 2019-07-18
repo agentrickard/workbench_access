@@ -294,7 +294,7 @@ class Menu extends AccessControlHierarchyBase {
     return [
       'menus' => [],
       'bundles' => [],
-      'ids' => [],
+      'parent_ids' => [],
     ];
   }
 

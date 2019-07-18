@@ -125,7 +125,7 @@ class Taxonomy extends AccessControlHierarchyBase {
     $defaults = [
       'fields' => [],
       'vocabularies' => [],
-      'ids' => [],
+      'parent_ids' => [],
     ];
     return $defaults + parent::defaultConfiguration();
   }
