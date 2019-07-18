@@ -257,7 +257,8 @@ class Menu extends AccessControlHierarchyBase {
    */
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $this->configuration['menus'] = array_values(array_filter($form_state->getValue('menus')));
-    $this->configuration['ids'] = $this->configuration['menus'];
+    // Parent_ids is the machine name of the selected menus.
+    $this->configuration['parent_ids'] = $this->configuration['menus'];
     $this->configuration['bundles'] = array_values(array_filter($form_state->getValue('bundles')));
   }
 

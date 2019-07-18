@@ -417,7 +417,8 @@ class Taxonomy extends AccessControlHierarchyBase {
     // Saving 'validate' can cause schema errors.
     unset($settings['validate']);
     $settings['vocabularies'] = array_values(array_filter($settings['vocabularies']));
-    $settings['ids'] = $settings['vocabularies'];
+    // Parent_ids is the machine name of the selected vocabularies.
+    $settings['parent_ids'] = $settings['vocabularies'];
     $settings['fields'] = array_values(array_map(function ($item) {
       list($entity_type, $bundle, $field_name) = explode(':', $item);
       return [
