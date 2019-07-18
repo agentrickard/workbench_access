@@ -157,7 +157,7 @@ class TaxonomySchemeUITest extends BrowserTestBase {
 
       $path = '/taxonomy/term/' . $this->term->id()  . '/edit';
       $this->drupalGet($path);
-      $this->assertSession()->linkNotExistsExact("Delete");
+      $this->assertSession()->linkNotExists("Delete");
 
       $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
       $this->drupalGet($delete_path);
