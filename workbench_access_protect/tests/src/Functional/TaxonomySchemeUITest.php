@@ -87,7 +87,7 @@ class TaxonomySchemeUITest extends BrowserTestBase {
     $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $this->vocabulary->id(), $this->vocabulary->id(), 'recursive', 'Recursive Field');
     $vocab = Vocabulary::create(['vid' => 'selected', 'name' => 'Selected Vocabulary']);
     $vocab->save();
-    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $vocab->id(), $this->vocabulary->id(), 'non_recursive', 'Allowed Field');
+    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $this->vocabulary->id(), $this->vocabulary->id(), 'non_recursive', 'Allowed Field');
     entity_test_create_bundle('access_controlled');
     entity_test_create_bundle('notaccess_controlled');
     $this->setUpTaxonomyFieldForEntityType('entity_test', 'access_controlled', $this->vocabulary->id());
@@ -181,36 +181,36 @@ class TaxonomySchemeUITest extends BrowserTestBase {
    *
    * @throws \Behat\Mink\Exception\ExpectationException
    */
-  public function testAssertAnonymousGets403() {
-    $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
-    $this->drupalGet($delete_path);
-    $this->assertSession()->statusCodeEquals(403);
-  }
-
-  public function testAssertUntaggedTermsMayBeDeleted()  {
-    // Switch user to the non-privileged account.
-
-    $this->drupalLogin($this->admin2);
-
-    $path = '/taxonomy/term/' . $this->emptyTerm->id()  . '/edit';
-    $this->drupalGet($path);
-    $this->assertSession()->linkExists("Delete");
-
-    $delete_path = '/taxonomy/term/' . $this->emptyTerm->id() . '/delete';
-
-    $this->drupalGet($delete_path);
-    $this->assertSession()->statusCodeEquals(200);
-
-    // Test the overview page to make sure that a delete is present.
-    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id();
-    $delete_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/delete';
-    $this->drupalGet($vocab_path);
-    $this->assertSession()->linkByHrefExists($delete_path);
-
-    // Switch user back to the privileged account.
-    $this->drupalLogout();
-    $this->drupalLogin($this->admin);
-  }
+//  public function testAssertAnonymousGets403() {
+//    $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
+//    $this->drupalGet($delete_path);
+//    $this->assertSession()->statusCodeEquals(403);
+//  }
+//
+//  public function testAssertUntaggedTermsMayBeDeleted()  {
+//    // Switch user to the non-privileged account.
+//
+//    $this->drupalLogin($this->admin2);
+//
+//    $path = '/taxonomy/term/' . $this->emptyTerm->id()  . '/edit';
+//    $this->drupalGet($path);
+//    $this->assertSession()->linkExists("Delete");
+//
+//    $delete_path = '/taxonomy/term/' . $this->emptyTerm->id() . '/delete';
+//
+//    $this->drupalGet($delete_path);
+//    $this->assertSession()->statusCodeEquals(200);
+//
+//    // Test the overview page to make sure that a delete is present.
+//    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id();
+//    $delete_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/delete';
+//    $this->drupalGet($vocab_path);
+//    $this->assertSession()->linkByHrefExists($delete_path);
+//
+//    // Switch user back to the privileged account.
+//    $this->drupalLogout();
+//    $this->drupalLogin($this->admin);
+//  }
 
 
 
