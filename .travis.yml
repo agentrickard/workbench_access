@@ -1,6 +1,9 @@
 language: php
 sudo: false
 
+services:
+  - mysql
+
 matrix:
   fast_finish: true
   include:
@@ -35,14 +38,13 @@ before_install:
 
   - composer self-update
 
-install:
   # Install Drush. We need to pin this to 8.1.5 because there are compatability
   # issues with symfony/console 2.8/3.0 in later versions.
-  - composer global require drush/drush:8.1.5
+  - composer global require --no-interaction drush/drush:8.*
   - phpenv rehash
 
   # Create database.
-  - mysql -e 'create database wa'
+  - mysql -e 'create database wa;'
 
 before_script:
   # Remember the current rules test directory for later use in the Drupal installation.
