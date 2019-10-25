@@ -4,7 +4,7 @@ namespace Drupal\Tests\workbench_access\Traits;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Url;
-use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
+use Drupal\Tests\field\Traits\EntityReferenceTestTrait;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\workbench_access\Entity\AccessScheme;
