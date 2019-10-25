@@ -189,7 +189,8 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    * @TODO: refactor.
    */
   protected function deleteRoleSections(AccessSchemeInterface $scheme, $rid) {
-    return $this->state->delete(self::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $scheme->id() . '__' . $rid);
+    $prefix = 'workbench_access_roles_';
+    return $this->state->delete($prefix . $scheme->id() . '__' . $rid);
   }
 
 }

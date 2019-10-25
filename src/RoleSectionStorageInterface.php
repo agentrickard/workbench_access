@@ -11,13 +11,6 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 interface RoleSectionStorageInterface {
 
   /**
-   * State prefix.
-   *
-   * @deprecated
-   */
-  const WORKBENCH_ACCESS_ROLES_STATE_PREFIX = 'workbench_access_roles_';
-
-  /**
    * Adds a set of sections to a role.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
