@@ -16,15 +16,6 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\FormAlterHelper;
 
 /**
- * Defines the name of the node access control field.
- *
- * @deprecated to be removed before 8.x.1.0 - use
- *   \Drupal\workbench_access\WorkbenchAccessManagerInterface::FIELD_NAME
- *   instead until it is removed.
- */
-define('WORKBENCH_ACCESS_FIELD', 'field_workbench_access');
-
-/**
  * Implements hook_help().
  */
 function workbench_access_help($route_name, RouteMatchInterface $route_match) {

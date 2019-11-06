@@ -76,8 +76,9 @@ function workbench_access_post_update_convert_to_scheme() {
  */
 function workbench_access_post_update_convert_role_storage_keys() {
   foreach (\Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple() as $rid => $role) {
-    $old_key = RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid;
-    $new_key = RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . 'default__' . $rid;
+    $prefix = 'workbench_access_roles_';
+    $old_key = $prefix . $rid;
+    $new_key = $prefix . 'default__' . $rid;
     $state = \Drupal::state();
     if ($existing = $state->get($old_key, FALSE)) {
       $state->set($new_key, $existing);
@@ -120,9 +121,10 @@ function workbench_access_post_update_section_role_association(&$sandbox) {
   $state = \Drupal::state();
   foreach ($schemes as $scheme) {
     foreach (\Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple() as $rid => $role) {
+      $prefix = 'workbench_access_roles_';
       $potential_ids = [
-        RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid,
-        RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . 'default__' . $rid,
+        $prefix . $rid,
+        $prefix . 'default__' . $rid,
       ];
       foreach ($potential_ids as $key) {
         if ($existing = $state->get($key, FALSE)) {
