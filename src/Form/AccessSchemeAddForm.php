@@ -82,7 +82,9 @@ class AccessSchemeAddForm extends EntityForm {
     $form['scheme'] = [
       '#type' => 'select',
       '#title' => $this->t('Access scheme'),
-      '#options' => array_column($this->pluginManager->getDefinitions(), 'label', 'id'),
+      '#options' => array_map(function (array $definition) {
+        return $definition['label'];
+      }, $this->pluginManager->getDefinitions()),
       '#description' => $this->t('Select the access scheme provider to use.'),
       '#required' => TRUE,
     ];
