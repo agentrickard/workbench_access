@@ -193,7 +193,7 @@ class Taxonomy extends AccessControlHierarchyBase {
       if (isset($element['widget']['#options'])) {
         foreach ($element['widget']['#options'] as $id => $data) {
           $sections = [$id];
-          if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+          if ($id !== '_none' && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
             unset($element['widget']['#options'][$id]);
           }
         }
