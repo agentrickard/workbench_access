@@ -241,17 +241,9 @@ class Taxonomy extends AccessControlHierarchyBase {
   }
 
   /**
-   * Gets applicable fields for given entity type and bundle.
-   *
-   * @param string $entity_type
-   *   Entity type ID.
-   * @param string $bundle
-   *   Bundle ID.
-   *
-   * @return array
-   *   Associative Array of fields with keys entity_type, bundle and field.
+   * @inheritdoc
    */
-  protected function getApplicableFields($entity_type, $bundle) {
+  public function getApplicableFields($entity_type, $bundle) {
     return array_filter($this->configuration['fields'], function ($field) use ($entity_type, $bundle) {
       $field += [
         'entity_type' => NULL,

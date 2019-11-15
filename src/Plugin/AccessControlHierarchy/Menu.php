@@ -183,6 +183,17 @@ class Menu extends AccessControlHierarchyBase {
   }
 
   /**
+   * @inheritdoc
+   */
+  public function getApplicableFields($entity_type, $bundle) {
+    return [
+      'entity_type' => $entity_type,
+      'bundle' => $bundle,
+      'field' => 'menu',
+    ];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function disallowedOptions($field) {
