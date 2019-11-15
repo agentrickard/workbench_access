@@ -41,6 +41,7 @@ class WorkbenchAccessBlock extends BlockBase {
           }
         }
       }
+      $build['#cache']['tags'] = ['node:' . $node->id()];
     }
     return $build;
   }
