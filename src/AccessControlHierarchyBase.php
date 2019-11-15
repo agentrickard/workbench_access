@@ -160,8 +160,12 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function load($id) {
-    $tree = $this->getTree();
-    foreach ($tree as $parent => $data) {
+    // This cache is specific to the object being called.
+    // e.g. Drupal\workbench_access\Plugin\AccessControlHierarchy\Menu
+    if (!isset($this->tree)) {
+      $this->tree = $this->getTree();
+    }
+    foreach ($this->tree as $parent => $data) {
       if (isset($data[$id])) {
         return $data[$id];
       }
