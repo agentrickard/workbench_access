@@ -183,3 +183,21 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
   }
   return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $form_state, $entity);
 }
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function workbench_access_user_delete($account) {
+  $uid = $account->id();
+  $storage_handler = \Drupal::entityTypeManager()->getStorage('section_association');
+  // Retrieve all the section associations referencing this user.
+  $section_user_associations = $storage_handler->loadByProperties(['user_id' => $uid]);
+  foreach ($section_user_associations as $section_association) {
+    // For each retrived association, remove this user.
+    if ($user_ids = $section_association->getCurrentUserIds()) {
+      $remaining_user_ids = array_diff($user_ids, [$uid]);
+      $section_association->set('user_id', $remaining_user_ids);
+      $section_association->save();
+    }
+  }
+}
