@@ -74,11 +74,11 @@ class FormAlterHelper implements ContainerInjectionInterface {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
       // If no access field is set, we do nothing.
-      $callback = TRUE;
       $scheme = $access_scheme->getAccessScheme();
       if (!$scheme->applies($entity->getEntityTypeId(), $entity->bundle())) {
         continue;
       }
+      $callback = TRUE;
       // Load field data that can be edited.
       // If the user cannot access the form element or is a superuser, ignore.
       if (!$this->currentUser->hasPermission('bypass workbench access')) {
