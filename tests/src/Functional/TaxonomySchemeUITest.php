@@ -53,10 +53,10 @@ class TaxonomySchemeUITest extends BrowserTestBase {
     $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->setUpTaxonomyFieldForEntityType('node', 'page', $this->vocabulary->id());
-    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $this->vocabulary->id(), $this->vocabulary->id(), 'recursive', 'Recursive Field');
+    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $this->vocabulary->id(), $this->vocabulary->id(), 1, 'recursive', 'Recursive Field');
     $vocab = Vocabulary::create(['vid' => 'selected', 'name' => 'Selected Vocabulary']);
     $vocab->save();
-    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $vocab->id(), $this->vocabulary->id(), 'non_recursive', 'Allowed Field');
+    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $vocab->id(), $this->vocabulary->id(), 1, 'non_recursive', 'Allowed Field');
     entity_test_create_bundle('access_controlled');
     entity_test_create_bundle('notaccess_controlled');
     $this->setUpTaxonomyFieldForEntityType('entity_test', 'access_controlled', $this->vocabulary->id());

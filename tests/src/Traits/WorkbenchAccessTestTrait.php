@@ -54,11 +54,13 @@ trait WorkbenchAccessTestTrait {
    *   Field machine name.
    * @param string $title
    *   Field display title.
+   * @param int $cardinality
+   *   Indicates the number of values to save. -1 is unlimited.
    *
    * @return field
    *   The created field entity.
    */
-  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section') {
+  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $cardinality = 1, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section') {
     // Create an instance of the access field on the bundle.
     $handler_id = 'workbench_access:taxonomy_term:editorial_section';
     if (!AccessScheme::load('editorial_section')) {
@@ -69,7 +71,7 @@ trait WorkbenchAccessTestTrait {
       'target_bundles' => [
         $vocabulary_id => $vocabulary_id,
       ],
-    ]);
+    ], $cardinality);
     // Set the field to display as a dropdown on the form.
     if (!$form_display = EntityFormDisplay::load("$entity_type_id.$bundle.default")) {
       $form_display = EntityFormDisplay::create([
