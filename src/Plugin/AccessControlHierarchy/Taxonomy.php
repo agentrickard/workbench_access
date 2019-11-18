@@ -286,8 +286,15 @@ class Taxonomy extends AccessControlHierarchyBase {
   public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values) {
     foreach (array_column($this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle()), 'field') as $field_name) {
       $values = $form_state->getValue($field_name);
-      foreach ($hidden_values as $value) {
-        $values[]['target_id'] = $value;
+      // The $hidden_values are deeply nested.
+      foreach ($hidden_values as $key => $value) {
+        if ($key === $field_name) {
+          foreach ($value as $element) {
+            foreach ($element as $item) {
+              $values[]['target_id'] = $item;
+            }
+          }
+        }
       }
       $form_state->setValue($field_name, $values);
     }
