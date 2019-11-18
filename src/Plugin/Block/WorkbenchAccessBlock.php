@@ -15,10 +15,10 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *
  * @Block(
  *   id = "workbench_access_block",
- *   admin_label = @Translation("Workbench Access information")
+ *   admin_label = @Translation("Workbench Access information"),
  *   context_definitions = {
  *     "node" = @ContextDefinition("entity:node", label = @Translation("Current node"))
- *   }
+ *   },
  * )
  */
 class WorkbenchAccessBlock extends BlockBase implements ContainerFactoryPluginInterface {
