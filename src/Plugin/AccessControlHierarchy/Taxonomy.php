@@ -192,9 +192,24 @@ class Taxonomy extends AccessControlHierarchyBase {
       $element = &$form[$field];
       if (isset($element['widget']['#options'])) {
         foreach ($element['widget']['#options'] as $id => $data) {
-          $sections = [$id];
-          if ($id !== '_none' && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
-            unset($element['widget']['#options'][$id]);
+          // When using a select list, options may be a nested array.
+          if (is_array($data)) {
+            foreach ($data as $index => $item) {
+              $sections = [$index];
+              if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+                unset($element['widget']['#options'][$id][$index]);
+              }
+            }
+            // If the parent is empty, remove it.
+            if (empty($element['widget']['#options'][$id])) {
+              unset($element['widget']['#options'][$id]);
+            }
+          }
+          else {
+            $sections = [$id];
+            if ($id !== '_none' && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+              unset($element['widget']['#options'][$id]);
+            }
           }
         }
       }
@@ -291,7 +306,11 @@ class Taxonomy extends AccessControlHierarchyBase {
         if ($key === $field_name) {
           foreach ($value as $element) {
             foreach ($element as $item) {
-              $values[]['target_id'] = $item;
+              // Ensure that we do not save duplicate values. Note that this
+              // cannot be a strict in_array() check thanks to form handling.
+              if (empty($values[0]) || !in_array($item, array_values($values[0]))) {
+                $values[]['target_id'] = $item;
+              }
             }
           }
         }
