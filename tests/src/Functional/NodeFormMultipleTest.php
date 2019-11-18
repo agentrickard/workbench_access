@@ -68,70 +68,18 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $existing_users = $user_storage->getEditors($scheme, $base_term->id());
     $this->assertEquals($expected, array_keys($existing_users));
 
-    $staff_rid = $this->createRole([], 'staff');
-    $super_staff_rid = $this->createRole([], 'super_staff');
-    // Set the role -> term mapping.
-    \Drupal::service('workbench_access.role_section_storage')->addRole($scheme, $staff_rid, [$staff_term->id()]);
-    \Drupal::service('workbench_access.role_section_storage')->addRole($scheme, $super_staff_rid, [$super_staff_term->id()]);
-
     $web_assert = $this->assertSession();
-    $this->drupalGet('node/add/page');
-
-    // Assert we can't see the options yet.
-    $web_assert->optionNotExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
-    $web_assert->optionNotExists(WorkbenchAccessManagerInterface::FIELD_NAME, $super_staff_term->getName());
-
-    // Add the staff role and check the option exists.
-    $editor->addRole($staff_rid);
-    $editor->save();
-    $this->drupalGet('node/add/page');
-    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
-
-    // Test that we cannot use autocomplete to save a term we cannot access.
-    $this->setFieldType('node', 'page', 'entity_reference_autocomplete');
-
-    $this->drupalGet('node/add/page');
-    $field = WorkbenchAccessManagerInterface::FIELD_NAME . "[0][target_id]";
-
-    // Try to save something that doesn't exist.
-    $this->submitForm([$field => 'garbage', 'title[0][value]' => 'Foo'], 'Save');
-    $web_assert->pageTextContains('There are no entities matching "garbage".');
-
-    // Try to force an invalid selection.
-    $this->submitForm([$field => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
-    $web_assert->pageTextContains('The referenced entity (taxonomy_term: 2) does not exist.');
-
-    // Add the super staff role and check both options exist.
-    $editor->addRole($super_staff_rid);
-    $editor->save();
-
-    // Save a valid selection.
-    $this->submitForm([$field => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
-    $web_assert->pageTextNotContains('The referenced entity (taxonomy_term: 2) does not exist.');
-
-    // Reset the form
-    $this->setFieldType('node', 'page');
-
-    // Test the select widget.
-    $this->drupalGet('node/add/page');
-    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
-    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $super_staff_term->getName());
-
-    // New, extended tests for multi-value handling.
 
     // Create a page as super-admin.
     $admin = $this->setUpAdminUser([
       'bypass node access',
-      'administer content types',
-      'administer node fields',
-      'administer node display',
       'bypass workbench access']);
     $this->drupalLogin($admin);
 
     $this->drupalGet('node/add/page');
-    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $base_term->getName());
-    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
-    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $super_staff_term->getName());
+    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME . '[]', $base_term->getName());
+    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME . '[]', $staff_term->getName());
+    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME . '[]', $super_staff_term->getName());
   }
 
 }
