@@ -80,6 +80,25 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME . '[]', $base_term->getName());
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME . '[]', $staff_term->getName());
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME . '[]', $super_staff_term->getName());
+
+    // Save the node.
+    $edit['title[0][value]'] = 'Test node';
+    $edit[WorkbenchAccessManagerInterface::FIELD_NAME . '[]'] = [
+      $base_term->id(),
+      $staff_term->id(),
+      $super_staff_term->id(),
+    ];
+    $this->drupalPostForm('node/add/page', $edit, 'Save');
+
+    // Get node data. Note that we create one new node for each test case.
+    $nid = 1;
+    $storage = \Drupal::entityTypeManager()->getStorage('node');
+    $node = $storage->load($nid);
+    // Check that three values are set.
+    $values = $scheme->getAccessScheme()->getEntityValues($node);
+    $this->assert(count($values) == 3, 'Node saved with three sections.');
+
+    // TODO - login and save as the editor. Check that values are retained.
   }
 
 }

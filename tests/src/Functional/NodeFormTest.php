@@ -111,8 +111,8 @@ class NodeFormTest extends BrowserTestBase {
 
     // Reset the form
     $this->setFieldType('node', 'page');
-    // Test the select widget.
 
+    // Test the select widget.
     $this->drupalGet('node/add/page');
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $super_staff_term->getName());
