@@ -213,6 +213,14 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * @inheritdoc
+   */
+  public function getApplicableFields($entity_type, $bundle) {
+    // Extending classes are expected to provide their own implementation.
+    return [];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state) {
