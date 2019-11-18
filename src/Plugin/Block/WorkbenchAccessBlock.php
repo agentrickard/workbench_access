@@ -9,8 +9,6 @@ use Drupal\Core\Session\AccountInterface;
 /**
  * Creates a block to show editorial status.
  *
- * @TODO: Replace with Workbench block later.
- *
  * @Block(
  *   id = "workbench_access_block",
  *   admin_label = @Translation("Workbench Access information")
@@ -41,7 +39,7 @@ class WorkbenchAccessBlock extends BlockBase {
           }
         }
       }
-      $build['#cache']['tags'] = ['node:' . $node->id()];
+      $build['#cache']['tags'] = ['node_list'];
     }
     return $build;
   }
@@ -51,13 +49,6 @@ class WorkbenchAccessBlock extends BlockBase {
    */
   protected function blockAccess(AccountInterface $account) {
     return AccessResult::allowedIfHasPermissions($account, ['administer workbench access', 'view workbench access information'], 'OR');
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getCacheContexts() {
-    return ['url.path'];
   }
 
 }
