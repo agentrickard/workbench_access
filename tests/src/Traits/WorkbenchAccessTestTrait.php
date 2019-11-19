@@ -60,7 +60,7 @@ trait WorkbenchAccessTestTrait {
    * @return field
    *   The created field entity.
    */
-  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $cardinality = 1, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section') {
+  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section', $cardinality = 1) {
     // Create an instance of the access field on the bundle.
     $handler_id = 'workbench_access:taxonomy_term:editorial_section';
     if (!AccessScheme::load('editorial_section')) {
