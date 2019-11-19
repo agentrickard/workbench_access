@@ -69,7 +69,7 @@ class ConfigDependenciesTest extends KernelTestBase {
     $node_type2 = $this->createContentType(['type' => 'article']);
     $this->vocabulary = $this->setUpVocabulary();
     $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
-    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id(), 1, 'field_section');
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id(), 'field_section');
     $this->scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
     $configuration = $this->scheme->getAccessScheme()->getConfiguration();
     $configuration['fields'][] = [

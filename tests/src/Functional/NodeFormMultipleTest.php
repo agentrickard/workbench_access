@@ -40,6 +40,7 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     $user_storage = \Drupal::service('workbench_access.user_section_storage');
     $role_storage = \Drupal::service('workbench_access.role_section_storage');
+    $node_storage = \Drupal::entityTypeManager()->getStorage('node');
 
     // Set up an editor and log in as them.
     $editor = $this->setUpEditorUser();
@@ -95,33 +96,31 @@ class NodeFormMultipleTest extends BrowserTestBase {
 
     // Get node data. Note that we create one new node for each test case.
     $nid = 1;
-    $storage = \Drupal::entityTypeManager()->getStorage('node');
-    $node = $storage->load($nid);
+    $node = $node_storage->load($nid);
 
     // Check that three values are set.
     $values = $scheme->getAccessScheme()->getEntityValues($node);
     $this->assert(count($values) == 3, 'Node saved with three sections.');
 
-    // TODO - login and save as the editor. Check that values are retained.
+    // Login and save as the editor. Check that hidden values are retained.
     $this->drupalLogin($editor);
     $this->drupalGet('node/1/edit');
     $web_assert->optionExists($field_name . '[]', $base_term->getName());
     $web_assert->optionExists($field_name . '[]', $staff_term->getName());
     $web_assert->optionNotExists($field_name . '[]', $super_staff_term->getName());
 
-    /* TODO FIX THIS *
+    // This should retain $base_term->id() and $super_staff_term->id().
     $edit['title[0][value]'] = 'Updated node';
     $edit[$field_name . '[]'] = [
-      $base_term->id() => 1,
-      $staff_term->id() => 0,
+      $base_term->id()
     ];
     $this->drupalPostForm('node/1/edit', $edit, 'Save');
 
-    // Check that three values are still set.
-    $node = $storage->load($nid);
+    // Reload the node and test.
+    $node_storage->resetCache([$nid]);
+    $node = $node_storage->load($nid);
     $values = $scheme->getAccessScheme()->getEntityValues($node);
     $this->assert(count($values) == 2, 'Node saved with two sections. ' . count($values) );
-    */
   }
 
 }
