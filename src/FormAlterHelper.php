@@ -87,16 +87,18 @@ class FormAlterHelper implements ContainerInjectionInterface {
         // Add the options hidden from the user silently to the form.
         $fields = $scheme->getApplicableFields($entity->getEntityTypeId(), $entity->bundle());
         foreach ($fields as $info) {
-          $lookup_element = $complete_form[$info['field']];
-          $options_diff = $scheme->disallowedOptions($lookup_element);
-          if (!empty($options_diff)) {
-            // @TODO: Potentially show this information to users with permission.
-            $complete_form['workbench_access_disallowed'][$info['field']] = [
-              $access_scheme->id() => [
-                '#type' => 'value',
-                '#value' => $options_diff,
-              ],
-            ];
+          if (isset($complete_form[$info['field']])) {
+            $lookup_element = $complete_form[$info['field']];
+            $options_diff = $scheme->disallowedOptions($lookup_element);
+            if (!empty($options_diff)) {
+              // @TODO: Potentially show this information to users with permission.
+              $complete_form['workbench_access_disallowed'][$info['field']] = [
+                $access_scheme->id() => [
+                  '#type' => 'value',
+                  '#value' => $options_diff,
+                ],
+              ];
+            }
           }
         }
       }
