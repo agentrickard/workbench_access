@@ -100,7 +100,7 @@ class NodeFormMultipleTest extends BrowserTestBase {
 
     // Check that three values are set.
     $values = $scheme->getAccessScheme()->getEntityValues($node);
-    $this->assert(count($values) == 3, 'Node saved with three sections.');
+    $this->assertCount(3, $values);
 
     // Login and save as the editor. Check that hidden values are retained.
     $this->drupalLogin($editor);
@@ -120,7 +120,7 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $node_storage->resetCache([$nid]);
     $node = $node_storage->load($nid);
     $values = $scheme->getAccessScheme()->getEntityValues($node);
-    $this->assert(count($values) == 2, 'Node saved with two sections. ' . count($values) );
+    $this->assertCount(2, $values);
   }
 
 }
