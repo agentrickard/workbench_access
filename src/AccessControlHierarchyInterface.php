@@ -158,6 +158,9 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   /**
    * Gets applicable fields for given entity type and bundle.
    *
+   * Plugin implementations are responsible for declaring what fields on an
+   * entity are used for access control.
+   *
    * @param string $entity_type
    *   Entity type ID.
    * @param string $bundle
