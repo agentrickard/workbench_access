@@ -17,6 +17,11 @@ class NodeFormMultipleTest extends BrowserTestBase {
   use WorkbenchAccessTestTrait;
 
   /**
+   * Simple array.
+   */
+  protected $terms = [];
+
+  /**
    * {@inheritdoc}
    */
   public static $modules = [
@@ -29,14 +34,31 @@ class NodeFormMultipleTest extends BrowserTestBase {
   ];
 
   /**
-   * Tests that the user can see all valid options on the node form.
+   * Tests field handling for multiple select lists.
    */
-  public function testNodeMultipleForm() {
+  public function testNodeMultipleSelectForm() {
+    $this->runFieldTest('options_select');
+  }
+
+  /**
+   * Tests field handling for multiple checkboxes.
+   */
+  public function testNodeMultipleCheckboxesForm() {
+    $this->runFieldTest('options_buttons');
+  }
+
+  /**
+   * Runs tests against different field configurations.
+   *
+   * @param $field_type
+   *  The type of field widget to test: options_select|options_buttons.
+   */
+  private function runFieldTest($field_type = 'options_select') {
     // Set up a content type, taxonomy field, and taxonomy scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
     $field_name = WorkbenchAccessManagerInterface::FIELD_NAME;
-    $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id(), $field_name, 'Section', 3);
+    $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id(), $field_name, 'Section', 3, $field_type);
     $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     $user_storage = \Drupal::service('workbench_access.user_section_storage');
     $role_storage = \Drupal::service('workbench_access.role_section_storage');
@@ -47,22 +69,26 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $this->drupalLogin($editor);
 
     // Set up some roles and terms for this test.
+    $this->terms = [];
     // Create terms and roles.
     $staff_term = Term::create([
       'vid' => $vocab->id(),
       'name' => 'Staff',
     ]);
     $staff_term->save();
+    $this->terms[$staff_term->id()] = $staff_term->getName();
     $super_staff_term = Term::create([
       'vid' => $vocab->id(),
       'name' => 'Super staff',
     ]);
     $super_staff_term->save();
+    $this->terms[$super_staff_term->id()] = $super_staff_term->getName();
     $base_term = Term::create([
       'vid' => $vocab->id(),
       'name' => 'Editor',
     ]);
     $base_term->save();
+    $this->terms[$base_term->id()] = $base_term->getName();
 
     // Add the user to the base section and the staff section.
     $user_storage->addUser($scheme, $editor, [$base_term->id(), $staff_term->id()]);
@@ -72,26 +98,39 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $existing_users = $user_storage->getEditors($scheme, $staff_term->id());
     $this->assertEquals($expected, array_keys($existing_users));
 
-    $web_assert = $this->assertSession();
-
     // Create a page as super-admin.
     $admin = $this->setUpAdminUser([
       'bypass node access',
       'bypass workbench access']);
     $this->drupalLogin($admin);
 
+    $web_assert = $this->assertSession();
+    $page = $this->getSession()->getPage();
+
     $this->drupalGet('node/add/page');
-    $web_assert->optionExists($field_name . '[]', $base_term->getName());
-    $web_assert->optionExists($field_name . '[]', $staff_term->getName());
-    $web_assert->optionExists($field_name . '[]', $super_staff_term->getName());
+    if ($field_type === 'options_select') {
+      $web_assert->optionExists($field_name . '[]', $base_term->getName());
+      $web_assert->optionExists($field_name . '[]', $staff_term->getName());
+      $web_assert->optionExists($field_name . '[]', $super_staff_term->getName());
+      $edit[$field_name . '[]'] = [
+        $base_term->id(),
+        $staff_term->id(),
+        $super_staff_term->id(),
+      ];
+    }
+    if ($field_type === 'options_buttons') {
+      $page->findField($field_name . '[' . $base_term->id() . ']');
+      $page->findField($field_name . '[' . $staff_term->id() . ']');
+      $page->findField($field_name . '[' . $super_staff_term->id() . ']');
+      $edit = [
+        $field_name . '[' . $base_term->id() . ']' => $base_term->id(),
+        $field_name . '[' . $staff_term->id() . ']' => $staff_term->id(),
+        $field_name . '[' . $super_staff_term->id() . ']' => $super_staff_term->id(),
+      ];
+    }
 
     // Save the node.
     $edit['title[0][value]'] = 'Test node';
-    $edit[$field_name . '[]'] = [
-      $base_term->id(),
-      $staff_term->id(),
-      $super_staff_term->id(),
-    ];
     $this->drupalPostForm('node/add/page', $edit, 'Save');
 
     // Get node data. Note that we create one new node for each test case.
@@ -105,15 +144,27 @@ class NodeFormMultipleTest extends BrowserTestBase {
     // Login and save as the editor. Check that hidden values are retained.
     $this->drupalLogin($editor);
     $this->drupalGet('node/1/edit');
-    $web_assert->optionExists($field_name . '[]', $base_term->getName());
-    $web_assert->optionExists($field_name . '[]', $staff_term->getName());
-    $web_assert->optionNotExists($field_name . '[]', $super_staff_term->getName());
+
+    if ($field_type === 'options_select') {
+      $web_assert->optionExists($field_name . '[]', $base_term->getName());
+      $web_assert->optionExists($field_name . '[]', $staff_term->getName());
+      $web_assert->optionNotExists($field_name . '[]', $super_staff_term->getName());
+      $edit[$field_name . '[]'] = [
+        $base_term->id()
+      ];
+    }
+    if ($field_type === 'options_buttons') {
+      $page->findField($field_name . '[' . $base_term->id() . ']');
+      $page->findField($field_name . '[' . $staff_term->id() . ']');
+      $web_assert->fieldNotExists($field_name . '[' . $super_staff_term->id() . ']');
+      $edit = [
+        $field_name . '[' . $base_term->id() . ']' => $base_term->id(),
+        $field_name . '[' . $staff_term->id() . ']' => NULL,
+      ];
+    }
 
     // This should retain $base_term->id() and $super_staff_term->id().
     $edit['title[0][value]'] = 'Updated node';
-    $edit[$field_name . '[]'] = [
-      $base_term->id()
-    ];
     $this->drupalPostForm('node/1/edit', $edit, 'Save');
 
     // Reload the node and test.

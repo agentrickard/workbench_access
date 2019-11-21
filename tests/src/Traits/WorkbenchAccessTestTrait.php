@@ -56,11 +56,13 @@ trait WorkbenchAccessTestTrait {
    *   Field display title.
    * @param int $cardinality
    *   Indicates the number of values to save. -1 is unlimited.
+   * @param $field_type
+   *   The type of field widget to enable: options_select|options_buttons
    *
    * @return field
    *   The created field entity.
    */
-  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section', $cardinality = 1) {
+  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section', $cardinality = 1, $field_type = 'options_select') {
     // Create an instance of the access field on the bundle.
     $handler_id = 'workbench_access:taxonomy_term:editorial_section';
     if (!AccessScheme::load('editorial_section')) {
@@ -81,7 +83,7 @@ trait WorkbenchAccessTestTrait {
         'status' => TRUE,
       ]);
     }
-    $form_display->setComponent($field_name, ['type' => 'options_select']);
+    $form_display->setComponent($field_name, ['type' => $field_type]);
     $form_display->save();
 
     return $field;
