@@ -190,6 +190,7 @@ class Taxonomy extends AccessControlHierarchyBase {
         continue;
       }
       $element = &$form[$field];
+
       if (isset($element['widget']['#options'])) {
         foreach ($element['widget']['#options'] as $id => $data) {
           // When using a select list, options may be a nested array.
@@ -220,14 +221,30 @@ class Taxonomy extends AccessControlHierarchyBase {
       // @TODO: test this against views-based handlers.
       // @see \Drupal\workbench_access\Plugin\EntityReferenceSelection\TaxonomyHierarchySelection
       else {
-        // @TODO: Hide the elements a user cannot edit.
         foreach ($element['widget'] as $key => $item) {
           if (is_array($item) && isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
             $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term:' . $scheme->id();
             $element['widget'][$key]['target_id']['#validate_reference'] = TRUE;
+            // Hide elements that cannot be edited.
+            if (!empty($element['widget'][$key]['target_id']['#default_value'])) {
+              $sections = [$element['widget'][$key]['target_id']['#default_value']->id()];
+              if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+                unset($element['widget'][$key]);
+                $id = current($sections);
+                $disallowed[$id] = $id;
+              }
+            }
           }
-
         }
+      }
+      if (!empty($disallowed)) {
+        $form['workbench_access_disallowed']['#tree'] = TRUE;
+        $form['workbench_access_disallowed'][$field] = [
+          $scheme->id() => [
+            '#type' => 'value',
+            '#value' => $disallowed,
+          ],
+        ];
       }
     }
   }
