@@ -48,6 +48,13 @@ class NodeFormMultipleTest extends BrowserTestBase {
   }
 
   /**
+   * Tests field handling for basic autocomplete.
+   */
+  public function testNodeMultipleAutocompleteForm() {
+    $this->runFieldTest('entity_reference_autocomplete');
+  }
+
+  /**
    * Runs tests against different field configurations.
    *
    * @param $field_type
@@ -128,6 +135,16 @@ class NodeFormMultipleTest extends BrowserTestBase {
         $field_name . '[' . $super_staff_term->id() . ']' => $super_staff_term->id(),
       ];
     }
+    if ($field_type === 'entity_reference_autocomplete') {
+      $page->findField($field_name . '[0][target_id]');
+      $page->findField($field_name . '[1][target_id]');
+      $page->findField($field_name . '[2][target_id]');
+      $edit = [
+        $field_name . '[0][target_id]' => $base_term->getName() . ' (' . $base_term->id() . ')',
+        $field_name . '[1][target_id]' => $staff_term->getName() . ' (' . $staff_term->id() . ')',
+        $field_name . '[2][target_id]' => $super_staff_term->getName() . ' (' . $super_staff_term->id() . ')',
+      ];
+    }
 
     // Save the node.
     $edit['title[0][value]'] = 'Test node';
@@ -161,6 +178,19 @@ class NodeFormMultipleTest extends BrowserTestBase {
         $field_name . '[' . $base_term->id() . ']' => $base_term->id(),
         $field_name . '[' . $staff_term->id() . ']' => NULL,
       ];
+    }
+    if ($field_type === 'entity_reference_autocomplete') {
+      $page->findField($field_name . '[0][target_id]');
+      $page->findField($field_name . '[1][target_id]');
+      $web_assert->fieldNotExists($field_name . '[2][target_id]');
+      $edit = [
+        $field_name . '[0][target_id]' => $base_term->getName() . ' (' . $base_term->id() . ')',
+        $field_name . '[1][target_id]' => NULL,
+      ];
+      // This all works to this point, but for autocomplete handling, the
+      // hidden value form elements from 'workbench_access_disallowed' are not
+      // being read by the test.
+      // See Drupal\workbench_access\Plugin\AccessControlHierarchy\Taxonomy::alterForm().
     }
 
     // This should retain $base_term->id() and $super_staff_term->id().
