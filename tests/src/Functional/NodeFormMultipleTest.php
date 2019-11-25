@@ -187,10 +187,6 @@ class NodeFormMultipleTest extends BrowserTestBase {
         $field_name . '[0][target_id]' => $base_term->getName() . ' (' . $base_term->id() . ')',
         $field_name . '[1][target_id]' => NULL,
       ];
-      // This all works to this point, but for autocomplete handling, the
-      // hidden value form elements from 'workbench_access_disallowed' are not
-      // being read by the test.
-      // See Drupal\workbench_access\Plugin\AccessControlHierarchy\Taxonomy::alterForm().
     }
 
     // This should retain $base_term->id() and $super_staff_term->id().
@@ -198,10 +194,12 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $this->drupalPostForm('node/1/edit', $edit, 'Save');
 
     // Reload the node and test.
+    $expected = [3,2];
     $node_storage->resetCache([$nid]);
     $node = $node_storage->load($nid);
     $values = $scheme->getAccessScheme()->getEntityValues($node);
     $this->assertCount(2, $values);
+    $this->assertEquals($values, $expected);
   }
 
 }

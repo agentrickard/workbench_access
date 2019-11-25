@@ -82,15 +82,19 @@ class FormAlterHelper implements ContainerInjectionInterface {
       // Load field data that can be edited.
       // If the user cannot access the form element or is a superuser, ignore.
       if (!$this->currentUser->hasPermission('bypass workbench access')) {
+        // In the case of entity_autocomplete, the Taxonomy scheme will update
+        // the form for us. Be careful not to overwrite its values.
         $scheme->alterForm($access_scheme, $element, $form_state, $entity);
-        $complete_form['workbench_access_disallowed'] = ['#tree' => TRUE];
+        if (!isset($complete_form['workbench_access_disallowed'])) {
+          $complete_form['workbench_access_disallowed'] = ['#tree' => TRUE];
+        }
         // Add the options hidden from the user silently to the form.
         $fields = $scheme->getApplicableFields($entity->getEntityTypeId(), $entity->bundle());
         foreach ($fields as $info) {
           if (isset($complete_form[$info['field']])) {
             $lookup_element = $complete_form[$info['field']];
             $options_diff = $scheme->disallowedOptions($lookup_element);
-            if (!empty($options_diff)) {
+            if (!empty($options_diff) && !isset($complete_form['workbench_access_disallowed'][$info['field']])) {
               // @TODO: Potentially show this information to users with permission.
               $complete_form['workbench_access_disallowed'][$info['field']] = [
                 $access_scheme->id() => [
