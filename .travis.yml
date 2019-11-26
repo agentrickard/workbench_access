@@ -7,8 +7,14 @@ services:
 matrix:
   fast_finish: true
   include:
+    - env: DRUPAL=8.7.x
+      php: 7.2
+    - env: DRUPAL=8.7.x
+      php: 7.1
     - env: DRUPAL=8.8.x
       php: 7.2
+    - env: DRUPAL=8.8.x
+      php: 7.1
 
 cache:
   directories:
@@ -50,7 +56,7 @@ before_script:
   - travis_retry drush dl drupal-$DRUPAL --drupal-project-rename=drupal
   - cd drupal
 
-  # Update PHPUnit.
+  # Install Drupal and dependencies.
   - composer install
 
   # Make the module appear in the correct place
