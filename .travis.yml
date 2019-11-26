@@ -56,7 +56,13 @@ before_script:
   - travis_retry drush dl drupal-$DRUPAL --drupal-project-rename=drupal
   - cd drupal
 
-  # Install Drupal and dependencies.
+  # Update PHPUnit.
+  - |
+    if [ $DRUPAL == "8.7.x" ]; then
+      composer run-script drupal-phpunit-upgrade
+    fi
+
+  # Install dependencies.
   - composer install
 
   # Make the module appear in the correct place
