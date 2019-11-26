@@ -56,19 +56,14 @@ before_script:
   - travis_retry drush dl drupal-$DRUPAL --drupal-project-rename=drupal
   - cd drupal
 
-  # Install dependencies.
-  - composer install
-
-  # Update PHPUnit.
+  # Update PHPUnit. In version 8.8+ this is automatic.
   - |
     if [ $DRUPAL == "8.7.x" ]; then
       composer run-script drupal-phpunit-upgrade
     fi
 
-  - |
-    if  [ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]; then
-      composer run-script drupal-phpunit-upgrade
-    fi
+  # Install dependencies.
+  - composer install
 
   # Make the module appear in the correct place
   - ln -s $TESTDIR modules/workbench_access
