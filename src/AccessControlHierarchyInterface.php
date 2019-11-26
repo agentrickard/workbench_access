@@ -156,6 +156,22 @@ interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, P
   public function disallowedOptions($field);
 
   /**
+   * Gets applicable fields for given entity type and bundle.
+   *
+   * Plugin implementations are responsible for declaring what fields on an
+   * entity are used for access control.
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle ID.
+   *
+   * @return array
+   *   Associative array of fields with keys entity_type, bundle and field.
+   */
+  public function getApplicableFields($entity_type, $bundle);
+
+  /**
    * Responds to the submission of an entity form.
    *
    * If the entity contains section values that the user cannot change, they

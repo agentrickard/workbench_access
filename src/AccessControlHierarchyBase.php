@@ -213,15 +213,22 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * @inheritdoc
+   */
+  public function getApplicableFields($entity_type, $bundle) {
+    // Extending classes are expected to provide their own implementation.
+    return [];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state) {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
     foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
       $scheme = $access_scheme->getAccessScheme();
-      $hidden_values = $form_state->getValue(['workbench_access_disallowed', $access_scheme->id()]);
-      if (!empty($values)) {
-
+      $hidden_values = $form_state->getValue('workbench_access_disallowed');
+      if (!empty($hidden_values)) {
         $entity = $form_state->getFormObject()->getEntity();
         $scheme->massageFormValues($entity, $form_state, $hidden_values);
       }
