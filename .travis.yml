@@ -56,6 +56,10 @@ before_script:
   - travis_retry drush dl drupal-$DRUPAL --drupal-project-rename=drupal
   - cd drupal
 
+  # Update PHPUnit.
+  - composer run-script drupal-phpunit-upgrade
+  - composer install
+
   # Make the module appear in the correct place
   - ln -s $TESTDIR modules/workbench_access
 
