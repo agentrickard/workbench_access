@@ -58,7 +58,7 @@ before_script:
 
   # Update PHPUnit.
   - |
-    if [ $DRUPAL == "8.7.x" ]; then
+    if [ $DRUPAL == "8.7.x" ] || [ ${TRAVIS_PHP_VERSION:0:3} == "7.3" ]; then
       composer run-script drupal-phpunit-upgrade
     fi
 
