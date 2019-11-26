@@ -10,11 +10,12 @@ matrix:
     - env: DRUPAL=8.7.x
       php: 7.2
     - env: DRUPAL=8.7.x
-      php: 7.1
+      php: 7.3
     - env: DRUPAL=8.8.x
       php: 7.2
-    - env: DRUPAL=8.8.x
-      php: 7.1
+    # The PHPUnit update is not working on 7.3
+    #- env: DRUPAL=8.8.x
+    #  php: 7.3
 
 cache:
   directories:
@@ -56,8 +57,14 @@ before_script:
   - travis_retry drush dl drupal-$DRUPAL --drupal-project-rename=drupal
   - cd drupal
 
-  # Update PHPUnit.
-  - composer run-script drupal-phpunit-upgrade
+  # Update PHPUnit. In version 8.8+ this is automatic.
+  - |
+    if [ $DRUPAL == "8.7.x" ]; then
+      composer run-script drupal-phpunit-upgrade
+    fi
+
+  # Install dependencies.
+  - composer install
 
   # Make the module appear in the correct place
   - ln -s $TESTDIR modules/workbench_access
