@@ -81,6 +81,9 @@ before_script:
   # Wait until the web server is responding.
   - until curl -s localhost:8080; do true; done > /dev/null
 
+  # Try to fix phpUnit.
+  - composer run-script drupal-phpunit-upgrade
+
 script:
   - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
   - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Kernel" --php `which php` --url http://localhost:8080 "workbench_access"
