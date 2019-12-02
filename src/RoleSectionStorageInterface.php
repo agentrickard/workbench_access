@@ -15,7 +15,7 @@ interface RoleSectionStorageInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param int $role_id
+   * @param string $role_id
    *   A role id.
    * @param array $sections
    *   An array of section ids to assign to this role.
@@ -27,7 +27,7 @@ interface RoleSectionStorageInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param int $role_id
+   * @param string $role_id
    *   A role id.
    * @param array $sections
    *   An array of section ids to assign to this role.
