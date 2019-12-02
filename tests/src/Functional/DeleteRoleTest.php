@@ -3,6 +3,7 @@
 namespace Drupal\Tests\workbench_access\Functional;
 
 use Drupal\menu_link_content\Entity\MenuLinkContent;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
@@ -55,19 +56,19 @@ class DeleteRoleTest extends BrowserTestBase {
     $role_section_storage->addRole($scheme, 'role_a', [$section_id]);
     $role_section_storage->addRole($scheme, 'role_b', [$section_id]);
 
-    $assigned_roles = $role_section_storage->getRoles($scheme, $section_id);
+    $assigned_roles = $this->getStoredRoles($scheme, $section_id);
 
-    $this->assertEquals(['role_a', 'role_b'], $assigned_roles, 'The test roles are not assigned to the section.');
-    
+    $this->assertCount(2, $assigned_roles, 'The test roles are not assigned to the section.');
+
     /* @var \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager */
     $entity_type_manager = $this->container->get('entity_type.manager');
     $role_storage = $entity_type_manager->getStorage('user_role');
     $role_b = $role_storage->load('role_b');
     $role_b->delete();
 
-    $assigned_roles = $role_section_storage->getRoles($scheme, $section_id);
+    $assigned_roles = $this->getStoredRoles($scheme, $section_id);
 
-    $this->assertEquals(['role_a'], $assigned_roles, 'The remaining roles are not assigned to the section.');
+    $this->assertCount(1, $assigned_roles, 'The test roles are not assigned to the section.');
   }
 
   /**
@@ -85,6 +86,30 @@ class DeleteRoleTest extends BrowserTestBase {
       'delete any page content',
       'use workbench access',
     ], $name);
+  }
+
+  /**
+   * Tests the storage of role assignments.
+   *
+   * This method is a version of RoleSectionStorage::getRoles() that does not
+   * ensure the roles still exist.
+   *
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme.
+   * @param string $id
+   *   The section id.
+   *
+   * @return array
+   *   An array of role ids
+   */
+  public function getStoredRoles(AccessSchemeInterface $scheme, $id) {
+    $roles = [];
+    $query = \Drupal::entityTypeManager()->getStorage('section_association')->getAggregateQuery()
+      ->condition('access_scheme', $scheme->id())
+      ->condition('section_id', $id)
+      ->groupBy('role_id.target_id')->execute();
+    $rids = array_column($query, 'role_id_target_id');
+    return array_keys($rids);
   }
 
 }
