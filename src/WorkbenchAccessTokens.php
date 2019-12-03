@@ -7,6 +7,7 @@ use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Utility\Token;
+use Drupal\node\NodeInterface;
 use Drupal\user\UserInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\UserSectionStorageInterface;
@@ -84,6 +85,15 @@ class WorkbenchAccessTokens {
           'type' => $this->moduleHandler()->moduleExists('token') ? 'array' : '',
         ],
       ],
+      'node' => [
+        'workbench-access-sections' => [
+          'name' => t('Workbench access sections'),
+          'description' => $this->t('Section assignments for content.'),
+          // Optionally use token module's array type which gives users greater
+          // control on output.
+          'type' => $this->moduleHandler()->moduleExists('token') ? 'array' : '',
+        ],
+      ],
     ];
 
     return $info;
@@ -122,6 +132,33 @@ class WorkbenchAccessTokens {
         }
       }
     }
+    // Node tokens.
+    if ($type === 'node' && !empty($data['node'])) {
+      /** @var \Drupal\node\NodeInterface $node */
+      $node = $data['node'];
+
+      foreach ($tokens as $name => $original) {
+        switch ($name) {
+          case 'workbench-access-sections':
+            if ($sections = $this->getNodeSectionNames($node, $bubbleable_metadata)) {
+              if (function_exists('token_render_array')) {
+                $replacements[$original] = token_render_array($sections, $options);
+              }
+              else {
+                $replacements[$original] = implode(', ', $sections);
+              }
+            }
+            break;
+        }
+      }
+
+      // Chained token relationships.
+      if ($section_tokens = $this->tokenService->findWithPrefix($tokens, 'workbench-access-sections')) {
+        if ($sections = $this->getNodeSectionNames($node, $bubbleable_metadata)) {
+          $replacements += $this->tokenService->generate('array', $section_tokens, ['array' => $sections], $options, $bubbleable_metadata);
+        }
+      }
+    }
 
     return $replacements;
   }
@@ -150,7 +187,32 @@ class WorkbenchAccessTokens {
         return array_merge($inner, array_column($user_in_sections, 'label'));
       }, []));
     }, []);
+  }
 
+  /**
+   * Generates an array of section names for a given node.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The user account.
+   * @param \Drupal\Core\Render\BubbleableMetadata $bubbleable_metadata
+   *   The cache metadata.
+   *
+   * @return array
+   *   An array of section names.
+   */
+  private function getNodeSectionNames(NodeInterface $node, BubbleableMetadata $bubbleable_metadata) {
+    $schemes = $this->entityTypeManager->getStorage('access_scheme')->loadMultiple();
+    return array_reduce($schemes, function (array $carry, AccessSchemeInterface $scheme) use ($node, $bubbleable_metadata) {
+      if (!$sections = $scheme->getEntityValues($node)) {
+        return $carry;
+      }
+      $bubbleable_metadata->addCacheableDependency($scheme);
+
+      return array_merge($carry, array_reduce($scheme->getAccessScheme()->getTree(), function ($inner, $info) use ($sections) {
+        $node_in_sections = array_intersect_key($info, array_combine($sections, $sections));
+        return array_merge($inner, array_column($node_in_sections, 'label'));
+      }, []));
+    }, []);
   }
 
 }
