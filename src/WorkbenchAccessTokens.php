@@ -81,7 +81,7 @@ class WorkbenchAccessTokens {
           'description' => $this->t('Section assignments for the user account.'),
           // Optionally use token module's array type which gives users greater
           // control on output.
-          'type' => \Drupal::moduleHandler()->moduleExists('token') ? 'array' : '',
+          'type' => $this->moduleHandler()->moduleExists('token') ? 'array' : '',
         ],
       ],
     ];
@@ -93,8 +93,6 @@ class WorkbenchAccessTokens {
    * Implements hook_tokens().
    */
   public function getTokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
-    $token_service = \Drupal::token();
-
     $replacements = [];
 
     // User tokens.
@@ -118,9 +116,9 @@ class WorkbenchAccessTokens {
       }
 
       // Chained token relationships.
-      if ($section_tokens = $token_service->findWithPrefix($tokens, 'workbench-access-sections')) {
+      if ($section_tokens = $this->tokenService->findWithPrefix($tokens, 'workbench-access-sections')) {
         if ($sections = $this->getUserSectionNames($user, $bubbleable_metadata)) {
-          $replacements += $token_service->generate('array', $section_tokens, ['array' => $sections], $options, $bubbleable_metadata);
+          $replacements += $this->tokenService->generate('array', $section_tokens, ['array' => $sections], $options, $bubbleable_metadata);
         }
       }
     }
@@ -140,11 +138,9 @@ class WorkbenchAccessTokens {
    *   An array of section names.
    */
   private function getUserSectionNames(UserInterface $user, BubbleableMetadata $bubbleable_metadata) {
-    /** @var \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage */
-    $user_section_storage = \Drupal::service('workbench_access.user_section_storage');
-    $schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple();
-    return array_reduce($schemes, function (array $carry, AccessSchemeInterface $scheme) use ($user_section_storage, $user, $bubbleable_metadata) {
-      if (!$sections = $user_section_storage->getUserSections($scheme, $user)) {
+    $schemes = $this->entityTypeManager->getStorage('access_scheme')->loadMultiple();
+    return array_reduce($schemes, function (array $carry, AccessSchemeInterface $scheme) use ($user, $bubbleable_metadata) {
+      if (!$sections = $this->userSectionStorage->getUserSections($scheme, $user)) {
         return $carry;
       }
       $bubbleable_metadata->addCacheableDependency($scheme);
