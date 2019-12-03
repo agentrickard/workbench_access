@@ -94,7 +94,7 @@ class SectionTokenTest extends KernelTestBase {
     $this->vocabulary = $this->setUpVocabulary();
     $node_type = $this->setUpContentType();
     // Set a field on the node type.
-    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id(), WorkbenchAccessManagerInterface::FIELD_NAME, 'Section', $cardinality = 3);
     $this->taxonomyScheme = $this->setupTaxonomyScheme($node_type, $this->vocabulary);
 
     // Add a menu to the node type.
@@ -182,6 +182,28 @@ class SectionTokenTest extends KernelTestBase {
     $this->assertTokens('node', ['node' => $node2], $tokens, $bubbleable_metadata);
     $this->assertContains($this->taxonomyScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
 
+    // Assign to multiple terms.
+    $term2 = Term::create([
+      'name' => 'Test term two',
+      'vid' => $this->vocabulary->id(),
+    ]);
+    $term2->save();
+
+    // Create a node that is assigned to a term section.
+    $node3 = $this->createNode([
+      'type' => 'page',
+      'title' => 'bar',
+      WorkbenchAccessManagerInterface::FIELD_NAME => [$term->id(), $term2->id()],
+    ]);
+
+    $tokens = [
+      'workbench-access-sections' => 'Test term, Test term two',
+    ];
+    $bubbleable_metadata = new BubbleableMetadata();
+    $this->assertTokens('node', ['node' => $node3], $tokens, $bubbleable_metadata);
+    $this->assertContains($this->taxonomyScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
+
+    // Create a node that is assigned to a menu section.
     $link = MenuLinkContent::create([
       'title' => 'Test menu link',
       'link' => [['uri' => 'route:<front>']],
@@ -190,8 +212,8 @@ class SectionTokenTest extends KernelTestBase {
     $link->save();
 
     // Create a node that is in a menu section.
-    $node3 = $this->createNode(['type' => 'page', 'title' => 'bar']);
-    _menu_ui_node_save($node3, [
+    $node4 = $this->createNode(['type' => 'page', 'title' => 'bar']);
+    _menu_ui_node_save($node4, [
       'title' => 'Menu test',
       'menu_name' => 'main',
       'description' => 'view bar',
@@ -202,16 +224,16 @@ class SectionTokenTest extends KernelTestBase {
       'workbench-access-sections' => 'Menu test',
     ];
     $bubbleable_metadata = new BubbleableMetadata();
-    $this->assertTokens('node', ['node' => $node3], $tokens, $bubbleable_metadata);
+    $this->assertTokens('node', ['node' => $node4], $tokens, $bubbleable_metadata);
     $this->assertContains($this->menuScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
 
-    // Create a node that is both sections.
-    $node4 = $this->createNode([
+    // Create a node that is assigned to both sections.
+    $node5 = $this->createNode([
       'type' => 'page',
       'title' => 'bar',
       'field_workbench_access' => $term->id(),]
     );
-    _menu_ui_node_save($node4, [
+    _menu_ui_node_save($node5, [
       'title' => 'Test another menu link',
       'menu_name' => 'main',
       'description' => 'view bar',
@@ -220,7 +242,7 @@ class SectionTokenTest extends KernelTestBase {
     $tokens = [
       'workbench-access-sections' => 'Test term, Test another menu link',
     ];
-    $this->assertTokens('node', ['node' => $node4], $tokens, $bubbleable_metadata);
+    $this->assertTokens('node', ['node' => $node5], $tokens, $bubbleable_metadata);
     $this->assertContains($this->taxonomyScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
     $this->assertContains($this->menuScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
   }
