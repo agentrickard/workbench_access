@@ -203,7 +203,7 @@ class WorkbenchAccessTokens {
   private function getNodeSectionNames(NodeInterface $node, BubbleableMetadata $bubbleable_metadata) {
     $schemes = $this->entityTypeManager->getStorage('access_scheme')->loadMultiple();
     return array_reduce($schemes, function (array $carry, AccessSchemeInterface $scheme) use ($node, $bubbleable_metadata) {
-      if (!$sections = $scheme->getEntityValues($node)) {
+      if (!$sections = $scheme->getAccessScheme()->getEntityValues($node)) {
         return $carry;
       }
       $bubbleable_metadata->addCacheableDependency($scheme);

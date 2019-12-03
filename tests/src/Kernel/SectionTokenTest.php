@@ -8,9 +8,11 @@ use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\system\Entity\Menu;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\node\Traits\ContentTypeCreationTrait;
+use Drupal\Tests\node\Traits\NodeCreationTrait;
 use Drupal\Tests\user\Traits\UserCreationTrait;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\workbench_access\Entity\AccessScheme;
+use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
  * Tests workbench_access integration with tokens.
@@ -19,9 +21,10 @@ use Drupal\workbench_access\Entity\AccessScheme;
  */
 class SectionTokenTest extends KernelTestBase {
 
+  use ContentTypeCreationTrait;
+  use NodeCreationTrait;
   use UserCreationTrait;
   use WorkbenchAccessTestTrait;
-  use ContentTypeCreationTrait;
 
   /**
    * Access menu.
@@ -88,26 +91,13 @@ class SectionTokenTest extends KernelTestBase {
     $this->installEntitySchema('menu_link_content');
     $this->installEntitySchema('section_association');
     $this->installSchema('system', ['key_value', 'sequences']);
-    $this->taxonomyScheme = AccessScheme::create([
-      'id' => 'editorial_section',
-      'label' => 'Editorial section',
-      'plural_label' => 'Editorial sections',
-      'scheme' => 'taxonomy',
-      'scheme_settings' => [
-        'vocabularies' => ['workbench_access'],
-        'fields' => [
-          [
-            'entity_type' => 'taxonomy_term',
-            'bundle' => 'tags',
-            'field' => 'field_workbench_access',
-          ],
-        ],
-      ],
-    ]);
-    $this->taxonomyScheme->save();
     $this->vocabulary = $this->setUpVocabulary();
-    $node_type = $this->createContentType(['type' => 'page']);
-    // This is created by system module.
+    $node_type = $this->setUpContentType();
+    // Set a field on the node type.
+    $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
+    $this->taxonomyScheme = $this->setupTaxonomyScheme($node_type, $this->vocabulary);
+
+    // Add a menu to the node type.
     $this->menu = Menu::load('main');
     $node_type->setThirdPartySetting('menu_ui', 'available_menus', ['main']);
     $node_type->save();
@@ -159,6 +149,80 @@ class SectionTokenTest extends KernelTestBase {
 
     $this->setCurrentUser($user);
     $this->assertTokens('current-user', [], $tokens, $bubbleable_metadata);
+  }
+
+  /**
+   * Tests the node section tokens.
+   */
+  public function testNodeSectionTokens() {
+    // Test a node that is not assigned to a section.
+    $node1 = $this->createNode(['type' => 'page', 'title' => 'foo']);
+
+    $tokens = [];
+    $bubbleable_metadata = new BubbleableMetadata();
+    $this->assertTokens('node', ['node' => $node1], $tokens, $bubbleable_metadata);
+
+    $term = Term::create([
+      'name' => 'Test term',
+      'vid' => $this->vocabulary->id(),
+    ]);
+    $term->save();
+
+    // Create a node that is assigned to a term section.
+    $node2 = $this->createNode([
+      'type' => 'page',
+      'title' => 'bar',
+      WorkbenchAccessManagerInterface::FIELD_NAME => $term->id(),
+    ]);
+
+    $tokens = [
+      'workbench-access-sections' => 'Test term',
+    ];
+    $bubbleable_metadata = new BubbleableMetadata();
+    $this->assertTokens('node', ['node' => $node2], $tokens, $bubbleable_metadata);
+    $this->assertContains($this->taxonomyScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
+
+    $link = MenuLinkContent::create([
+      'title' => 'Test menu link',
+      'link' => [['uri' => 'route:<front>']],
+      'menu_name' => $this->menu->id(),
+    ]);
+    $link->save();
+
+    // Create a node that is in a menu section.
+    $node3 = $this->createNode(['type' => 'page', 'title' => 'bar']);
+    _menu_ui_node_save($node3, [
+      'title' => 'Menu test',
+      'menu_name' => 'main',
+      'description' => 'view bar',
+      'parent' => $link->getPluginId(),
+    ]);
+
+    $tokens = [
+      'workbench-access-sections' => 'Menu test',
+    ];
+    $bubbleable_metadata = new BubbleableMetadata();
+    $this->assertTokens('node', ['node' => $node3], $tokens, $bubbleable_metadata);
+    $this->assertContains($this->menuScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
+
+    // Create a node that is both sections.
+    $node4 = $this->createNode([
+      'type' => 'page',
+      'title' => 'bar',
+      'field_workbench_access' => $term->id(),]
+    );
+    _menu_ui_node_save($node4, [
+      'title' => 'Test another menu link',
+      'menu_name' => 'main',
+      'description' => 'view bar',
+      'parent' => $link->getPluginId(),
+    ]);
+    $tokens = [
+      'workbench-access-sections' => 'Test term, Test another menu link',
+    ];
+    $this->assertTokens('node', ['node' => $node4], $tokens, $bubbleable_metadata);
+    $this->assertContains($this->taxonomyScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
+    $this->assertContains($this->menuScheme->getCacheTags()[0], $bubbleable_metadata->getCacheTags());
   }
 
   /**
