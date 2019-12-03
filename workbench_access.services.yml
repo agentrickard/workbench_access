@@ -10,4 +10,4 @@ services:
     arguments: ['@state', '@entity_type.manager']
   workbench_access.tokens:
     class: Drupal\workbench_access\WorkbenchAccessTokens
-    arguments: ['@entity_type.manager']
+    arguments: ['@token', '@entity_type.manager', '@module_handler', '@workbench_access.user_section_storage']

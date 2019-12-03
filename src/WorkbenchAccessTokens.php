@@ -3,10 +3,13 @@
 namespace Drupal\workbench_access;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Extension\ModuleHandler;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
+use Drupal\Core\Utility\Token;
 use Drupal\user\UserInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
+use Drupal\workbench_access\UserSectionStorageInterface;
 
 /**
  * Token handler for Workbench Access.
@@ -19,6 +22,13 @@ class WorkbenchAccessTokens {
   use StringTranslationTrait;
 
   /**
+   * The core token service
+   *
+   * @var \Drupal\Core\Utility\Token
+   */
+  protected $tokenService;
+
+  /**
    * The entity type manager.
    *
    * @var \Drupal\Core\Entity\EntityTypeManagerInterface
@@ -26,29 +36,38 @@ class WorkbenchAccessTokens {
   protected $entityTypeManager;
 
   /**
-   * The Domain storage handler.
+   * The core module handler.
    *
-   * @var \Drupal\domain\DomainStorageInterface
+   * @var \Drupal\Core\Extension\ModuleHandler
    */
-  protected $domainStorage;
+  protected $moduleHandler;
 
   /**
-   * The Domain negotiator.
+   * The workbench access user section storage service.
    *
-   * @var \Drupal\domain\DomainNegotiatorInterface
+   * @var \Drupal\workbench_access\UserSectionStorageInterface
    */
-  protected $negotiator;
+  protected $userSectionStorage;
 
   /**
-   * Constructs a DomainToken object.
+   * Constructs a WorkbenchAccessTokens object.
    *
+   * '@token', '@entity_type.manager', '@workbench_access.user_section_storage', '@module_handler'
+   *
+   * @param \Drupal\Core\Utility\Token $token_service
+   *   The core token service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
-   * @param \Drupal\domain\DomainNegotiatorInterface $negotiator
-   *   The domain negotiator.
+   * @param \Drupal\Core\Extension\ModuleHandler $moduleHandler
+   *   The core module handler.
+   * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
+   *   The workbench access user section storage service.
    */
-  public function __construct(EntityTypeManagerInterface $entity_type_manager) {
+  public function __construct(Token $token_service, EntityTypeManagerInterface $entity_type_manager, ModuleHandler $module_handler,  UserSectionStorageInterface $user_section_storage) {
+    $this->tokenService = $token_service;
     $this->entityTypeManager = $entity_type_manager;
+    $this->moduleHandler = $module_handler;
+    $this->userSectionStorage = $user_section_storage;
   }
 
   /**
