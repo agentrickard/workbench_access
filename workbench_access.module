@@ -201,3 +201,14 @@ function workbench_access_user_delete($account) {
     }
   }
 }
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function workbench_access_user_role_delete($role) {
+  $role_section_storage = \Drupal::service('workbench_access.role_section_storage');
+  $scheme_storage = \Drupal::entityTypeManager()->getStorage('access_scheme');
+  foreach ($scheme_storage->loadMultiple() as $scheme) {
+    $role_section_storage->deleteRoleSections($scheme, $role->id());
+  }
+}

@@ -174,7 +174,7 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    *
    * @TODO: refactor.
    */
-  protected function saveRoleSections(AccessSchemeInterface $scheme, $role_id, array $settings = []) {
+  public function saveRoleSections(AccessSchemeInterface $scheme, $role_id, array $settings = []) {
 
   }
 
@@ -183,14 +183,17 @@ class RoleSectionStorage implements RoleSectionStorageInterface {
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
-   * @param string $rid
+   * @param string $role_id
    *   The role ID.
-   *
-   * @TODO: refactor.
    */
-  protected function deleteRoleSections(AccessSchemeInterface $scheme, $rid) {
-    $prefix = 'workbench_access_roles_';
-    return $this->state->delete($prefix . $scheme->id() . '__' . $rid);
+  public function deleteRoleSections(AccessSchemeInterface $scheme, $role_id) {
+    $section_ids = [];
+    if ($sections = $this->sectionStorage()->loadByProperties(['role_id' => $role_id])) {
+      foreach ($sections as $section) {
+        $section_ids[] = $section->get('section_id')->value;
+      }
+      $this->removeRole($scheme, $role_id, $section_ids);
+    }
   }
 
 }

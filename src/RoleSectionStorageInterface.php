@@ -23,14 +23,14 @@ interface RoleSectionStorageInterface {
   public function addRole(AccessSchemeInterface $scheme, $role_id, array $sections = []);
 
   /**
-   * Reomves a set of sections to a role.
+   * Removes a set of sections from a role.
    *
    * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
    *   Access scheme.
    * @param string $role_id
    *   A role id.
    * @param array $sections
-   *   An array of section ids to assign to this role.
+   *   An array of section ids to remove from this role.
    */
   public function removeRole(AccessSchemeInterface $scheme, $role_id, array $sections = []);
 
