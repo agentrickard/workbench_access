@@ -8,3 +8,6 @@ services:
   workbench_access.role_section_storage:
     class: Drupal\workbench_access\RoleSectionStorage
     arguments: ['@state', '@entity_type.manager']
+  workbench_access.tokens:
+    class: Drupal\workbench_access\WorkbenchAccessTokens
+    arguments: ['@entity_type.manager']

@@ -10,6 +10,7 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -200,4 +201,18 @@ function workbench_access_user_delete($account) {
       $section_association->save();
     }
   }
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function workbench_access_token_info() {
+  return \Drupal::service('workbench_access.tokens')->getTokenInfo();
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function workbench_access_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  return \Drupal::service('workbench_access.tokens')->getTokens($type, $tokens, $data, $options, $bubbleable_metadata);
 }
