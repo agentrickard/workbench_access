@@ -141,7 +141,14 @@ class WorkbenchAccessByUserForm extends FormBase {
     $limit = 50;
     $existing = array_chunk($existing_editors, $limit, TRUE);
     $pages = count($existing);
-    $page = pager_default_initialize($total, $limit);
+    // pager_default_initialize() is deprecated in 8.8.
+    if (\Drupal::hasService('pager.manager')) {
+      $pager_manager = \Drupal::service('pager.manager');
+      $page = $pager_manager->defaultInitialize();
+    }
+    else {
+      $page = pager_default_initialize($total, $limit);
+    }
     $start = $page * $limit;
     if ($pages > 1) {
       $existing_editors = $existing[$page];
