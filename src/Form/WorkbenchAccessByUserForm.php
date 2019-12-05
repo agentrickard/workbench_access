@@ -144,7 +144,8 @@ class WorkbenchAccessByUserForm extends FormBase {
     // pager_default_initialize() is deprecated in 8.8.
     if (\Drupal::hasService('pager.manager')) {
       $pager_manager = \Drupal::service('pager.manager');
-      $page = $pager_manager->defaultInitialize();
+      $pager = $pager_manager->createPager($total, $limit);
+      $page = $pager->getCurrentPage();
     }
     else {
       $page = pager_default_initialize($total, $limit);
