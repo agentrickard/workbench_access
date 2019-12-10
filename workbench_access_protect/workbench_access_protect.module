@@ -6,22 +6,39 @@
  */
 
 use Drupal\Core\Entity\EntityInterface;
-use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Access\AccessResult;
+use Drupal\workbench_access_protect\Access\Taxonomy;
+
 
 /**
  * Implements hook_entity_access().
  */
 function workbench_access_protect_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
-  // Return net result of all enabled access schemes. If one scheme allows
-  // access, then it is granted.
+
   if ($op == 'delete') {
-    if ($protect->providesBundles($entity)) {
-      // check all bundles...
-    }
-    else {
-      // check this bundle
-    }
+
+    /** @var Drupal\workbench_access_protect\Access\DeleteAccessCheck $protect */
+    $protect = \Drupal::service('workbench_access_protect.delete');
+
+    // First, let's check to see if this is an entity we are tracking.
+      if ($protect->hasBundles($entity)) {
+        $bundle = $protect->getBundles($entity)[$entity->id()];
+        // Check the entire bundle to see if any term is in use.
+        if ($protect->isDeleteAllowedBundle($bundle, $entity) === FALSE) {
+          return AccessResult::forbidden();
+        }
+      }
+      else {
+        // We're at the leaf entity and can check the specific entity.
+        if ($protect->isAccessControlled($entity) &&
+          $protect->isDeleteAllowed($entity) === FALSE) {
+          return AccessResult::forbidden();
+        }
+      }
+
   }
-  #$manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+
+  return AccessResult::neutral();
+
 }

@@ -140,6 +140,21 @@ trait WorkbenchAccessTestTrait {
   }
 
   /**
+   * Sets up a user the specific permissions and a unique role.
+   *
+   * @param array $additional_permissions
+   *   Array of additional permissions beyond 'access administration pages' and
+   *   'assign workbench access'.
+   *
+   * @return \Drupal\user\Entity\User
+   *   The user entity.
+   */
+  protected function setUpUserUniqueRole($additional_permissions) {
+    $role = $this->createRole($additional_permissions);
+    return $this->createUserWithRole($role);
+  }
+
+  /**
    * Sets up a taxonomy scheme for a given node type.
    *
    * @param \Drupal\node\Entity\NodeType $node_type

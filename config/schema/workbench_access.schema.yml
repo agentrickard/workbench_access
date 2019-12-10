@@ -65,6 +65,12 @@ workbench_access.scheme_settings.taxonomy:
           field:
             type: string
             label: 'Field'
+    parent_ids:
+      type: sequence
+      label: "Vocabulary Parent IDs"
+      sequence:
+        type: integer
+        label: "Parent ID"
 
 workbench_access.scheme_settings.menu:
   type: workbench_access_scheme_settings
@@ -81,3 +87,9 @@ workbench_access.scheme_settings.menu:
       sequence:
         type: string
         label: 'Bundle'
+    parent_ids:
+      type: sequence
+      label: "Menu IDs"
+      sequence:
+        type: integer
+        label: "Menu ID"
