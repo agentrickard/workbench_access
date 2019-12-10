@@ -191,11 +191,27 @@ class Taxonomy extends AccessControlHierarchyBase {
         continue;
       }
       $element = &$form[$field];
+
       if (isset($element['widget']['#options'])) {
         foreach ($element['widget']['#options'] as $id => $data) {
-          $sections = [$id];
-          if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
-            unset($element['widget']['#options'][$id]);
+          // When using a select list, options may be a nested array.
+          if (is_array($data)) {
+            foreach ($data as $index => $item) {
+              $sections = [$index];
+              if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+                unset($element['widget']['#options'][$id][$index]);
+              }
+            }
+            // If the parent is empty, remove it.
+            if (empty($element['widget']['#options'][$id])) {
+              unset($element['widget']['#options'][$id]);
+            }
+          }
+          else {
+            $sections = [$id];
+            if ($id !== '_none' && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+              unset($element['widget']['#options'][$id]);
+            }
           }
         }
       }
@@ -210,8 +226,26 @@ class Taxonomy extends AccessControlHierarchyBase {
           if (is_array($item) && isset($item['target_id']['#type']) && $item['target_id']['#type'] == 'entity_autocomplete') {
             $element['widget'][$key]['target_id']['#selection_handler'] = 'workbench_access:taxonomy_term:' . $scheme->id();
             $element['widget'][$key]['target_id']['#validate_reference'] = TRUE;
+            // Hide elements that cannot be edited.
+            if (!empty($element['widget'][$key]['target_id']['#default_value'])) {
+              $sections = [$element['widget'][$key]['target_id']['#default_value']->id()];
+              if (empty(WorkbenchAccessManager::checkTree($scheme, $sections, $this->userSectionStorage->getUserSections($scheme)))) {
+                unset($element['widget'][$key]);
+                $id = current($sections);
+                $disallowed[$id] = $id;
+              }
+            }
           }
         }
+      }
+      if (!empty($disallowed)) {
+        $form['workbench_access_disallowed']['#tree'] = TRUE;
+        $form['workbench_access_disallowed'][$field] = [
+          $scheme->id() => [
+            '#type' => 'value',
+            '#value' => $disallowed,
+          ],
+        ];
       }
     }
   }
@@ -242,17 +276,9 @@ class Taxonomy extends AccessControlHierarchyBase {
   }
 
   /**
-   * Gets applicable fields for given entity type and bundle.
-   *
-   * @param string $entity_type
-   *   Entity type ID.
-   * @param string $bundle
-   *   Bundle ID.
-   *
-   * @return array
-   *   Associative Array of fields with keys entity_type, bundle and field.
+   * @inheritdoc
    */
-  protected function getApplicableFields($entity_type, $bundle) {
+  public function getApplicableFields($entity_type, $bundle) {
     return array_filter($this->configuration['fields'], function ($field) use ($entity_type, $bundle) {
       $field += [
         'entity_type' => NULL,
@@ -295,8 +321,19 @@ class Taxonomy extends AccessControlHierarchyBase {
   public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values) {
     foreach (array_column($this->getApplicableFields($entity->getEntityTypeId(), $entity->bundle()), 'field') as $field_name) {
       $values = $form_state->getValue($field_name);
-      foreach ($hidden_values as $value) {
-        $values[]['target_id'] = $value;
+      // The $hidden_values are deeply nested.
+      foreach ($hidden_values as $key => $value) {
+        if ($key === $field_name) {
+          foreach ($value as $element) {
+            foreach ($element as $item) {
+              // Ensure that we do not save duplicate values. Note that this
+              // cannot be a strict in_array() check thanks to form handling.
+              if (empty($values[0]) || !in_array($item, array_values($values[0]))) {
+                $values[]['target_id'] = $item;
+              }
+            }
+          }
+        }
       }
       $form_state->setValue($field_name, $values);
     }

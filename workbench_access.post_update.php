@@ -5,6 +5,8 @@
  * Contains post update hooks.
  */
 
+use Drupal\block\BlockInterface;
+use Drupal\Core\Config\Entity\ConfigEntityUpdater;
 use Drupal\Core\Utility\UpdateException;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\workbench_access\Entity\AccessScheme;
@@ -76,8 +78,9 @@ function workbench_access_post_update_convert_to_scheme() {
  */
 function workbench_access_post_update_convert_role_storage_keys() {
   foreach (\Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple() as $rid => $role) {
-    $old_key = RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid;
-    $new_key = RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . 'default__' . $rid;
+    $prefix = 'workbench_access_roles_';
+    $old_key = $prefix . $rid;
+    $new_key = $prefix . 'default__' . $rid;
     $state = \Drupal::state();
     if ($existing = $state->get($old_key, FALSE)) {
       $state->set($new_key, $existing);
@@ -120,9 +123,10 @@ function workbench_access_post_update_section_role_association(&$sandbox) {
   $state = \Drupal::state();
   foreach ($schemes as $scheme) {
     foreach (\Drupal::entityTypeManager()->getStorage('user_role')->loadMultiple() as $rid => $role) {
+      $prefix = 'workbench_access_roles_';
       $potential_ids = [
-        RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . $rid,
-        RoleSectionStorageInterface::WORKBENCH_ACCESS_ROLES_STATE_PREFIX . 'default__' . $rid,
+        $prefix . $rid,
+        $prefix . 'default__' . $rid,
       ];
       foreach ($potential_ids as $key) {
         if ($existing = $state->get($key, FALSE)) {
@@ -179,4 +183,21 @@ function workbench_access_post_update_workbench_access_field_delete(&$sandbox) {
       $field_storage->delete();
     }
   }
+}
+
+/**
+ * Updates all instances of the WBA block to include context mappings.
+ */
+function workbench_access_post_update_apply_context_mapping_to_blocks(&$sandbox) {
+  \Drupal::classResolver(ConfigEntityUpdater::class)->update($sandbox, 'block', function(BlockInterface $block) {
+    if ($block->getPluginId() === 'workbench_access_block') {
+      $settings = $block->get('settings');
+      if (!isset($settings['context_mapping']['node'])) {
+        $settings['context_mapping']['node'] = '@node.node_route_context:node';
+      }
+      $block->set('settings', $settings);
+      return TRUE;
+    }
+    return FALSE;
+  });
 }

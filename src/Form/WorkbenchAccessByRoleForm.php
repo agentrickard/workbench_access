@@ -96,7 +96,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
     if (count($potential_roles) == count($existing_roles)) {
       $form['message'] = [
         '#type' => 'markup',
-        '#markup' => '<p>' . $this->t('There are no addtional roles that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
+        '#markup' => '<p>' . $this->t('There are no additional roles that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
       ];
     }
 

@@ -4,7 +4,7 @@ namespace Drupal\Tests\workbench_access\Traits;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Url;
-use Drupal\field\Tests\EntityReference\EntityReferenceTestTrait;
+use Drupal\Tests\field\Traits\EntityReferenceTestTrait;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\workbench_access\Entity\AccessScheme;
@@ -54,11 +54,15 @@ trait WorkbenchAccessTestTrait {
    *   Field machine name.
    * @param string $title
    *   Field display title.
+   * @param int $cardinality
+   *   Indicates the number of values to save. -1 is unlimited.
+   * @param $field_type
+   *   The type of field widget to enable: options_select|options_buttons
    *
    * @return field
    *   The created field entity.
    */
-  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section') {
+  protected function setUpTaxonomyFieldForEntityType($entity_type_id, $bundle, $vocabulary_id, $field_name = WorkbenchAccessManagerInterface::FIELD_NAME, $title = 'Section', $cardinality = 1, $field_type = 'options_select') {
     // Create an instance of the access field on the bundle.
     $handler_id = 'workbench_access:taxonomy_term:editorial_section';
     if (!AccessScheme::load('editorial_section')) {
@@ -69,7 +73,7 @@ trait WorkbenchAccessTestTrait {
       'target_bundles' => [
         $vocabulary_id => $vocabulary_id,
       ],
-    ]);
+    ], $cardinality);
     // Set the field to display as a dropdown on the form.
     if (!$form_display = EntityFormDisplay::load("$entity_type_id.$bundle.default")) {
       $form_display = EntityFormDisplay::create([
@@ -79,7 +83,7 @@ trait WorkbenchAccessTestTrait {
         'status' => TRUE,
       ]);
     }
-    $form_display->setComponent($field_name, ['type' => 'options_select']);
+    $form_display->setComponent($field_name, ['type' => $field_type]);
     $form_display->save();
 
     return $field;

@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\workbench_access\Functional;
 
+use Drupal\block\Entity\Block;
 use Drupal\FunctionalTests\Update\UpdatePathTestBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
@@ -12,12 +13,15 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  */
 class UpdatePathTest extends UpdatePathTestBase {
 
+  protected $defaultTheme = 'classy';
+
   /**
    * Set database dump files to be used.
    */
   protected function setDatabaseDumpFiles() {
     $this->databaseDumpFiles = [
       __DIR__ . '/../../fixtures/workbench_access.update-hook-test.php.gz',
+      __DIR__ . '/../../fixtures/workbench_access.block-placement.php',
     ];
   }
 
@@ -29,6 +33,8 @@ class UpdatePathTest extends UpdatePathTestBase {
       'deny_on_empty' => \Drupal::config('workbench_access.settings')->get('deny_on_empty'),
       '_core' => \Drupal::config('workbench_access.settings')->get('_core'),
     ];
+    $block = Block::load('workbench_access_block');
+    $this->assertTrue(empty($block->get('settings')['context_mapping']));
     $this->runUpdates();
 
     // Tests that the first update was run.
@@ -36,6 +42,9 @@ class UpdatePathTest extends UpdatePathTestBase {
     $this->assertEquals($expected_new_config, \Drupal::config('workbench_access.settings')->getRawData());
     $this->assertEquals('default', $this->container->get('state')->get('workbench_access_upgraded_scheme_id'));
     $entity_type_manager = $this->container->get('entity_type.manager');
+
+    $block = $entity_type_manager->getStorage('block')->loadUnchanged('workbench_access_block');
+    $this->assertEquals(['node' => '@node.node_route_context:node'], $block->get('settings')['context_mapping']);
 
     // Checks that schemes have been converted to new storage.
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */

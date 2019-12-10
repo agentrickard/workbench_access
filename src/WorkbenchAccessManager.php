@@ -22,7 +22,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
    *
    * @var array
    */
-  public $tree;
+  public static $tree;
 
   /**
    * Entity type manager.
@@ -95,7 +95,11 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
         return TRUE;
       }
       // Check for section on the tree.
-      foreach ($scheme->getAccessScheme()->getTree() as $id => $info) {
+      // Static cache to prevent looping on each request.
+      if (!isset(self::$tree[$scheme->id()])) {
+        self::$tree[$scheme->id()] = $scheme->getAccessScheme()->getTree();
+      }
+      foreach (self::$tree[$scheme->id()] as $id => $info) {
         if (isset($list[$section]) && isset($info[$section])) {
           return TRUE;
         }

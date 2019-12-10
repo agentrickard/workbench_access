@@ -160,8 +160,12 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function load($id) {
-    $tree = $this->getTree();
-    foreach ($tree as $parent => $data) {
+    // This cache is specific to the object being called.
+    // e.g. Drupal\workbench_access\Plugin\AccessControlHierarchy\Menu
+    if (!isset($this->tree)) {
+      $this->tree = $this->getTree();
+    }
+    foreach ($this->tree as $parent => $data) {
       if (isset($data[$id])) {
         return $data[$id];
       }
@@ -172,12 +176,6 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
    * {@inheritdoc}
    */
   public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account) {
-    // We don't care about the View operation right now.
-    if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
-      // Return early.
-      return AccessResult::neutral();
-    }
-
     if (!$this->applies($entity->getEntityTypeId(), $entity->bundle())) {
       return AccessResult::neutral();
     }
@@ -215,15 +213,22 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * @inheritdoc
+   */
+  public function getApplicableFields($entity_type, $bundle) {
+    // Extending classes are expected to provide their own implementation.
+    return [];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state) {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
     foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
       $scheme = $access_scheme->getAccessScheme();
-      $hidden_values = $form_state->getValue(['workbench_access_disallowed', $access_scheme->id()]);
-      if (!empty($values)) {
-
+      $hidden_values = $form_state->getValue('workbench_access_disallowed');
+      if (!empty($hidden_values)) {
         $entity = $form_state->getFormObject()->getEntity();
         $scheme->massageFormValues($entity, $form_state, $hidden_values);
       }

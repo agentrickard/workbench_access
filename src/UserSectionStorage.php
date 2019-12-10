@@ -199,41 +199,6 @@ class UserSectionStorage implements UserSectionStorageInterface {
   }
 
   /**
-   * Filters a user list by permission.
-   *
-   * Note that with a high number of users, this method causes performance
-   * issues. Try to filter at the query level.
-   *
-   * @param array $users
-   *   An array of users keyed by id with names as the value.
-   * @return array
-   *   An array of users keyed by id with names as the value.
-   *
-   * @deprecated and will be removed before the 8.x-1.0 stable release.
-   *   Instead, you should filter at the query level by using role permissions.
-   *
-   * @see UserSectionStorage::getPotentialEditors()
-   *
-   * @link
-   *   https://www.drupal.org/project/workbench_access/issues/3025466
-   */
-  protected function filterByPermission($users = []) {
-    @trigger_error('UserSectionStorage::filterByPermission() is deprecated and
-      will be removed before the 8.x-1.0 stable release. Instead, you should
-      filter at the query level by using role permissions.');
-    $list = [];
-    if (!empty($users)) {
-      $entities = $this->userStorage()->loadMultiple($users);
-      foreach ($entities as $account) {
-        if ($account->hasPermission('use workbench access')) {
-          $list[$account->id()] = $account->label();
-        }
-      }
-    }
-    return $list;
-  }
-
-  /**
    * Reset the static cache from an external change.
    */
   public function resetCache(AccessSchemeInterface $scheme, $user_id = NULL) {

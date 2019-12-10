@@ -1,0 +1,22 @@
+uuid: 54cf9226-642f-4cb7-96b7-761b0d0f724d
+langcode: en
+status: true
+dependencies:
+  module:
+    - workbench_access
+  theme:
+    - classy
+id: workbench_access_block
+theme: classy
+region: content
+weight: -6
+provider: null
+plugin: 'workbench_access_block'
+settings:
+  id: 'workbench_access_block'
+  label: 'Workbench access block'
+  provider: workbench_access
+  label_display: visible
+  status: true
+  info: ''
+visibility: {}

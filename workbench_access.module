@@ -10,19 +10,11 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 use Drupal\workbench_access\FormAlterHelper;
-
-/**
- * Defines the name of the node access control field.
- *
- * @deprecated to be removed before 8.x.1.0 - use
- *   \Drupal\workbench_access\WorkbenchAccessManagerInterface::FIELD_NAME
- *   instead until it is removed.
- */
-define('WORKBENCH_ACCESS_FIELD', 'field_workbench_access');
 
 /**
  * Implements hook_help().
@@ -63,7 +55,11 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
 function workbench_access_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
   // Return net result of all enabled access schemes. If one scheme allows
   // access, then it is granted.
-  $manager = \Drupal::service('plugin.manager.workbench_access.scheme');
+  // We don't care about the View operation right now.
+  if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
+    // Return early.
+    return AccessResult::neutral();
+  }
   return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResult $carry, AccessSchemeInterface $scheme) use ($entity, $op, $account) {
     $carry->addCacheableDependency($scheme)->cachePerPermissions()->addCacheableDependency($entity);
     return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account));
@@ -187,4 +183,36 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
     return $element;
   }
   return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $form_state, $entity);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function workbench_access_user_delete($account) {
+  $uid = $account->id();
+  $storage_handler = \Drupal::entityTypeManager()->getStorage('section_association');
+  // Retrieve all the section associations referencing this user.
+  $section_user_associations = $storage_handler->loadByProperties(['user_id' => $uid]);
+  foreach ($section_user_associations as $section_association) {
+    // For each retrived association, remove this user.
+    if ($user_ids = $section_association->getCurrentUserIds()) {
+      $remaining_user_ids = array_diff($user_ids, [$uid]);
+      $section_association->set('user_id', $remaining_user_ids);
+      $section_association->save();
+    }
+  }
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function workbench_access_token_info() {
+  return \Drupal::service('workbench_access.tokens')->getTokenInfo();
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function workbench_access_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  return \Drupal::service('workbench_access.tokens')->getTokens($type, $tokens, $data, $options, $bubbleable_metadata);
 }

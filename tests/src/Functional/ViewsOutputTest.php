@@ -131,26 +131,26 @@ class ViewsOutputTest extends BrowserTestBase {
     $assert = $this->assertSession();
     foreach ($this->terms as $section => $term) {
       $row = $assert->elementExists('css', '.views-row:contains("' . $term->label() . '")');
-      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
+      $assert->elementExists('css', '.views-row:contains("' . $section . ' node' . '")', $row);
       $this->assertNoLinkByHref('/taxonomy/term/' . $term->id());
     }
     $this->drupalGet('content-sections-2');
     foreach ($this->terms as $section => $term) {
       $row = $assert->elementExists('css', '.views-row:contains("' . $term->label() . '")');
-      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
+      $assert->elementExists('css', '.views-row:contains("' . $section . ' node' . '")', $row);
       $this->assertLinkByHref('/taxonomy/term/' . $term->id());
     }
     $this->drupalGet('content-sections-3');
     $assert = $this->assertSession();
     foreach ($this->links as $section => $link) {
       $row = $assert->elementExists('css', '.views-row:contains("' . $section . '")');
-      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
+      $assert->elementExists('css', '.views-row:contains("' . $section . ' node' . '")', $row);
       $this->assertNoLink($section . ' node 1' . '-menu');
     }
     $this->drupalGet('content-sections-4');
     foreach ($this->links as $section => $link) {
       $row = $assert->elementExists('css', '.views-row:contains("' . $section . '")');
-      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
+      $assert->elementExists('css', '.views-row:contains("' . $section . ' node' . '")', $row);
       $this->assertLink($section . ' node 1' . '-menu');
     }
   }
