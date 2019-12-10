@@ -3,7 +3,7 @@
 namespace Drupal\workbench_access;
 
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Extension\ModuleHandler;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Utility\Token;
@@ -39,7 +39,7 @@ class WorkbenchAccessTokens {
   /**
    * The core module handler.
    *
-   * @var \Drupal\Core\Extension\ModuleHandler
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
    */
   protected $moduleHandler;
 
@@ -59,12 +59,12 @@ class WorkbenchAccessTokens {
    *   The core token service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The entity type manager.
-   * @param \Drupal\Core\Extension\ModuleHandler $moduleHandler
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $moduleHandler
    *   The core module handler.
    * @param \Drupal\workbench_access\UserSectionStorageInterface $user_section_storage
    *   The workbench access user section storage service.
    */
-  public function __construct(Token $token_service, EntityTypeManagerInterface $entity_type_manager, ModuleHandler $module_handler,  UserSectionStorageInterface $user_section_storage) {
+  public function __construct(Token $token_service, EntityTypeManagerInterface $entity_type_manager, ModuleHandlerInterface $module_handler,  UserSectionStorageInterface $user_section_storage) {
     $this->tokenService = $token_service;
     $this->entityTypeManager = $entity_type_manager;
     $this->moduleHandler = $module_handler;
@@ -82,7 +82,7 @@ class WorkbenchAccessTokens {
           'description' => $this->t('Section assignments for the user account.'),
           // Optionally use token module's array type which gives users greater
           // control on output.
-          'type' => $this->moduleHandler()->moduleExists('token') ? 'array' : '',
+          'type' => $this->moduleHandler->moduleExists('token') ? 'array' : '',
         ],
       ],
       'node' => [
@@ -91,7 +91,7 @@ class WorkbenchAccessTokens {
           'description' => $this->t('Section assignments for content.'),
           // Optionally use token module's array type which gives users greater
           // control on output.
-          'type' => $this->moduleHandler()->moduleExists('token') ? 'array' : '',
+          'type' => $this->moduleHandler->moduleExists('token') ? 'array' : '',
         ],
       ],
     ];
