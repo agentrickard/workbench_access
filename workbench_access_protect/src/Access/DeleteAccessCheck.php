@@ -104,7 +104,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
        * control, and the term is not assigned to any pieces of content,
        * it is OK to delete it.
        */
-      if ($hasAccessControlMembers || $assigned_content) {
+      if ($hasAccessControlMembers && $assigned_content) {
 
         if ($assigned_content) {
           $retval = FALSE;
