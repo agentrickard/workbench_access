@@ -212,8 +212,9 @@ function workbench_access_user_role_delete($role) {
   foreach ($scheme_storage->loadMultiple() as $scheme) {
     $role_section_storage->deleteRoleSections($scheme, $role->id());
   }
-  
-/**  
+}
+
+/**
  * Implements hook_token_info().
  */
 function workbench_access_token_info() {
