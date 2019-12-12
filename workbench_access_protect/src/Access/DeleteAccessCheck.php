@@ -14,7 +14,7 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
- * Class TaxonomyDeleteAccessCheck.
+ * Class DeleteAccessCheck.
  */
 class DeleteAccessCheck implements DeleteAccessCheckInterface {
 
@@ -91,35 +91,23 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    * @{inheritdoc}
    */
   public function isDeleteAllowed(EntityInterface $entity) {
+    $return = TRUE;
 
-    $retval = TRUE;
+    $assigned_members = $this->doesTermHaveMembers($entity);
+    $assigned_content = $this->isAssignedToContent($entity);
 
-    if ($entity instanceof EntityInterface) {
-
-      $hasAccessControlMembers = $this->doesTermHaveMembers($entity);
-      $assigned_content = $this->isAssignedToContent($entity);
-
-      /*
-       * If this entity does not have users assigned to it for access
-       * control, and the term is not assigned to any pieces of content,
-       * it is OK to delete it.
-       */
-      if ($hasAccessControlMembers && $assigned_content) {
-
-        if ($assigned_content) {
-          $retval = FALSE;
-        }
-
-        if ($hasAccessControlMembers) {
-          $retval = FALSE;
-        }
-      }
-
+    // If this entity does not have users assigned to it for access control and
+    // is not assigned to any pieces of content, it is OK to delete it.
+    if ($assigned_members || $assigned_content) {
+      $return = FALSE;
     }
 
-    return $retval;
+    return $return;
   }
 
+  /**
+   * @{inheritdoc}
+   */
   public function getBundles(EntityInterface $entity) {
     $bundle = $this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of');
     $bundles = $this->entityTypeBundleInfo->getBundleInfo($bundle);
@@ -127,6 +115,9 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
 
   }
 
+  /**
+   * @{inheritdoc}
+   */
   public function hasBundles(EntityInterface $entity) {
     if ($this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of') == null) {
       return FALSE;
@@ -165,27 +156,13 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    *
    * @return bool
    *   TRUE if the term has members, FALSE otherwise.
-   *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   private function doesTermHaveMembers(EntityInterface $entity) {
-
-    /** @var array $sections */
-    $sections = $this->getActiveSections($entity);
-
-    if (count($sections) > 0) {
-      return TRUE;
-    }
-
-    return FALSE;
+    return (bool) (count($this->getActiveSections($entity)) > 0);
   }
 
-
   /**
-   * Inspect the given taxonomy term.
-   *
-   * This will determine if there are any active users assigned to it.
+   * Inspects the given entity for active users.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity to inspect.
@@ -193,8 +170,6 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    * @return array
    *   An array of the users assigned to this section.
    *
-   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
-   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
    */
   private function getActiveSections(EntityInterface $entity) {
     /** @var \Drupal\workbench_access\UserSectionStorageInterface $sectionStorage */
@@ -210,40 +185,31 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   }
 
   /**
-   * Determine if tagged content exists.
-   *
-   * This method will determine if any entities exist in the system that are
-   * tagged with the term.
+   * Inspects the given entity for active content.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The Entity to inspect.
+   *   The entity to inspect.
    *
    * @return bool
-   *   TRUE if content is assigned to this term.
-   *   FALSE if content is not assigned to this term.
+   *   TRUE if content is assigned to this entity.
+   *   FALSE if content is not assigned to this entity.
    *
    */
   private function isAssignedToContent(EntityInterface $entity) {
-
-    $reference_fields = $this->getAllReferenceFields($entity);
-
-    foreach ($reference_fields as $name => $fieldConfig) {
-        // Get the entity reference and determine if it's a taxonomy.
-        if ($fieldConfig instanceof FieldStorageConfig) {
-          $entities = \Drupal::entityQuery($fieldConfig->get('entity_type'))
-            ->condition($fieldConfig->get('field_name'), $entity->id())
-            ->range(0, 1)
-            ->execute();
-
-          if (count($entities) > 0) {
-            return TRUE;
-          }
+    foreach ($this->getAllReferenceFields($entity) as $name => $fieldConfig) {
+      // Get the entity reference and determine if it's a taxonomy.
+      if ($fieldConfig instanceof FieldStorageConfig) {
+        $entities = \Drupal::entityQuery($fieldConfig->get('entity_type'))
+          ->condition($fieldConfig->get('field_name'), $entity->id())
+          ->range(0, 1)
+          ->execute();
+       if (count($entities) > 0) {
+          return TRUE;
         }
+      }
     }
 
-
     return FALSE;
-
   }
 
   private function getAllReferenceFields(EntityInterface $entity) {
@@ -278,6 +244,9 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
     return $found_fields;
   }
 
+  /**
+   * @{inheritdoc}
+   */
   public function isAccessControlled(EntityInterface $entity) {
     $schemes = $this->entityTypeManager->getStorage('access_scheme')->loadMultiple();
     /** @var \Drupal\workbench_access\Entity\AccessScheme $scheme */
