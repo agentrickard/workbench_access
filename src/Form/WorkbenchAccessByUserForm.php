@@ -131,10 +131,43 @@ class WorkbenchAccessByUserForm extends FormBase {
       '#type' => 'details',
       '#open' => TRUE,
       '#title' => $this->t('Existing editors in the %label section.', ['%label' => $element['label']]),
-      '#description' => $this->t('Current editors list. Use the checkboxes to remove editors from this section.'),
+      '#description' => $this->t('<p>Current editors list. Use the checkboxes to remove editors from this section.</p>'),
     ];
     // Prepare editors list for tableselect.
     $editors_data = [];
+
+    // Do we neeed to paginate?
+    $total = count($existing_editors);
+    $limit = 50;
+    $existing = array_chunk($existing_editors, $limit, TRUE);
+    $pages = count($existing);
+    // pager_default_initialize() is deprecated in 8.8.
+    if (\Drupal::hasService('pager.manager')) {
+      $pager_manager = \Drupal::service('pager.manager');
+      $pager = $pager_manager->createPager($total, $limit);
+      $page = $pager->getCurrentPage();
+    }
+    else {
+      $page = pager_default_initialize($total, $limit);
+    }
+    $start = $page * $limit;
+    if ($pages > 1) {
+      $existing_editors = $existing[$page];
+      $form['remove']['count'] = [
+        '#type' => 'markup',
+        '#markup' => $this->t('<p>Page @x of @pages. Showing editors @start - @end of @count total.</p>', [
+          '@x' => $page + 1,
+          '@pages' => $pages,
+          '@start' => $start + 1,
+          '@end' => $start + count($existing_editors),
+          '@count' => $total,
+        ]),
+      ];
+      $form['remove']['pagination'] = [
+        '#type' => 'pager',
+        '#weight' => 2,
+      ];
+    }
     if ($existing_editors) {
       foreach ($existing_editors as $uid => $username) {
         $editors_data[$uid] = [$username];
