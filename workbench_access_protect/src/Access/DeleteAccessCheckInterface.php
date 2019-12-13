@@ -9,12 +9,11 @@ use Drupal\Core\Entity\EntityInterface;
  */
 interface DeleteAccessCheckInterface {
 
-
   /**
-   * Determine if this entity may be deleted.
+   * Determines if this entity may be deleted.
    *
    * @param EntityInterface $entity
-   *   The term to check.
+   *   The entity to check.
    *
    * @return bool
    *   TRUE if it may be deleted, FALSE otherwise.
@@ -25,27 +24,29 @@ interface DeleteAccessCheckInterface {
   public function isDeleteAllowed(EntityInterface $entity);
 
   /**
-   * Determine if this entity has bundles or not.
+   * Determines if this entity has bundles or not.
    *
    * Use this to determine if the entity has children bundles.
    *
    * @param EntityInterface $entity
    *
    * @return bool
-   *    TRUE if the entity has bundles, FALSE otherwise
+   *   TRUE if the entity has bundles, FALSE otherwise
    */
   public function hasBundles(EntityInterface $entity);
 
   /**
+   * Gets the assigned bundles associated with an entity.
+   *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *
-   * @return mixed
+   * @return array
+   *   An array where the keys and values are bundle ids.
    */
   public function getBundles(EntityInterface $entity);
 
   /**
-   * Check an entire bundle to see if any of the bundle's
-   * entities are being actively used for access control.
+   * Checks if a bundle's entities are being actively used for access control.
    *
    * @param string $bundle
    *   The bundle ID
@@ -53,12 +54,11 @@ interface DeleteAccessCheckInterface {
    *   The entity id
    *
    * @return bool
-   *   TRUE
    */
    public function isDeleteAllowedBundle($bundle, $entity);
 
   /**
-   * Helper method to determine if the entity is used for access control.
+   * Determines if the entity is used for access control.
    *
    * This method is used to determine if we should actually perform the usage
    * check or skip.
@@ -70,7 +70,5 @@ interface DeleteAccessCheckInterface {
    *   TRUE if used, FALSE otherwise
    */
    public function isAccessControlled(EntityInterface $entity);
-
-
 
 }

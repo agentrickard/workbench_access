@@ -93,8 +93,8 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   public function isDeleteAllowed(EntityInterface $entity) {
     $return = TRUE;
 
-    $assigned_members = $this->doesTermHaveMembers($entity);
-    $assigned_content = $this->isAssignedToContent($entity);
+    $assigned_members = $this->hasMembers($entity);
+    $assigned_content = $this->hasContent($entity);
 
     // If this entity does not have users assigned to it for access control and
     // is not assigned to any pieces of content, it is OK to delete it.
@@ -111,8 +111,8 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   public function getBundles(EntityInterface $entity) {
     $bundle = $this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of');
     $bundles = $this->entityTypeBundleInfo->getBundleInfo($bundle);
-    return array_combine(array_keys($bundles), array_keys($bundles));
 
+    return array_combine(array_keys($bundles), array_keys($bundles));
   }
 
   /**
@@ -122,11 +122,12 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
     if ($this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of') == null) {
       return FALSE;
     }
+
     return TRUE;
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public function isDeleteAllowedBundle($bundle, $entity){
     $bundle_of = $this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of');
@@ -157,7 +158,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    * @return bool
    *   TRUE if the term has members, FALSE otherwise.
    */
-  private function doesTermHaveMembers(EntityInterface $entity) {
+  private function hasMembers(EntityInterface $entity) {
     return (bool) (count($this->getActiveSections($entity)) > 0);
   }
 
@@ -195,7 +196,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    *   FALSE if content is not assigned to this entity.
    *
    */
-  private function isAssignedToContent(EntityInterface $entity) {
+  private function hasContent(EntityInterface $entity) {
     foreach ($this->getAllReferenceFields($entity) as $name => $fieldConfig) {
       // Get the entity reference and determine if it's a taxonomy.
       if ($fieldConfig instanceof FieldStorageConfig) {
