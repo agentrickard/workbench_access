@@ -29,29 +29,42 @@ class TaxonomyProtectTest extends BrowserTestBase {
    *
    * @var \Drupal\user\UserInterface
    */
-  protected $admin2;
+  protected $editor;
 
   /**
-   * Vocabulary.
+   * Vocabulary used for access control.
    *
    * @var \Drupal\taxonomy\VocabularyInterface
    */
   protected $vocabulary;
 
   /**
-   * A Test term
+   * Vocabulary not used for access control.
+   *
+   * @var \Drupal\taxonomy\VocabularyInterface
+   */
+  protected $emptyVocabulary;
+
+  /**
+   * A test term
    *
    * @var \Drupal\taxonomy\Entity\Term;
    */
   protected $term;
 
   /**
-   * A Test term that is never tagged in content.
+   * A test term that is never tagged in content.
    *
    * @var \Drupal\taxonomy\Entity\Term;
    */
   protected $emptyTerm;
 
+  /**
+   * A test term that is never tagged in content.
+   *
+   * @var \Drupal\taxonomy\Entity\Term;
+   */
+  protected $emptyVocabTerm;
 
   /**
    * A Test Node
@@ -64,15 +77,13 @@ class TaxonomyProtectTest extends BrowserTestBase {
    * {@inheritdoc}
    */
   public static $modules = [
+    'node',
+    'options',
+    'system',
+    'taxonomy',
+    'user',
     'workbench_access',
     'workbench_access_protect',
-    'node',
-    'taxonomy',
-    'options',
-    'user',
-    'block',
-    'entity_test',
-    'system',
   ];
 
   /**
@@ -80,24 +91,24 @@ class TaxonomyProtectTest extends BrowserTestBase {
    */
   protected function setUp() {
     parent::setUp();
-    $this->createContentType(['type' => 'page']);
-    $this->createContentType(['type' => 'article']);
+    // Set up a content type, taxonomy field, and taxonomy scheme.
     $this->vocabulary = $this->setUpVocabulary();
-    $this->setUpTaxonomyFieldForEntityType('node', 'page', $this->vocabulary->id());
-    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $this->vocabulary->id(), $this->vocabulary->id(), 'recursive', 'Recursive Field');
-    $vocab = Vocabulary::create(['vid' => 'selected', 'name' => 'Selected Vocabulary']);
-    $vocab->save();
-    $this->setUpTaxonomyFieldForEntityType('taxonomy_term', $this->vocabulary->id(), $this->vocabulary->id(), 'non_recursive', 'Allowed Field');
-    entity_test_create_bundle('access_controlled');
-    entity_test_create_bundle('notaccess_controlled');
-    $this->setUpTaxonomyFieldForEntityType('entity_test', 'access_controlled', $this->vocabulary->id());
+    $node_type = $this->createContentType(['type' => 'page']);
+    $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
+    $scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+
+    // Set up an non-access control vocabulary as a control.
+    $this->emptyVocabulary = Vocabulary::create(['vid' => 'empty_vocabulary', 'name' => 'Empty Vocabulary']);
+    $this->emptyVocabulary->save();
+
+    // Create users.
     $this->admin = $this->setUpAdminUser([
       'administer workbench access',
       'edit terms in workbench_access',
       'delete terms in workbench_access',
       'create terms in workbench_access',
     ]);
-    $this->admin2 = $this->setUpUserUniqueRole([
+    $this->editor = $this->setUpUserUniqueRole([
       'administer workbench access',
       'assign workbench access',
       'edit terms in workbench_access',
@@ -107,12 +118,6 @@ class TaxonomyProtectTest extends BrowserTestBase {
       'access taxonomy overview',
       'administer taxonomy',
     ]);
-    $this->placeBlock('local_actions_block');
-
-    $this->setUpTestContent();
-
-
-
   }
 
   protected function setUpTestContent() {
@@ -121,18 +126,20 @@ class TaxonomyProtectTest extends BrowserTestBase {
       'name' => 'Test Term',
       'vid' => $this->vocabulary->id(),
     ]);
-
     $this->term->save();
 
     $this->emptyTerm = Term::create([
       'name' => 'Empty Test Term',
       'vid' => $this->vocabulary->id(),
     ]);
-
     $this->emptyTerm->save();
 
+    $this->emptyVocabTerm = Term::create([
+      'name' => 'Empty Test Term',
+      'vid' => $this->emptyVocabulary->id(),
+    ]);
+    $this->emptyVocabTerm->save();
 
-    // create some test nodes
     $this->testNode = $this->createNode(
       [
         'title' => 'Node',
@@ -141,36 +148,62 @@ class TaxonomyProtectTest extends BrowserTestBase {
         WorkbenchAccessManagerInterface::FIELD_NAME => $this->term->id(),
       ]
     );
-
     $this->testNode->save();
   }
 
   /**
    * Asset a non-administrator cannot delete terms that are actively used
-   *
-   * @throws \Behat\Mink\Exception\ExpectationException
    */
-    public function testAssertCannotDeleteTaxonomy() {
+  public function testCannotDeleteTaxonomyWithAssignedNode() {
+    $this->setUpTestContent();
+    // Login to the non-privileged account.
+    $this->drupalLogin($this->editor);
 
-      // Switch user to the non-privileged account.
-      $this->drupalLogin($this->admin2);
+    // Restricted term that has content.
+    $path = '/taxonomy/term/' . $this->term->id()  . '/edit';
+    $this->drupalGet($path);
+    $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
+    $this->assertSession()->linkByHrefNotExists($delete_path);
+    $this->drupalGet($delete_path);
+    $this->assertSession()->statusCodeEquals(403);
 
-      $path = '/taxonomy/term/' . $this->term->id()  . '/edit';
-      $this->drupalGet($path);
-      $this->assertSession()->linkNotExistsExact("Delete");
+    // Unrestricted term that has no content.
+    $path = '/taxonomy/term/' . $this->emptyTerm->id()  . '/edit';
+    $this->drupalGet($path);
+    $delete_path = '/taxonomy/term/' . $this->emptyTerm->id() . '/delete';
+    $this->assertSession()->linkByHrefExists($delete_path);
+    $this->drupalGet($delete_path);
+    $this->assertSession()->statusCodeEquals(200);
 
-      $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
-      $this->drupalGet($delete_path);
-      $this->assertSession()->statusCodeEquals(403);
+    $path = '/taxonomy/term/' . $this->emptyVocabTerm->id()  . '/edit';
+    $this->drupalGet($path);
+    $delete_path = '/taxonomy/term/' . $this->emptyVocabTerm->id() . '/delete';
+    $this->assertSession()->linkByHrefExists($delete_path);
+    $delete_path = '/taxonomy/term/' . $this->emptyVocabTerm->id() . '/delete';
+    $this->drupalGet($delete_path);
+    $this->assertSession()->statusCodeEquals(200);
 
-      // Test the overview page to make sure that a delete is not present.
-      $vocab_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/overview';
-      $this->drupalGet($vocab_path);
-      $delete_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/delete';
-      $this->assertSession()->linkByHrefNotExists($delete_path);
+    // Test for a delete link on the vocabularies.
+    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/delete';
+    $this->drupalGet($vocab_path);
+    $this->assertSession()->statusCodeEquals(403);
+    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->emptyVocabulary->id() . '/delete';
+    $this->drupalGet($vocab_path);
+    $this->assertSession()->statusCodeEquals(200);
 
-      // Switch user back to the privileged account.
-      $this->drupalLogout();
-    }
+    // Test the overview page to make sure that the delete link is handled.
+    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->vocabulary->id() . '/overview';
+    $this->drupalGet($vocab_path);
+    $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
+    $this->assertSession()->linkByHrefNotExists($delete_path);
+    $delete_path = '/taxonomy/term/' . $this->emptyTerm->id() . '/delete';
+    $this->assertSession()->linkByHrefExists($delete_path);
+
+    $vocab_path = '/admin/structure/taxonomy/manage/' . $this->emptyVocabulary->id() . '/overview';
+    $this->drupalGet($vocab_path);
+    $delete_path = '/taxonomy/term/' . $this->emptyVocabTerm->id() . '/delete';
+    $this->assertSession()->linkByHrefExists($delete_path);
+
+  }
 
 }
