@@ -9,11 +9,11 @@ use Drupal\taxonomy\Entity\Term;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 
 /**
- * Defines a class for testing the UI to create and configure schemes.
+ * Tests protection of Taxonomy used for access control.
  *
  * @group workbench_access_protect
  */
-class TaxonomySchemeUITest extends BrowserTestBase {
+class TaxonomyProtectTest extends BrowserTestBase {
 
   use WorkbenchAccessTestTrait;
 
