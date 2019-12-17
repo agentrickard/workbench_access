@@ -7,6 +7,7 @@ use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
  * Tests protection of Taxonomy used for access control.
@@ -55,23 +56,23 @@ class TaxonomyProtectTest extends BrowserTestBase {
   /**
    * A test term that is never tagged in content.
    *
-   * @var \Drupal\taxonomy\Entity\Term;
+   * @var \Drupal\taxonomy\Entity\Term
    */
   protected $emptyTerm;
 
   /**
    * A test term that is never tagged in content.
    *
-   * @var \Drupal\taxonomy\Entity\Term;
+   * @var \Drupal\taxonomy\Entity\Term
    */
   protected $emptyVocabTerm;
 
   /**
-   * A Test Node
+   * The test access scheme.
    *
-   * @var \Drupal\node\Entity\Node;
+   * @var \Drupal\workbench_access\Entity\AccessSchemeInterface
    */
-  protected $testNode;
+  protected $scheme;
 
   /**
    * {@inheritdoc}
@@ -95,11 +96,30 @@ class TaxonomyProtectTest extends BrowserTestBase {
     $this->vocabulary = $this->setUpVocabulary();
     $node_type = $this->createContentType(['type' => 'page']);
     $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $this->vocabulary->id());
-    $scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
+    $this->scheme = $this->setUpTaxonomyScheme($node_type, $this->vocabulary);
 
     // Set up an non-access control vocabulary as a control.
     $this->emptyVocabulary = Vocabulary::create(['vid' => 'empty_vocabulary', 'name' => 'Empty Vocabulary']);
     $this->emptyVocabulary->save();
+
+    // Create terms.
+    $this->term = Term::create([
+      'name' => 'Test Term',
+      'vid' => $this->vocabulary->id(),
+    ]);
+    $this->term->save();
+
+    $this->emptyTerm = Term::create([
+      'name' => 'Empty Test Term',
+      'vid' => $this->vocabulary->id(),
+    ]);
+    $this->emptyTerm->save();
+
+    $this->emptyVocabTerm = Term::create([
+      'name' => 'Empty Test Term',
+      'vid' => $this->emptyVocabulary->id(),
+    ]);
+    $this->emptyVocabTerm->save();
 
     // Create users.
     $this->admin = $this->setUpAdminUser([
@@ -120,26 +140,10 @@ class TaxonomyProtectTest extends BrowserTestBase {
     ]);
   }
 
+  /**
+   * Creates content for the test.
+   */
   protected function setUpTestContent() {
-    // create a test term
-    $this->term = Term::create([
-      'name' => 'Test Term',
-      'vid' => $this->vocabulary->id(),
-    ]);
-    $this->term->save();
-
-    $this->emptyTerm = Term::create([
-      'name' => 'Empty Test Term',
-      'vid' => $this->vocabulary->id(),
-    ]);
-    $this->emptyTerm->save();
-
-    $this->emptyVocabTerm = Term::create([
-      'name' => 'Empty Test Term',
-      'vid' => $this->emptyVocabulary->id(),
-    ]);
-    $this->emptyVocabTerm->save();
-
     $this->testNode = $this->createNode(
       [
         'title' => 'Node',
@@ -152,10 +156,38 @@ class TaxonomyProtectTest extends BrowserTestBase {
   }
 
   /**
-   * Asset a non-administrator cannot delete terms that are actively used
+   * Assigns users for the test.
+   */
+  protected function setUpTestUser() {
+    $user_storage = \Drupal::service('workbench_access.user_section_storage');
+    $role_storage = \Drupal::service('workbench_access.role_section_storage');
+    // Add the user to the base section.
+    $user_storage->addUser($this->scheme, $this->editor, [$this->term->id()]);
+    $expected = [$this->editor->id()];
+    $existing_users = $user_storage->getEditors($this->scheme, $this->term->id());
+    $this->assertEquals($expected, array_keys($existing_users));
+  }
+
+  /**
+   * Assert a non-administrator cannot delete terms used by nodes.
    */
   public function testCannotDeleteTaxonomyWithAssignedNode() {
     $this->setUpTestContent();
+    $this->assertTests();
+  }
+
+  /**
+   * Assert a non-administrator cannot delete terms used by users.
+   */
+  public function testCannotDeleteTaxonomyWithAssignedUser() {
+    $this->setUpTestUser();
+    $this->assertTests();
+  }
+
+  /**
+   * Runs our tests for both content and users.
+   */
+  private function assertTests() {
     // Login to the non-privileged account.
     $this->drupalLogin($this->editor);
 
@@ -203,7 +235,6 @@ class TaxonomyProtectTest extends BrowserTestBase {
     $this->drupalGet($vocab_path);
     $delete_path = '/taxonomy/term/' . $this->emptyVocabTerm->id() . '/delete';
     $this->assertSession()->linkByHrefExists($delete_path);
-
   }
 
 }
