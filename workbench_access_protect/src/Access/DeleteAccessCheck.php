@@ -194,11 +194,10 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    * @return bool
    *   TRUE if content is assigned to this entity.
    *   FALSE if content is not assigned to this entity.
-   *
    */
   private function hasContent(EntityInterface $entity) {
     foreach ($this->getAllReferenceFields($entity) as $name => $fieldConfig) {
-      // Get the entity reference and determine if it's a taxonomy.
+      // Get the entity reference and determine if it is access controlled.
       if ($fieldConfig instanceof FieldStorageConfig) {
         $entities = \Drupal::entityQuery($fieldConfig->get('entity_type'))
           ->condition($fieldConfig->get('field_name'), $entity->id())
@@ -223,7 +222,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
       foreach ($map as $entity_type => $fields) {
         foreach ($fields as $name => $field) {
           if ($field['type'] === 'entity_reference') {
-            // Get the entity reference and determine if it's a taxonomy.
+            // Get the entity reference and determine if it is access controlled.
             /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
             $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
             if ($fieldConfig !== NULL &&
