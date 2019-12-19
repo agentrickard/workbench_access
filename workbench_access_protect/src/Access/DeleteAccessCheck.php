@@ -203,6 +203,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
         $entities = \Drupal::entityQuery($fieldConfig->get('entity_type'));
         // Check all children, if required.
         // @TODO: allow this to be a configurable setting.
+        // @TODO: test coverage.
         $storage = \Drupal::entityTypeManager()->getStorage($entity->getEntityTypeId());
         if (method_exists($storage, 'loadChildren')) {
           $children = $storage->loadChildren($entity->id());
