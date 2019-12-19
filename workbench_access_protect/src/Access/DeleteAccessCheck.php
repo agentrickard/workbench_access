@@ -199,11 +199,26 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
     foreach ($this->getAllReferenceFields($entity) as $name => $fieldConfig) {
       // Get the entity reference and determine if it is access controlled.
       if ($fieldConfig instanceof FieldStorageConfig) {
-        $entities = \Drupal::entityQuery($fieldConfig->get('entity_type'))
-          ->condition($fieldConfig->get('field_name'), $entity->id())
-          ->range(0, 1)
-          ->execute();
-       if (count($entities) > 0) {
+        // Base query.
+        $entities = \Drupal::entityQuery($fieldConfig->get('entity_type'));
+        // Check all children, if required.
+        // @TODO: allow this to be a configurable setting.
+        $storage = \Drupal::entityTypeManager()->getStorage($entity->getEntityTypeId());
+        if (method_exists($storage, 'loadChildren')) {
+          $children = $storage->loadChildren($entity->id());
+          if ($children) {
+            $ids = array_keys($children);
+            $ids[] = $entity->id();
+            $entities->condition($fieldConfig->get('field_name'), $ids, 'IN');
+            $children_checked = TRUE;
+          }
+        }
+        // Else just query this entity.
+        if (empty($children_checked)) {
+          $entities->condition($fieldConfig->get('field_name'), $entity->id());
+        }
+        $result = $entities->range(0, 1)->execute();
+        if (count($result) > 0) {
           return TRUE;
         }
       }
