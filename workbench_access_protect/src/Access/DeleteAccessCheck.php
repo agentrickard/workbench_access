@@ -223,6 +223,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
           return TRUE;
         }
       }
+      // @TODO: check for menu field handling.
     }
 
     return FALSE;
