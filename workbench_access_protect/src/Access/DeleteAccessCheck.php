@@ -93,12 +93,17 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   public function isDeleteAllowed(EntityInterface $entity) {
     $return = TRUE;
 
-    $assigned_members = $this->hasMembers($entity);
-    $assigned_content = $this->hasContent($entity);
-
     // If this entity does not have users assigned to it for access control and
     // is not assigned to any pieces of content, it is OK to delete it.
-    if ($assigned_members || $assigned_content) {
+    $assigned_members = $this->hasMembers($entity);
+    if ($assigned_members) {
+      return FALSE;
+    }
+
+    // Breaking up the IF statement is a performance gain, since most sites
+    // have more nodes than users.
+    $assigned_content = $this->hasContent($entity);
+    if ($assigned_content) {
       $return = FALSE;
     }
 
