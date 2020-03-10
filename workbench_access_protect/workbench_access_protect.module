@@ -81,7 +81,7 @@ function workbench_access_protect_list($scheme_type = NULL) {
     ],
     'taxonomy' => [
       'taxonomy_term',
-      'vocabulary',
+      'taxonomy_vocabulary',
     ],
   ];
   // Enable other modules to register.

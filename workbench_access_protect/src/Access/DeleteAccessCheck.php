@@ -237,25 +237,27 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   private function getAllReferenceFields(EntityInterface $entity) {
     // First, we are going to try to retrieve a cached instance.
     $found_fields = \Drupal::cache()->get('workbench_access_protect');
-
     if ($found_fields === FALSE) {
-      $map = $this->fieldManager->getFieldMap();
       $found_fields = [];
-      foreach ($map as $entity_type => $fields) {
-        foreach ($fields as $name => $field) {
-          if ($field['type'] === 'entity_reference') {
-            // Get the entity reference and determine if it is access controlled.
-            /** @var \Drupal\field\Entity\FieldStorageConfig $fieldConfig */
-            $fieldConfig = FieldStorageConfig::loadByName($entity_type, $name);
-            if ($fieldConfig !== NULL &&
-                $fieldConfig->getSetting('target_type') === $entity->getEntityType()->id()) {
-                $found_fields[$name] = $fieldConfig;
-              }
+      $scheme_storage = \Drupal::entityTypeManager()
+        ->getStorage('access_scheme');
+      // Grab the fields configured for each access scheme and then check
+      // that they are within our list of protected entity types.
+      foreach ($scheme_storage->loadMultiple() as $scheme) {
+        $access_scheme = $scheme->getAccessScheme();
+        $scheme_type = $scheme->get('scheme');
+        $protect_list = workbench_access_protect_list($scheme_type);
+        if (in_array($entity->getEntityTypeId(), $protect_list, TRUE)) {
+          $configuration = $access_scheme->getConfiguration();
+          foreach ($configuration['fields'] as $field_info) {
+            $fieldConfig = FieldStorageConfig::loadByName($field_info['entity_type'], $field_info['field']);
+            if ($fieldConfig) {
+              $found_fields[$field_info['field']] = $fieldConfig;
             }
           }
         }
       }
-
+    }
     else {
       $found_fields = $found_fields->data;
     }
