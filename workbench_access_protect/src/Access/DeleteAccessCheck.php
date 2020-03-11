@@ -124,11 +124,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    * @{inheritdoc}
    */
   public function hasBundles(EntityInterface $entity) {
-    if ($this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of') == null) {
-      return FALSE;
-    }
-
-    return TRUE;
+    return !is_null($this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of'));
   }
 
   /**
