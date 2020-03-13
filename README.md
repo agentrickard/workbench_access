@@ -74,7 +74,7 @@ configuration form.
 Here, we add options specific to the access scheme. For a Taxonomy scheme, you
 will be asked to `Select the vocabularies to use for access control` as a series
 of checkboxes. Each element checked will create a new root section, which is tha
-parent to the entire hierarchy. This setting controls thye sections that users
+parent to the entire hierarchy. This setting controls the sections that users
 and roles may be assigned to.
 
 Once you have selected the parent elements, you may select the fields to use for
