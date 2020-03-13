@@ -90,7 +90,7 @@ access control. Each row has three elements:
 
 Note that:
 
-* If more than one field for the scheme typoe is available, each field will have
+* If more than one field for the scheme type is available, each field will have
 its own row.
 * Entity types and bundles without an eligible field will not be present. These
 types will be *ignored* by Workbench Access.
