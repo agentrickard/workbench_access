@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * @file
+ * Contains workbench_access_protect.module.
+ */
+
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Access\AccessResult;
+
+/**
+ * Implements hook_entity_access().
+ */
+function workbench_access_protect_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
+  static $checked = [];
+
+  if ($op === 'delete') {
+
+    $check = FALSE;
+    if (isset($checked[$entity->getEntityTypeId()])) {
+      $check = $checked[$entity->getEntityTypeId()];
+    }
+    else {
+      // Determine if this entity type is access controlled and cache result.
+      $entity_type_id = $entity->getEntityTypeId();
+      $scheme_storage = \Drupal::entityTypeManager()->getStorage('access_scheme');
+      if ($schemes = $scheme_storage->loadMultiple()) {
+        /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme */
+        foreach ($schemes as $id => $scheme) {
+          $scheme_type = $scheme->get('scheme');
+          $list = workbench_access_protect_list($scheme_type);
+          foreach ($list as $type) {
+            if ($type === $entity_type_id) {
+              $check = TRUE;
+            }
+          }
+        }
+      }
+      $checked[$entity_type_id] = $check;
+    }
+    if (!$check) {
+      return AccessResult::neutral();
+    }
+
+    /** @var Drupal\workbench_access_protect\Access\DeleteAccessCheck $protect */
+    $protect = \Drupal::service('workbench_access_protect.delete');
+
+    // Now, let's check to see if this is an entity bundle we are tracking.
+    if ($protect->hasBundles($entity)) {
+      $bundle = $protect->getBundles($entity)[$entity->id()];
+      // Check the entire bundle to see if any term is in use.
+      if ($protect->isDeleteAllowedBundle($bundle, $entity) === FALSE) {
+        return AccessResult::forbidden();
+      }
+    }
+    else {
+      // We're at the leaf entity and can check the specific entity.
+      if ($protect->isAccessControlled($entity) &&
+        $protect->isDeleteAllowed($entity) === FALSE) {
+        return AccessResult::forbidden();
+      }
+    }
+
+  }
+
+  return AccessResult::neutral();
+
+}
+
+/**
+ * Lists the entity types protected by each access scheme.
+ *
+ * @param string $scheme_type
+ *   The scheme type to lookup, leave NULL to return all.
+ *
+ * @return array
+ *   An array representing the entity types registered to a scheme, or an
+ *   array of types keyed by scheme.
+ */
+function workbench_access_protect_list($scheme_type = NULL) {
+  $types = [
+    'menu' => [
+      'menu',
+      'menu_link_content',
+    ],
+    'taxonomy' => [
+      'taxonomy_term',
+      'taxonomy_vocabulary',
+    ],
+  ];
+  // Enable other modules to register.
+  \Drupal::moduleHandler()->alter('workbench_access_protect_list', $types);
+
+  if ($scheme_type) {
+    return $types[$scheme_type];
+  }
+  return $types;
+}

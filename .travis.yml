@@ -73,7 +73,7 @@ before_script:
   - /usr/bin/env PHP_OPTIONS="-d sendmail_path=$(which true)" drush --yes --verbose site-install minimal --db-url=mysql://root:@127.0.0.1/wa
   # Install modules
   - travis_retry drush dl inline_entity_form
-  - drush --yes en simpletest workbench_access taxonomy
+  - drush --yes en simpletest workbench_access taxonomy workbench_access_protect
   - drush cr
 
   # Start a web server on port 8080 in the background.
@@ -83,6 +83,7 @@ before_script:
   - until curl -s localhost:8080; do true; done > /dev/null
 
 script:
-  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
-  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Kernel" --php `which php` --url http://localhost:8080 "workbench_access"
-  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Unit" --php `which php` --url http://localhost:8080 "workbench_access"
+#  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
+#  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Kernel" --php `which php` --url http://localhost:8080 "workbench_access"
+#  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Unit" --php `which php` --url http://localhost:8080 "workbench_access"
+  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access_protect"
