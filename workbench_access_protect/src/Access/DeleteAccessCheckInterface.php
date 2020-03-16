@@ -12,7 +12,7 @@ interface DeleteAccessCheckInterface {
   /**
    * Determines if this entity may be deleted.
    *
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity to check.
    *
    * @return bool
@@ -28,7 +28,8 @@ interface DeleteAccessCheckInterface {
    *
    * Use this to determine if the entity has children bundles.
    *
-   * @param EntityInterface $entity
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The term to check for bundles.
    *
    * @return bool
    *   TRUE if the entity has bundles, FALSE otherwise
@@ -39,6 +40,7 @@ interface DeleteAccessCheckInterface {
    * Gets the assigned bundles associated with an entity.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to get bundles on.
    *
    * @return array
    *   An array where the keys and values are bundle ids.
@@ -49,13 +51,14 @@ interface DeleteAccessCheckInterface {
    * Checks if a bundle's entities are being actively used for access control.
    *
    * @param string $bundle
-   *   The bundle ID
+   *   The bundle ID.
    * @param string $entity
-   *   The entity id
+   *   The entity id.
    *
    * @return bool
+   *   TRUE
    */
-   public function isDeleteAllowedBundle($bundle, $entity);
+  public function isDeleteAllowedBundle($bundle, $entity);
 
   /**
    * Determines if the entity is used for access control.
@@ -69,6 +72,6 @@ interface DeleteAccessCheckInterface {
    * @return bool
    *   TRUE if used, FALSE otherwise
    */
-   public function isAccessControlled(EntityInterface $entity);
+  public function isAccessControlled(EntityInterface $entity);
 
 }

@@ -6,8 +6,6 @@ use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\menu_link_content\Entity\MenuLinkContent;
 use Drupal\system\Entity\Menu;
-use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
  * Tests protection of Menu used for access control.
@@ -138,13 +136,13 @@ class MenuProtectTest extends BrowserTestBase {
     $this->admin = $this->setUpAdminUser([
       'administer workbench access',
       'administer menu',
-      'link to any page'
+      'link to any page',
     ]);
     $this->editor = $this->setUpUserUniqueRole([
       'administer workbench access',
       'assign workbench access',
       'administer menu',
-      'link to any page'
+      'link to any page',
     ]);
   }
 
@@ -231,16 +229,14 @@ class MenuProtectTest extends BrowserTestBase {
     // Login to the non-privileged account.
     $this->drupalLogin($this->editor);
 
-// overview: /admin/structure/menu/manage/menu_test
-// delete: /admin/structure/menu/manage/menu_test/delete
-// overview: /admin/structure/menu/manage/empty_test
-// delete: /admin/structure/menu/manage/empty_test/delete
-// link: /admin/structure/menu/item/1/edit
-// Link: /admin/structure/menu/item/1/delete
-
-
+    // overview: /admin/structure/menu/manage/menu_test
+    // delete: /admin/structure/menu/manage/menu_test/delete
+    // overview: /admin/structure/menu/manage/empty_test
+    // delete: /admin/structure/menu/manage/empty_test/delete
+    // link: /admin/structure/menu/item/1/edit
+    // Link: /admin/structure/menu/item/1/delete
     // Restricted link that has content.
-    $path = '/admin/structure/menu/item/' . $this->link->id()  . '/edit';
+    $path = '/admin/structure/menu/item/' . $this->link->id() . '/edit';
     $this->drupalGet($path);
     $delete_path = '/admin/structure/menu/item/' . $this->link->id() . '/delete';
     $this->assertSession()->linkByHrefNotExists($delete_path);
@@ -248,7 +244,7 @@ class MenuProtectTest extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(403);
 
     // Unrestricted link that has no content.
-    $path = '/admin/structure/menu/item/' . $this->emptyLink->id()  . '/edit';
+    $path = '/admin/structure/menu/item/' . $this->emptyLink->id() . '/edit';
     $this->drupalGet($path);
     $delete_path = '/admin/structure/menu/item/' . $this->emptyLink->id() . '/delete';
     $this->assertSession()->linkByHrefExists($delete_path);
@@ -256,7 +252,7 @@ class MenuProtectTest extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(200);
 
     // Unrestricted link in a menu that has no content.
-    $path = '/admin/structure/menu/item/' . $this->emptyMenuLink->id()  . '/edit';
+    $path = '/admin/structure/menu/item/' . $this->emptyMenuLink->id() . '/edit';
     $this->drupalGet($path);
     $delete_path = '/admin/structure/menu/item/' . $this->emptyMenuLink->id() . '/delete';
     $this->assertSession()->linkByHrefExists($delete_path);

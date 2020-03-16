@@ -2,3 +2,4 @@ services:
   workbench_access_protect.delete :
     class: Drupal\workbench_access_protect\Access\DeleteAccessCheck
     arguments: ['@current_route_match', '@workbench_access.user_section_storage', '@entity_field.manager', '@entity_type.manager', '@entity_type.bundle.info']
+

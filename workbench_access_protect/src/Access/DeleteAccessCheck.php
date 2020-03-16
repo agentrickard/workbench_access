@@ -10,7 +10,6 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\Core\Routing\CurrentRouteMatch;
 use Drupal\workbench_access\UserSectionStorage;
 use Drupal\Core\Entity\EntityFieldManager;
-use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
@@ -19,36 +18,50 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 class DeleteAccessCheck implements DeleteAccessCheckInterface {
 
   /**
+   * User account.
+   *
    * @var \Drupal\Core\Session\AccountInterface
    */
   private $account;
 
   /**
-   * @var \Drupal\Core\Routing\CurrentRouteMatch;
+   * Default object for current_route_match service.
+   *
+   * @var \Drupal\Core\Routing\CurrentRouteMatch
    */
   private $route;
 
   /**
+   * A class for storing and retrieving sections assigned to a user.
+   *
    * @var \Drupal\workbench_access\UserSectionStorage
    */
   private $userSectionStorage;
 
   /**
+   * Manages the discovery of entity fields.
+   *
    * @var \Drupal\Core\Entity\EntityFieldManager
    */
   private $fieldManager;
 
   /**
+   * Manages entity type plugin definitions.
+   *
    * @var \Drupal\Core\Entity\EntityTypeManager
    */
   private $entityTypeManager;
 
   /**
+   * An interface for an entity type bundle info.
+   *
    * @var \Drupal\Core\Entity\EntityTypeBundleInfoInterface
    */
   private $entityTypeBundleInfo;
 
-
+  /**
+   * Constructs a new DeleteAccessCheck.
+   */
   public function __construct(CurrentRouteMatch $route,
                               UserSectionStorage $userSectionStorage,
                               EntityFieldManager $fieldManager,
@@ -88,7 +101,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   }
 
   /**
-   * @{inheritdoc}
+   * {@inheritdoc}
    */
   public function isDeleteAllowed(EntityInterface $entity) {
     $return = TRUE;
@@ -111,17 +124,16 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   }
 
   /**
-   * @{inheritdoc}
+   * {@inheritdoc}
    */
   public function getBundles(EntityInterface $entity) {
     $bundle = $this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of');
     $bundles = $this->entityTypeBundleInfo->getBundleInfo($bundle);
-
     return array_combine(array_keys($bundles), array_keys($bundles));
   }
 
   /**
-   * @{inheritdoc}
+   * {@inheritdoc}
    */
   public function hasBundles(EntityInterface $entity) {
     return !is_null($this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of'));
@@ -130,11 +142,11 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   /**
    * {@inheritdoc}
    */
-  public function isDeleteAllowedBundle($bundle, $entity){
+  public function isDeleteAllowedBundle($bundle, $entity) {
     $bundle_of = $this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('bundle_of');
     $entity_id_key = $this->entityTypeManager->getDefinitions()[$entity->getEntityTypeId()]->get('entity_keys')['id'];
     $entities = $this->entityTypeManager->getStorage($bundle_of)->loadByProperties(
-      [$entity_id_key => $bundle ]
+      [$entity_id_key => $bundle]
     );
 
     /*
@@ -171,7 +183,6 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
    *
    * @return array
    *   An array of the users assigned to this section.
-   *
    */
   private function getActiveSections(EntityInterface $entity) {
     /** @var \Drupal\workbench_access\UserSectionStorageInterface $sectionStorage */
@@ -179,9 +190,9 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
 
     $editors = array_reduce($this->entityTypeManager->getStorage('access_scheme')->loadMultiple(),
       function (array $editors, AccessSchemeInterface $scheme) use ($sectionStorage, $entity) {
-      $editors += $sectionStorage->getEditors($scheme, $entity->id());
-      return $editors;
-    }, []);
+        $editors += $sectionStorage->getEditors($scheme, $entity->id());
+        return $editors;
+      }, []);
 
     return $editors;
   }
@@ -230,6 +241,15 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
     return FALSE;
   }
 
+  /**
+   * Get all entities with referencing fields targeting the ID.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to inspect.
+   *
+   * @return array
+   *   An array of entities with referencing fields targeting the given ID.
+   */
   private function getAllReferenceFields(EntityInterface $entity) {
     // First, we are going to try to retrieve a cached instance.
     $found_fields = \Drupal::cache()->get('workbench_access_protect');
@@ -265,7 +285,7 @@ class DeleteAccessCheck implements DeleteAccessCheckInterface {
   }
 
   /**
-   * @{inheritdoc}
+   * {@inheritdoc}
    */
   public function isAccessControlled(EntityInterface $entity) {
     $schemes = $this->entityTypeManager->getStorage('access_scheme')->loadMultiple();

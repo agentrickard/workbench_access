@@ -7,7 +7,6 @@ use Drupal\taxonomy\Entity\Vocabulary;
 use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
-use Drupal\workbench_access\Entity\AccessSchemeInterface;
 
 /**
  * Tests protection of Taxonomy used for access control.
@@ -47,9 +46,9 @@ class TaxonomyProtectTest extends BrowserTestBase {
   protected $emptyVocabulary;
 
   /**
-   * A test term
+   * A test term.
    *
-   * @var \Drupal\taxonomy\Entity\Term;
+   * @var \Drupal\taxonomy\Entity\Term
    */
   protected $term;
 
@@ -192,7 +191,7 @@ class TaxonomyProtectTest extends BrowserTestBase {
     $this->drupalLogin($this->editor);
 
     // Restricted term that has content.
-    $path = '/taxonomy/term/' . $this->term->id()  . '/edit';
+    $path = '/taxonomy/term/' . $this->term->id() . '/edit';
     $this->drupalGet($path);
     $delete_path = '/taxonomy/term/' . $this->term->id() . '/delete';
     $this->assertSession()->linkByHrefNotExists($delete_path);
@@ -200,14 +199,14 @@ class TaxonomyProtectTest extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(403);
 
     // Unrestricted term that has no content.
-    $path = '/taxonomy/term/' . $this->emptyTerm->id()  . '/edit';
+    $path = '/taxonomy/term/' . $this->emptyTerm->id() . '/edit';
     $this->drupalGet($path);
     $delete_path = '/taxonomy/term/' . $this->emptyTerm->id() . '/delete';
     $this->assertSession()->linkByHrefExists($delete_path);
     $this->drupalGet($delete_path);
     $this->assertSession()->statusCodeEquals(200);
 
-    $path = '/taxonomy/term/' . $this->emptyVocabTerm->id()  . '/edit';
+    $path = '/taxonomy/term/' . $this->emptyVocabTerm->id() . '/edit';
     $this->drupalGet($path);
     $delete_path = '/taxonomy/term/' . $this->emptyVocabTerm->id() . '/delete';
     $this->assertSession()->linkByHrefExists($delete_path);

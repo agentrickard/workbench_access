@@ -8,8 +8,6 @@
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Access\AccessResult;
-use Drupal\workbench_access_protect\Access\Taxonomy;
-
 
 /**
  * Implements hook_entity_access().
@@ -73,12 +71,12 @@ function workbench_access_protect_entity_access(EntityInterface $entity, $op, Ac
 /**
  * Lists the entity types protected by each access scheme.
  *
- * @param $scheme_type
- *  The scheme type to lookup, leave NULL to return all.
+ * @param string $scheme_type
+ *   The scheme type to lookup, leave NULL to return all.
  *
  * @return array
- *  An array representing the entity types registered to a scheme, or an
- *  array of types keyed by scheme.
+ *   An array representing the entity types registered to a scheme, or an
+ *   array of types keyed by scheme.
  */
 function workbench_access_protect_list($scheme_type = NULL) {
   $types = [
