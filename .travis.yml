@@ -78,4 +78,4 @@ before_script:
   - export SYMFONY_DEPRECATIONS_HELPER='disabled'
 
 script:
-  - vendor/bin/phpunit -c core --group domain modules/workbench_access -v
+  - vendor/bin/phpunit -c core --group workbench_access modules/workbench_access -v
