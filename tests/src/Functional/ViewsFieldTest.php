@@ -134,8 +134,8 @@ class ViewsFieldTest extends BrowserTestBase {
     $this->drupalGet('admin/content/sections');
     $assert = $this->assertSession();
     foreach ($this->terms as $section => $term) {
-      $row = $assert->elementExists('css', '.views-row:contains("' . $term->label() . '")');
-      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")', $row);
+      $assert->elementExists('css', '.views-row:contains("' . $term->label() . '")');
+      $assert->elementExists('css', '.views-row:contains("' . $section . ' node 1' . '")');
     }
     // Now filter the page.
     $this->drupalGet('admin/content/sections', [
