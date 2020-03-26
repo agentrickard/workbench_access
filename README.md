@@ -332,6 +332,6 @@ The module has complete coverage. New features of bugfixes are required to have
 passing tests. All pull requests will automatically run tests in TravisCI. Test
 coverage runs against the following:
 
-1. PHP 7.1 and 7.2.
-2. The stable (8.6) and DEV (8.7) branches of Drupal core.
+1. PHP 7.3
+2. The stable (8.8) and DEV (8.9) branches of Drupal core.
 
