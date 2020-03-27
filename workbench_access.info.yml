@@ -11,5 +11,6 @@ dependencies:
   - drupal:node
   - drupal:options
   - drupal:taxonomy
+  - drupal:system (>8.7)
 tests_dependencies:
   - inline_entity_form:inline_entity_form
