@@ -7,14 +7,10 @@ services:
 matrix:
   fast_finish: true
   include:
-    - env: DRUPAL=8.7.x
-      php: 7.2
-    - env: DRUPAL=8.7.x
-      php: 7.1
-    - env: DRUPAL=8.8.x
-      php: 7.2
-    - env: DRUPAL=8.8.x
-      php: 7.1
+    - env: DRUPAL_BRANCH="8.8.x" drupal" UPDATE_PHPUNIT="composer run-script drupal-phpunit-upgrade" MODULE_LIST="domain domain_access domain_alias domain_config domain_source"
+      php: 7.3
+    - env: DRUPAL_BRANCH="8.9.x" drupal" UPDATE_PHPUNIT="composer run-script drupal-phpunit-upgrade" MODULE_LIST="domain domain_access domain_alias domain_config domain_source"
+      php: 7.3
 
 cache:
   directories:
@@ -47,17 +43,19 @@ before_install:
   - mysql -e 'create database wa;'
 
 before_script:
-  # Remember the current rules test directory for later use in the Drupal installation.
   - TESTDIR=$(pwd)
   # Navigate out of module directory to prevent blown stack by recursive module lookup.
   - cd ..
 
   # Download Drupal 8 core.
-  - travis_retry drush dl drupal-$DRUPAL --drupal-project-rename=drupal
+  - git clone --depth=1 --branch $DRUPAL_BRANCH https://git.drupal.org/project/drupal.git
   - cd drupal
 
-  # Update PHPUnit.
-  - composer run-script drupal-phpunit-upgrade
+  # Update PHPUnit when needed (only 8.7).
+  - $UPDATE_PHPUNIT
+
+  # Install dependencies.
+  - composer install
 
   # Make the module appear in the correct place
   - ln -s $TESTDIR modules/workbench_access
@@ -65,8 +63,7 @@ before_script:
   # Install drupal default profile
   - /usr/bin/env PHP_OPTIONS="-d sendmail_path=$(which true)" drush --yes --verbose site-install minimal --db-url=mysql://root:@127.0.0.1/wa
   # Install modules
-  - travis_retry drush dl inline_entity_form
-  - drush --yes en simpletest workbench_access taxonomy
+  - composer require drupal/inline_entity_form
   - drush cr
 
   # Start a web server on port 8080 in the background.
@@ -75,7 +72,10 @@ before_script:
   # Wait until the web server is responding.
   - until curl -s localhost:8080; do true; done > /dev/null
 
+  # Export PHP Unit vars
+  - export SIMPLETEST_DB='mysql://root:@127.0.0.1/wa'
+  - export SIMPLETEST_BASE_URL='http://localhost:8080'
+  - export SYMFONY_DEPRECATIONS_HELPER='disabled'
+
 script:
-  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Functional" --php `which php` --url http://localhost:8080 "workbench_access"
-  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Kernel" --php `which php` --url http://localhost:8080 "workbench_access"
-  - php core/scripts/run-tests.sh --suppress-deprecations --verbose --color --concurrency 4 --types "PHPUnit-Unit" --php `which php` --url http://localhost:8080 "workbench_access"
+  - vendor/bin/phpunit -c core --group workbench_access modules/workbench_access -v

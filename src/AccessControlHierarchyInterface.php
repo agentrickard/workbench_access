@@ -21,6 +21,9 @@ interface AccessControlHierarchyInterface extends ConfigurableInterface, Depende
   /**
    * Returns the id for a hierarchy.
    *
+   * This id value is used throughout the code as the section id, which is
+   * used to store information about access controls set by the module.
+   *
    * @return string
    *   Access control ID.
    */
@@ -30,28 +33,45 @@ interface AccessControlHierarchyInterface extends ConfigurableInterface, Depende
    * Returns the label for a hierarchy.
    *
    * @return string
-   *   Label.
+   *   The human-readable label for a hierarchy.
    */
   public function label();
 
   /**
    * Gets the entire hierarchy tree.
    *
+   * This method will return a hierarcy tree from any supported source in a
+   * standard array structure. Using this method allows our code to abstract
+   * handling of access controls.
+   *
+   * The array has the following components.
+   *
+   *   id - The lookup id of the entity or object (e.g. term tid).
+   *   parents - A sorted array of ids for any parent items of this item.
+   *   label - The human-readable label of the entity or object.
+   *   description - A human-readable help description of this item.
+   *   path - A fully-formed URL string for this item.
+   *   depth - The depth in the hierarchy of this item.
+   *   weight - The sort order (weight) of this item at its depth.
+   *
+   * The first two items in this array (id, parents) are used to generate
+   * access control logic. The remaining items are used for building forms
+   * and user interfaces. Note that the last two items (depth, weight) are
+   * normally handled by the sorting done by the tree builder. They are
+   * provided in case your code needs to re-sort the tree.
+   *
    * @return array
-   *   Tree.
+   *   An array in the format defined above.
    */
   public function getTree();
 
   /**
-   * Retrieves the access control values from an entity.
+   * Resets the internal cache of the tree.
    *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   A Drupal entity, typically a node or a user.
-   *
-   * @return array
-   *   An array of field data from the entity.
+   * This code is not currently used by the module. It is provided as a
+   * convenience for developers since $tree is a protected property.
    */
-  public function getEntityValues(EntityInterface $entity);
+  public function resetTree();
 
   /**
    * Loads a hierarchy definition for a single item in the tree.
@@ -63,6 +83,19 @@ interface AccessControlHierarchyInterface extends ConfigurableInterface, Depende
    *   A plugin implementation.
    */
   public function load($id);
+
+  /**
+   * Check if this access scheme applies to the given entity.
+   *
+   * @param string $entity_type_id
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle ID.
+   *
+   * @return bool
+   *   TRUE if this access scheme applies to the entity.
+   */
+  public function applies($entity_type_id, $bundle);
 
   /**
    * Responds to request for node access.
@@ -77,11 +110,22 @@ interface AccessControlHierarchyInterface extends ConfigurableInterface, Depende
    *   The user requesting access to the node.
    *
    * @return \Drupal\Core\Access\AccessResultInterface
-   *   An access result response. By design, this is either neutral or deny.
+   *   An access result response. By design, this is either ignore or deny.
    *
    * @see workbench_access_entity_access()
    */
   public function checkEntityAccess(AccessSchemeInterface $scheme, EntityInterface $entity, $op, AccountInterface $account);
+
+  /**
+   * Retrieves the access control values from an entity.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   A Drupal entity, typically a node or a user.
+   *
+   * @return array
+   *   An simple array of section ids from the entity being checked.
+   */
+  public function getEntityValues(EntityInterface $entity);
 
   /**
    * Alters the selection options provided for an access control field.
@@ -100,13 +144,33 @@ interface AccessControlHierarchyInterface extends ConfigurableInterface, Depende
   /**
    * Gets any options that are set but cannot be changed by the editor.
    *
+   * These options are typically passed as hidden form values so that an
+   * editor does not remove sections that they cannot access. See submitEntity()
+   * below for the implementation.
+   *
    * @param string $field
    *   The field element from a node form, after running through alterOptions().
    *
    * @return array
-   *   An array of section ids to preserve.
+   *   An array of section ids to remove from a form or list.
    */
   public function disallowedOptions($field);
+
+  /**
+   * Gets applicable fields for given entity type and bundle.
+   *
+   * Plugin implementations are responsible for declaring what fields on an
+   * entity are used for access control.
+   *
+   * @param string $entity_type
+   *   Entity type ID.
+   * @param string $bundle
+   *   Bundle ID.
+   *
+   * @return array
+   *   Associative array of fields with keys entity_type, bundle and field.
+   */
+  public function getApplicableFields($entity_type, $bundle);
 
   /**
    * Responds to the submission of an entity form.
@@ -116,14 +180,40 @@ interface AccessControlHierarchyInterface extends ConfigurableInterface, Depende
    * should examine that value and make modifications to their target field
    * as necessary.
    *
-   * Currently only supports nodes. A default implementation is provided.
+   * A default implementation is provided which only supports nodes.
    *
    * @param array &$form
    *   A form array.
+   *
    * @param \Drupal\Core\Form\FormStateInterface $form_state
    *   The form_state object.
    */
   public static function submitEntity(array &$form, FormStateInterface $form_state);
+
+  /**
+   * Massage form values as appropriate during entity submit.
+   *
+   * This method is invoked by submitEntity() to save items passed by the
+   * disallowedOptions() method.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   Entity being edited.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   Form state.
+   * @param array $hidden_values
+   *   Hidden values passed by the form, generally from disallowedOptions().
+   */
+  public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values);
+
+  /**
+   * Adds views data for the plugin.
+   *
+   * @param array $data
+   *   Views data.
+   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
+   *   Access scheme that wraps this plugin.
+   */
+  public function viewsData(array &$data, AccessSchemeInterface $scheme);
 
   /**
    * Returns information on how to join this section data to a base view table.
@@ -149,49 +239,6 @@ interface AccessControlHierarchyInterface extends ConfigurableInterface, Depende
    *   An array of values for the current view.
    */
   public function addWhere(Section $filter, array $values);
-
-  /**
-   * Resets the internal cache of the tree.
-   *
-   * Right now, this is a per-request cache until we figure out a long-term
-   * caching strategy.
-   */
-  public function resetTree();
-
-  /**
-   * Check if this access scheme applies to the given entity.
-   *
-   * @param string $entity_type_id
-   *   Entity type ID.
-   * @param string $bundle
-   *   Bundle ID.
-   *
-   * @return bool
-   *   TRUE if this access scheme applies to the entity.
-   */
-  public function applies($entity_type_id, $bundle);
-
-  /**
-   * Adds views data for the plugin.
-   *
-   * @param array $data
-   *   Views data.
-   * @param \Drupal\workbench_access\Entity\AccessSchemeInterface $scheme
-   *   Access scheme that wraps this plugin.
-   */
-  public function viewsData(array &$data, AccessSchemeInterface $scheme);
-
-  /**
-   * Massage form values as appropriate.
-   *
-   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
-   *   Entity being edited.
-   * @param \Drupal\Core\Form\FormStateInterface $form_state
-   *   Form state.
-   * @param array $hidden_values
-   *   Hidden values.
-   */
-  public function massageFormValues(ContentEntityInterface $entity, FormStateInterface $form_state, array $hidden_values);
 
   /**
    * Informs the plugin that a dependency of the scheme will be deleted.

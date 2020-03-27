@@ -74,26 +74,36 @@ class FormAlterHelper implements ContainerInjectionInterface {
     /** @var \Drupal\workbench_access\Entity\AccessSchemeInterface $access_scheme */
     foreach ($this->entityTypeManager->getStorage('access_scheme')->loadMultiple() as $access_scheme) {
       // If no access field is set, we do nothing.
-      $callback = TRUE;
       $scheme = $access_scheme->getAccessScheme();
       if (!$scheme->applies($entity->getEntityTypeId(), $entity->bundle())) {
         continue;
       }
+      $callback = TRUE;
       // Load field data that can be edited.
       // If the user cannot access the form element or is a superuser, ignore.
       if (!$this->currentUser->hasPermission('bypass workbench access')) {
+        // In the case of entity_autocomplete, the Taxonomy scheme will update
+        // the form for us. Be careful not to overwrite its values.
         $scheme->alterForm($access_scheme, $element, $form_state, $entity);
+        if (!isset($complete_form['workbench_access_disallowed'])) {
+          $complete_form['workbench_access_disallowed'] = ['#tree' => TRUE];
+        }
         // Add the options hidden from the user silently to the form.
-        $options_diff = $scheme->disallowedOptions($element);
-        if (!empty($options_diff)) {
-          // @TODO: Potentially show this information to users with permission.
-          $complete_form['workbench_access_disallowed'] += [
-            '#tree' => TRUE,
-            $access_scheme->id() => [
-              '#type' => 'value',
-              '#value' => $options_diff,
-            ],
-          ];
+        $fields = $scheme->getApplicableFields($entity->getEntityTypeId(), $entity->bundle());
+        foreach ($fields as $info) {
+          if (isset($complete_form[$info['field']])) {
+            $lookup_element = $complete_form[$info['field']];
+            $options_diff = $scheme->disallowedOptions($lookup_element);
+            if (!empty($options_diff) && !isset($complete_form['workbench_access_disallowed'][$info['field']])) {
+              // @TODO: Potentially show this information to users with permission.
+              $complete_form['workbench_access_disallowed'][$info['field']] = [
+                $access_scheme->id() => [
+                  '#type' => 'value',
+                  '#value' => $options_diff,
+                ],
+              ];
+            }
+          }
         }
       }
     }
@@ -109,6 +119,7 @@ class FormAlterHelper implements ContainerInjectionInterface {
         }
       }
     }
+
     return $element;
   }
 

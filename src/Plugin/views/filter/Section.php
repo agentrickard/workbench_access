@@ -108,6 +108,9 @@ class Section extends ManyToOne {
       }
       else {
         $list = $this->userSectionStorage->getUserSections($this->scheme);
+        if (!empty($this->options['section_filter']['show_hierarchy'])) {
+          $list = $this->getChildren($list);
+        }
       }
       foreach ($list as $id) {
         if ($section = $scheme->load($id)) {

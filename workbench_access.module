@@ -10,6 +10,7 @@ use Drupal\Core\Entity\EntityForm;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -182,4 +183,47 @@ function workbench_access_process_inline_entity_form(array &$element, FormStateI
     return $element;
   }
   return \Drupal::classResolver()->getInstanceFromDefinition(FormAlterHelper::class)->alterForm($element, $complete_form, $form_state, $entity);
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function workbench_access_user_delete($account) {
+  $uid = $account->id();
+  $storage_handler = \Drupal::entityTypeManager()->getStorage('section_association');
+  // Retrieve all the section associations referencing this user.
+  $section_user_associations = $storage_handler->loadByProperties(['user_id' => $uid]);
+  foreach ($section_user_associations as $section_association) {
+    // For each retrived association, remove this user.
+    if ($user_ids = $section_association->getCurrentUserIds()) {
+      $remaining_user_ids = array_diff($user_ids, [$uid]);
+      $section_association->set('user_id', $remaining_user_ids);
+      $section_association->save();
+    }
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_delete().
+ */
+function workbench_access_user_role_delete($role) {
+  $role_section_storage = \Drupal::service('workbench_access.role_section_storage');
+  $scheme_storage = \Drupal::entityTypeManager()->getStorage('access_scheme');
+  foreach ($scheme_storage->loadMultiple() as $scheme) {
+    $role_section_storage->deleteRoleSections($scheme, $role->id());
+  }
+}
+
+/**
+ * Implements hook_token_info().
+ */
+function workbench_access_token_info() {
+  return \Drupal::service('workbench_access.tokens')->getTokenInfo();
+}
+
+/**
+ * Implements hook_tokens().
+ */
+function workbench_access_tokens($type, $tokens, array $data, array $options, BubbleableMetadata $bubbleable_metadata) {
+  return \Drupal::service('workbench_access.tokens')->getTokens($type, $tokens, $data, $options, $bubbleable_metadata);
 }
