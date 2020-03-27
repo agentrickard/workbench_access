@@ -110,15 +110,15 @@ class TaxonomyHierarchySelection extends TermSelection {
     else {
       $options = [];
 
-      $bundles = $this->entityManager->getBundleInfo('taxonomy_term');
+      $bundles = $this->entityTypeBundleInfo->getBundleInfo('taxonomy_term');
       $handler_settings = $this->configuration['handler_settings'];
       $bundle_names = !empty($handler_settings['target_bundles']) ? $handler_settings['target_bundles'] : array_keys($bundles);
 
       foreach ($bundle_names as $bundle) {
-        if ($vocabulary = $this->entityManager->getStorage('taxonomy_vocabulary')->load($bundle)) {
-          if ($terms = $this->entityManager->getStorage('taxonomy_term')->loadTree($vocabulary->id(), 0, NULL, TRUE)) {
+        if ($vocabulary = $this->entityTypeManager->getStorage('taxonomy_vocabulary')->load($bundle)) {
+          if ($terms = $this->entityTypeManager->getStorage('taxonomy_term')->loadTree($vocabulary->id(), 0, NULL, TRUE)) {
             foreach ($terms as $term) {
-              $options[$vocabulary->id()][$term->id()] = str_repeat('-', $term->depth) . Html::escape($this->entityManager->getTranslationFromContext($term)->label());
+              $options[$vocabulary->id()][$term->id()] = str_repeat('-', $term->depth) . Html::escape($this->entityRepository->getTranslationFromContext($term)->label());
             }
           }
         }

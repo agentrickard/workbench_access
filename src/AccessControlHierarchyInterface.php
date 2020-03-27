@@ -2,7 +2,8 @@
 
 namespace Drupal\workbench_access;
 
-use Drupal\Component\Plugin\ConfigurablePluginInterface;
+use Drupal\Component\Plugin\ConfigurableInterface;
+use Drupal\Component\Plugin\DependentPluginInterface;
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Plugin\PluginFormInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -15,7 +16,7 @@ use Drupal\Core\Plugin\PluginWithFormsInterface;
 /**
  * Defines a base hierarchy class that others may extend.
  */
-interface AccessControlHierarchyInterface extends ConfigurablePluginInterface, PluginWithFormsInterface, PluginFormInterface {
+interface AccessControlHierarchyInterface extends ConfigurableInterface, DependentPluginInterface, PluginWithFormsInterface, PluginFormInterface {
 
   /**
    * Returns the id for a hierarchy.
