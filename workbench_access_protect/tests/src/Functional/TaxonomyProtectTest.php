@@ -159,7 +159,6 @@ class TaxonomyProtectTest extends BrowserTestBase {
    */
   protected function setUpTestUser() {
     $user_storage = \Drupal::service('workbench_access.user_section_storage');
-    $role_storage = \Drupal::service('workbench_access.role_section_storage');
     // Add the user to the base section.
     $user_storage->addUser($this->scheme, $this->editor, [$this->term->id()]);
     $expected = [$this->editor->id()];
