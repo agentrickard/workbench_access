@@ -18,13 +18,6 @@ use Drupal\workbench_access\Entity\AccessSchemeInterface;
 class DeleteAccessCheck implements DeleteAccessCheckInterface {
 
   /**
-   * User account.
-   *
-   * @var \Drupal\Core\Session\AccountInterface
-   */
-  private $account;
-
-  /**
    * Default object for current_route_match service.
    *
    * @var \Drupal\Core\Routing\CurrentRouteMatch

@@ -24,5 +24,7 @@
 function hook_workbench_access_protect_list_alter(array &$list) {
   // Our example module uses node types as the access scheme. They have no
   // parents.
-  $list['node_type'] => ['node_type'];
+  return [
+    $list['node_type'] => ['node_type'],
+  ];
 }
