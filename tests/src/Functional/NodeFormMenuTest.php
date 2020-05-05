@@ -34,8 +34,21 @@ class NodeFormMenuTest extends BrowserTestBase {
    */
   public function testNodeForm() {
     // Set up a content type and menu scheme.
-    $node_type = $this->createContentType(['type' => 'page']);
-    $scheme = $this->setUpMenuScheme(['page'], ['main']);
+    $node_type_values = [
+      'type' => 'page',
+      'third_party_settings' => [
+        'menu_ui' => [
+          'available_menus' => [
+            'main',
+            'account'
+          ]
+        ]
+      ]
+    ];
+
+    $node_type = $this->createContentType($node_type_values);
+    $scheme = $this->setUpMenuScheme(['page'], ['main', 'account']);
+
     $user_storage = $this->container->get('workbench_access.user_section_storage');
     $role_storage = $this->container->get('workbench_access.role_section_storage');
 
@@ -62,6 +75,12 @@ class NodeFormMenuTest extends BrowserTestBase {
       'menu_name' => 'main',
     ]);
     $base_link->save();
+    $user_link = MenuLinkContent::create([
+      'title' => 'User link 1',
+      'link' => [['uri' => 'route:<front>']],
+      'menu_name' => 'account',
+    ]);
+    $user_link->save();
 
     // Add the user to the base section.
     $user_storage->addUser($scheme, $editor, [$base_link->getPluginId()]);
@@ -128,6 +147,11 @@ class NodeFormMenuTest extends BrowserTestBase {
     $web_assert->optionExists('menu[menu_parent]', $base_link->label());
     $web_assert->optionExists('menu[menu_parent]', $staff_link->label());
     $web_assert->optionExists('menu[menu_parent]', $super_staff_link->label());
+
+    // Add the user to the account menu section.
+    $user_storage->addUser($scheme, $editor, ['account']);
+    $this->drupalGet('node/add/page');
+    $web_assert->optionExists('menu[menu_parent]', 'account:');
 
     // Explicit testing for issue
     // https://www.drupal.org/project/workbench_access/issues/3024159
