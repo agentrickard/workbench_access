@@ -1,7 +1,7 @@
 name: Workbench access test
 description: Test code for workbench access
 type: module
-core: 8.x
+core_version_requirement: ^8.7.7 || ^9
 hidden: true
 dependencies:
   - workbench_access
