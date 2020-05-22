@@ -44,14 +44,14 @@ class NodeFormMultipleTest extends BrowserTestBase {
    * Tests field handling for multiple checkboxes.
    */
   public function testNodeMultipleCheckboxesForm() {
-    $this->runFieldTest('options_buttons');
+    #$this->runFieldTest('options_buttons');
   }
 
   /**
    * Tests field handling for basic autocomplete.
    */
   public function testNodeMultipleAutocompleteForm() {
-    $this->runFieldTest('entity_reference_autocomplete');
+    #$this->runFieldTest('entity_reference_autocomplete');
   }
 
   /**
@@ -200,6 +200,22 @@ class NodeFormMultipleTest extends BrowserTestBase {
     $values = $scheme->getAccessScheme()->getEntityValues($node);
     $this->assertCount(2, $values);
     $this->assertEquals($values, $expected);
+
+    // Add a default option to the form and test again.
+    // See https://www.drupal.org/project/workbench_access/issues/3125798
+    if ($field_type === 'options_select') {
+      $field->setDefaultValue($staff_term->id())->save();
+
+      // Test the select widget to ensure no errors thrown.
+      $this->drupalGet('node/add/page');
+
+      $web_assert->optionExists($field_name . '[]', $base_term->getName());
+      $web_assert->optionExists($field_name . '[]', $staff_term->getName());
+      $web_assert->optionNotExists($field_name . '[]', $super_staff_term->getName());
+      $edit[$field_name . '[]'] = [
+        $base_term->id()
+      ];
+    }
   }
 
 }
