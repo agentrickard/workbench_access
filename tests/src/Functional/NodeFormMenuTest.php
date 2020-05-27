@@ -150,6 +150,15 @@ class NodeFormMenuTest extends BrowserTestBase {
 
     // Add the user to the account menu section.
     $user_storage->addUser($scheme, $editor, ['account']);
+    $expected2 = [
+      $base_link->getPluginId(),
+      'account',
+      $staff_link->getPluginId(),
+      $super_staff_link->getPluginId(),
+    ];
+    $existing2 = $user_storage->getUserSections($scheme, $editor);
+    $this->assertEquals($expected2, $existing2);
+
     $this->drupalGet('node/add/page');
     $web_assert->optionExists('menu[menu_parent]', 'account:');
 

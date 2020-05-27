@@ -156,14 +156,16 @@ class Menu extends AccessControlHierarchyBase {
       else {
         $sections = [implode(':', $parts)];
       }
+      $menu_parent = $menu . ':';
       // Remove unusable elements, except the existing parent.
-      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
+      // Do not remove top-level menus, we check those separately.
+      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $menu_parent && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
         unset($element['link']['menu_parent']['#options'][$id]);
       }
       // Check for the root menu item.
       if (!isset($menu_check[$menu]) && isset($element['link']['menu_parent']['#options'][$menu . ':'])) {
         if (empty(WorkbenchAccessManager::checkTree($scheme, [$menu], $user_sections))) {
-          if (!empty($parts[0])) {
+          if (!empty($element['link']['menu_parent']['#default_value']) && $menu_parent != $element['link']['menu_parent']['#default_value']) {
             unset($element['link']['menu_parent']['#options'][$menu . ':']);
           }
         }
