@@ -4,6 +4,7 @@ namespace Drupal\Tests\workbench_access\Traits;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Url;
+use Drupal\field\Entity\FieldConfig;
 use Drupal\Tests\field\Traits\EntityReferenceTestTrait;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Vocabulary;
@@ -86,7 +87,7 @@ trait WorkbenchAccessTestTrait {
     $form_display->setComponent($field_name, ['type' => $field_type]);
     $form_display->save();
 
-    return $field;
+    return FieldConfig::loadByName($entity_type_id, $bundle, $field_name);
   }
 
   /**

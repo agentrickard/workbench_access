@@ -2,6 +2,7 @@
 
 namespace Drupal\Tests\workbench_access\Functional;
 
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
@@ -36,6 +37,7 @@ class NodeFormTest extends BrowserTestBase {
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
     $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
+    $this->assertEqual($field->getDefaultValueLiteral(), []);
     $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     $user_storage = \Drupal::service('workbench_access.user_section_storage');
     $role_storage = \Drupal::service('workbench_access.role_section_storage');
@@ -91,14 +93,14 @@ class NodeFormTest extends BrowserTestBase {
     $this->setFieldType('node', 'page', 'entity_reference_autocomplete');
 
     $this->drupalGet('node/add/page');
-    $field = WorkbenchAccessManagerInterface::FIELD_NAME . "[0][target_id]";
+    $field_name = WorkbenchAccessManagerInterface::FIELD_NAME . "[0][target_id]";
 
     // Try to save something that doesn't exist.
-    $this->submitForm([$field => 'garbage', 'title[0][value]' => 'Foo'], 'Save');
+    $this->submitForm([$field_name => 'garbage', 'title[0][value]' => 'Foo'], 'Save');
     $web_assert->pageTextContains('There are no entities matching "garbage".');
 
     // Try to force an invalid selection.
-    $this->submitForm([$field => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
+    $this->submitForm([$field_name => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
     $web_assert->pageTextContains('The referenced entity (taxonomy_term: 2) does not exist.');
 
     // Add the super staff role and check both options exist.
@@ -106,7 +108,7 @@ class NodeFormTest extends BrowserTestBase {
     $editor->save();
 
     // Save a valid selection.
-    $this->submitForm([$field => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
+    $this->submitForm([$field_name => $super_staff_term->label() . ' (' . $super_staff_term->id() . ')', 'title[0][value]' => 'Foo'], 'Save');
     $web_assert->pageTextNotContains('The referenced entity (taxonomy_term: 2) does not exist.');
 
     // Reset the form
@@ -116,6 +118,16 @@ class NodeFormTest extends BrowserTestBase {
     $this->drupalGet('node/add/page');
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
     $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $super_staff_term->getName());
+
+    // Add a default option to the form and test again.
+    // See https://www.drupal.org/project/workbench_access/issues/3125798
+    $field->setDefaultValue($staff_term->id())->save();
+
+    // Test the select widget.
+    $this->drupalGet('node/add/page');
+    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $staff_term->getName());
+    $web_assert->optionExists(WorkbenchAccessManagerInterface::FIELD_NAME, $super_staff_term->getName());
+
   }
 
 }

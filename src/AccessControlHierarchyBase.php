@@ -207,7 +207,14 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   public function disallowedOptions($field) {
     $options = [];
     if (isset($field['widget']['#default_value']) && isset($field['widget']['#options'])) {
-      $options = array_diff_key(array_flip($field['widget']['#default_value']), $field['widget']['#options']);
+      // Default value may be an array or a string.
+      if (is_array($field['widget']['#default_value'])) {
+        $default_value_array = array_flip($field['widget']['#default_value']);
+      }
+      else {
+        $default_value_array = [$field['widget']['#default_value'] => $field['widget']['#default_value']];
+      }
+      $options = array_diff_key($default_value_array, $field['widget']['#options']);
     }
     return array_keys($options);
   }
