@@ -93,8 +93,8 @@ class AssignUserForm extends FormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('plugin.manager.workbench_access.scheme'),
-      $container->get('entity.manager')->getStorage('access_scheme'),
-      $container->get('entity.manager')->getStorage('section_association'),
+      $container->get('entity_type.manager')->getStorage('access_scheme'),
+      $container->get('entity_type.manager')->getStorage('section_association'),
       $container->get('workbench_access.user_section_storage'),
       $container->get('workbench_access.role_section_storage')
     );
