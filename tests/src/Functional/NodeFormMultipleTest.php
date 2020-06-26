@@ -17,6 +17,13 @@ class NodeFormMultipleTest extends BrowserTestBase {
   use WorkbenchAccessTestTrait;
 
   /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
+
+  /**
    * Simple array.
    */
   protected $terms = [];

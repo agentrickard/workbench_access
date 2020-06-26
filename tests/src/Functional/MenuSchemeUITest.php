@@ -17,6 +17,13 @@ class MenuSchemeUITest extends BrowserTestBase {
   use WorkbenchAccessTestTrait;
 
   /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
+
+  /**
    * Admin user.
    *
    * @var \Drupal\user\UserInterface

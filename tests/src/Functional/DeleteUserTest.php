@@ -14,6 +14,14 @@ use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 class DeleteUserTest extends BrowserTestBase {
 
   use WorkbenchAccessTestTrait;
+
+  /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
+
   /**
    * {@inheritdoc}
    */

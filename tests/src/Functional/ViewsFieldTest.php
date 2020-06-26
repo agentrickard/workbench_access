@@ -16,6 +16,13 @@ use Drupal\workbench_access\Entity\AccessScheme;
 class ViewsFieldTest extends BrowserTestBase {
 
   /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
+
+  /**
    * Test terms.
    *
    * @var \Drupal\taxonomy\TermInterface[]

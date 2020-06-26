@@ -18,6 +18,13 @@ class AssignUserFormTest extends BrowserTestBase {
   use WorkbenchAccessTestTrait;
 
   /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
+
+  /**
    * {@inheritdoc}
    */
   public static $modules = [

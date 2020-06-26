@@ -13,7 +13,12 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  */
 class UpdatePathTest extends UpdatePathTestBase {
 
-  protected $defaultTheme = 'classy';
+  /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
 
   /**
    * Set database dump files to be used.
