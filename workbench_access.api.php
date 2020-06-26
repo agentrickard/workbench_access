@@ -1,8 +1,10 @@
 <?php
 
+use Drupal\Core\Config\Config;
+
 /**
  * @file
- * APU documentation for Workbench Access.
+ * API documentation for Workbench Access.
  */
 
 /**
@@ -20,7 +22,7 @@
  *   by your plugin's implementation of
  *   AccessControlHierarchyInterface::defaultConfiguration().
  */
-function hook_workbench_access_scheme_update_alter(array &$settings, Drupal\Core\Config\Config $config) {
+function hook_workbench_access_scheme_update_alter(array &$settings, Config $config) {
   if ($config->get('scheme') === 'my_plugin_scheme') {
     $fields = [];
     foreach ($config->get('fields') as $entity_type => $field_info) {
