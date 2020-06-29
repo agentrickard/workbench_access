@@ -5,6 +5,7 @@ namespace Drupal\Tests\workbench_access\Functional;
 use Drupal\block\Entity\Block;
 use Drupal\FunctionalTests\Update\UpdatePathTestBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
+use Drupal\Tests\workbench_access\Traits\WorkbenchAccessTestTrait;
 
 /**
  * Defines a class for testing the update path to scheme based access.
@@ -13,12 +14,24 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
  */
 class UpdatePathTest extends UpdatePathTestBase {
 
+  use WorkbenchAccessTestTrait;
+
   /**
    * The default theme.
    *
    * @var string
    */
   protected $defaultTheme = 'stable';
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp() {
+    parent::setUp();
+    if (!$this->isDrupal8()) {
+      $this->markTestSkipped('The upgrade test is not supported in Drupal 9.');
+    }
+  }
 
   /**
    * Set database dump files to be used.
