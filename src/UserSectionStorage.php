@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -208,6 +209,9 @@ class UserSectionStorage implements UserSectionStorageInterface {
     elseif (isset($this->userSectionCache[$scheme->id()])) {
       unset($this->userSectionCache[$scheme->id()]);
     }
+    // Invalidate entity access tags that we use.
+    // @TODO: we should inject the cache service.
+    Cache::invalidateTags(['config:workbench_access.access_scheme.' . $scheme->id()]);
   }
 
   /**
