@@ -301,7 +301,7 @@ class Section extends ManyToOne {
       }
       // Else add a failing where clause.
       else {
-        $this->query->addWhere($this->options['group'], '1 = 0');
+        $this->query->addWhereExpression($this->options['group'], '1 = 0');
       }
     }
   }
