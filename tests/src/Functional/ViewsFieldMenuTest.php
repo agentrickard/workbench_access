@@ -15,6 +15,13 @@ use Drupal\Tests\BrowserTestBase;
 class ViewsFieldMenuTest extends BrowserTestBase {
 
   /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
+
+  /**
    * Test links.
    *
    * @var \Drupal\menu_link_content\MenuLinkContentInterface[]

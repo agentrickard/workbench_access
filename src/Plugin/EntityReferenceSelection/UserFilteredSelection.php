@@ -78,7 +78,9 @@ class UserFilteredSelection extends UserSelection {
    */
   protected function buildEntityQuery($match = NULL, $match_operator = 'CONTAINS') {
     $query = parent::buildEntityQuery($match, $match_operator);
-    $handler_settings = $this->configuration['handler_settings'];
+    if (isset($this->configuration['handler_settings'])) {
+      $handler_settings = $this->configuration['handler_settings'];
+    }
 
     // Filter out the already referenced users.
     if (isset($handler_settings['filter']['section_id'])) {

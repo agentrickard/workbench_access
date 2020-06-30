@@ -280,4 +280,18 @@ trait WorkbenchAccessTestTrait {
     $form_display->save();
   }
 
+  /**
+   * Checks if we are using Drupal 8 or 9.
+   *
+   * @return bool
+   *   TRUE if Drupal 8, FALSE otherwise.
+   */
+  public function isDrupal8() {
+    $version = (int) substr(\Drupal::VERSION, 0, 1);
+    if ($version < 9) {
+      return TRUE;
+    }
+    return FALSE;
+  }
+
 }
