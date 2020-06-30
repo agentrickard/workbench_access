@@ -2,6 +2,7 @@
 
 namespace Drupal\workbench_access;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\workbench_access\Entity\AccessSchemeInterface;
@@ -181,8 +182,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     // the array keys and merge them with previously found role IDs.
     $rids = array_keys($roles);
     $query = $this->userStorage()->getQuery();
-    $query->condition('status', 1)
-          ->sort('name');
+    $query->condition('status', 1)->sort('name');
     if (!in_array(AccountInterface::AUTHENTICATED_ROLE, $rids, TRUE)) {
       $query->condition('roles', $rids, 'IN');
     }
@@ -208,6 +208,9 @@ class UserSectionStorage implements UserSectionStorageInterface {
     elseif (isset($this->userSectionCache[$scheme->id()])) {
       unset($this->userSectionCache[$scheme->id()]);
     }
+    // Invalidate entity access tags that we use.
+    // @TODO: we should inject the cache service.
+    Cache::invalidateTags(['config:workbench_access.access_scheme.' . $scheme->id()]);
   }
 
   /**
