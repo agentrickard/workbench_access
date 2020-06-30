@@ -10,5 +10,5 @@ dependencies:
   - drupal:node
   - drupal:options
   - drupal:taxonomy
-tests_dependencies:
+test_dependencies:
   - inline_entity_form:inline_entity_form
