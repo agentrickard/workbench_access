@@ -33,6 +33,13 @@ class AccessCacheTest extends BrowserTestBase {
   ];
 
   /**
+   * The default theme.
+   *
+   * @var string
+   */
+  protected $defaultTheme = 'stable';
+
+  /**
    * Tests that the user can edit the node when allowed.
    */
   public function testNodeEdit() {
