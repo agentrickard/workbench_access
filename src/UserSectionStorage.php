@@ -182,8 +182,7 @@ class UserSectionStorage implements UserSectionStorageInterface {
     // the array keys and merge them with previously found role IDs.
     $rids = array_keys($roles);
     $query = $this->userStorage()->getQuery();
-    $query->condition('status', 1)
-          ->sort('name');
+    $query->condition('status', 1)->sort('name');
     if (!in_array(AccountInterface::AUTHENTICATED_ROLE, $rids, TRUE)) {
       $query->condition('roles', $rids, 'IN');
     }

@@ -2,7 +2,6 @@
 
 namespace Drupal\Tests\workbench_access\Functional;
 
-use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\workbench_access\WorkbenchAccessManagerInterface;
@@ -110,7 +109,7 @@ class AccessCacheTest extends BrowserTestBase {
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->assertSession()->statusCodeEquals(200);
 
-    // Now remove the user role
+    // Now remove the user role.
     $role_storage->removeRole($scheme, 'editor', [$super_staff_term->id()]);
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->assertSession()->statusCodeEquals(403);
