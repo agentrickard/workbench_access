@@ -136,6 +136,19 @@ abstract class AccessControlHierarchyBase extends PluginBase implements AccessCo
   }
 
   /**
+   * Gets the entity type id controlled by the scheme.
+   *
+   * Note that this is an API change and not in the Interface.
+   * @TODO: add to interface in version 2.0.
+   *
+   * @return string
+   *  The entity type id of entities controlled by the scheme.
+   */
+  public function entityType() {
+    return $this->pluginDefinition['entity'];
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function calculateDependencies() {
