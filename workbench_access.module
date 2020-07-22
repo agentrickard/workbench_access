@@ -78,7 +78,6 @@ function workbench_access_entity_access(EntityInterface $entity, $op, AccountInt
     }
     else {
       $aggregate_access_result = AccessResult::forbidden();
-
       foreach ($schemes as $scheme) {
         if ($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account)->isNeutral()) {
           $aggregate_access_result = AccessResult::neutral();
@@ -88,6 +87,7 @@ function workbench_access_entity_access(EntityInterface $entity, $op, AccountInt
   }
 
   $aggregate_access_result->addCacheableDependency($entity);
+  $aggregate_access_result->addCacheableDependency($account);
   $aggregate_access_result->cachePerPermissions();
   foreach ($schemes as $scheme) {
     $aggregate_access_result->addCacheableDependency($scheme);
@@ -140,19 +140,40 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
 
   // Check that the user is able to assign content to a section.
   $user_section_storage = \Drupal::service('workbench_access.user_section_storage');
-  $forbidden = AccessResult::forbidden();
-  $invalid_schemes = array_reduce($schemes, function ($carry, AccessSchemeInterface $scheme) use ($user_section_storage, $account, $forbidden) {
-    $sections = $user_section_storage->getUserSections($scheme, $account);
-    if (!$sections) {
-      $carry[] = $scheme->label();
+  /* @var Drupal\Core\Config\ConfigFactoryInterface $config_factory */
+  $config_factory = \Drupal::service('config.factory');
+  $config = $config_factory->get('workbench_access.settings');
+
+  // Return net result of all enabled access schemes.
+  if ($config->get('deny_strict') === TRUE) {
+    // Allow but deny if any say no.
+    $aggregate_access_result = AccessResult::neutral();
+    foreach ($schemes as $scheme) {
+      $sections = $user_section_storage->getUserSections($scheme, $account);
+      if (!$sections) {
+        $aggregate_access_result = AccessResult::forbidden();
+      }
     }
-    $forbidden->addCacheableDependency($scheme);
-    return $carry;
-  }, []);
-  if ($invalid_schemes) {
-    return $forbidden->setReason(sprintf('User has no active sections for the following access scheme(s): %s', implode(', ', $invalid_schemes)));
   }
-  return $return;
+  else {
+    // Deny but allow if any say yes.
+    $aggregate_access_result = AccessResult::forbidden();
+    foreach ($schemes as $scheme) {
+      $sections = $user_section_storage->getUserSections($scheme, $account);
+      if ($sections) {
+        $aggregate_access_result = AccessResult::neutral();
+      }
+    }
+  }
+
+  $aggregate_access_result->addCacheableDependency($entity_bundle);
+  $aggregate_access_result->addCacheableDependency($account);
+  $aggregate_access_result->cachePerPermissions();
+  foreach ($schemes as $scheme) {
+    $aggregate_access_result->addCacheableDependency($scheme);
+  }
+
+  return $aggregate_access_result;
 }
 
 /**
