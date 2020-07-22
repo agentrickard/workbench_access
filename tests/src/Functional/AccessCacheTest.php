@@ -45,7 +45,10 @@ class AccessCacheTest extends BrowserTestBase {
     // Set up a content type, taxonomy field, and taxonomy scheme.
     $node_type = $this->createContentType(['type' => 'page']);
     $vocab = $this->setUpVocabulary();
-    $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id());
+    $field_name = WorkbenchAccessManagerInterface::FIELD_NAME;
+    $title = 'Section';
+    $cardinality = -1;
+    $field = $this->setUpTaxonomyFieldForEntityType('node', $node_type->id(), $vocab->id(), $field_name, $title, $cardinality);
     $this->assertEqual($field->getDefaultValueLiteral(), []);
     $scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     $user_storage = \Drupal::service('workbench_access.user_section_storage');
@@ -80,20 +83,18 @@ class AccessCacheTest extends BrowserTestBase {
     $this->assertEquals($expected, array_keys($existing_users));
 
     // Create a node that the user cannot edit.
-    $nodes_values = [
+    $node_values = [
       'type' => 'page',
       'title' => 'foo',
-      WorkbenchAccessManagerInterface::FIELD_NAME => $super_staff_term->id(),
+      $field_name => [$super_staff_term->id(), $staff_term->id()],
     ];
-    $node = $this->createNode($nodes_values);
+    $node = $this->createNode($node_values);
 
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->assertSession()->statusCodeEquals(403);
 
     // Add the user to the super staff section.
-    $user_storage->addUser($scheme, $editor, [$super_staff_term->id()]);
-    $expected = [$editor->id()];
-    $existing_users = $user_storage->getEditors($scheme, $super_staff_term->id());
+    $user_storage->addUser($scheme, $editor, [$super_staff_term->id(), $base_term->id()]);
     $this->assertEquals($expected, array_keys($existing_users));
 
     $this->drupalGet('node/' . $node->id() . '/edit');
@@ -118,6 +119,37 @@ class AccessCacheTest extends BrowserTestBase {
     $user_storage->addUser($scheme, $editor, [$super_staff_term->id()]);
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->assertSession()->statusCodeEquals(200);
+
+    // Now delete the term.
+    $super_staff_term->delete();
+    $this->drupalGet('node/' . $node->id() . '/edit');
+    $this->assertSession()->statusCodeEquals(403);
+
+    // Create another node assigned to a user section. This check tests that
+    // we only deleted the section associations we wanted to.
+    $node_values = [
+      'type' => 'page',
+      'title' => 'foo2',
+      $field_name => [$base_term->id(), $staff_term->id()],
+    ];
+    $node2 = $this->createNode($node_values);
+
+    $this->drupalGet('node/' . $node2->id() . '/edit');
+    $this->assertSession()->statusCodeEquals(200);
+
+    // Now remove the user.
+    $user_storage->removeUser($scheme, $editor, [$base_term->id()]);
+    $this->drupalGet('node/' . $node->id() . '/edit');
+    $this->assertSession()->statusCodeEquals(403);
+
+    // Now delete the scheme, which should restore access to both nodes.
+    $scheme->delete();
+    $this->drupalGet('node/' . $node->id() . '/edit');
+    $this->assertSession()->statusCodeEquals(200);
+    $this->drupalGet('node/' . $node2->id() . '/edit');
+    $this->assertSession()->statusCodeEquals(200);
+
+
   }
 
 }

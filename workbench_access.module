@@ -67,6 +67,25 @@ function workbench_access_entity_access(EntityInterface $entity, $op, AccountInt
 }
 
 /**
+ * Implements hook_entity_delete().
+ */
+function workbench_access_entity_delete(EntityInterface $entity) {
+  foreach (\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple() as $scheme) {
+    $entity_type = $scheme->getAccessScheme()->entityType();
+    if ($entity_type === $entity->getEntityTypeId()) {
+      // Delete all associated storage.
+      $section_storage = \Drupal::entityTypeManager()->getStorage('section_association');
+      $sections = $section_storage->loadByProperties([
+        'access_scheme' => $scheme->id(),
+        'section_id' => $entity->id(),
+      ]);
+      $section_storage->delete($sections);
+      \Drupal::service('workbench_access.user_section_storage')->resetCache($scheme);
+    }
+  }
+}
+
+/**
  * Implements hook_node_create_access().
  *
  * @link https://www.drupal.org/node/2348203
