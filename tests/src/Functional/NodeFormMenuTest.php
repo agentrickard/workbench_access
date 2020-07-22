@@ -227,6 +227,7 @@ class NodeFormMenuTest extends BrowserTestBase {
     $web_assert->optionExists('menu[menu_parent]', $staff_link->label());
     $web_assert->optionExists('menu[menu_parent]', $super_staff_link->label());
     $web_assert->optionNotExists('menu[menu_parent]', $deny_link->label());
+    $web_assert->responseContains('selected="selected">-- ' . $staff_link->label() . '</option>');
   }
 
 }
