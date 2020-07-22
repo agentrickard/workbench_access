@@ -1,1 +1,2 @@
 deny_on_empty: false
+deny_strict: false

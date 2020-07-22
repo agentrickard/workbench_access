@@ -53,17 +53,47 @@ function workbench_access_form_alter(&$form, FormStateInterface $form_state) {
  * Implements hook_entity_access().
  */
 function workbench_access_entity_access(EntityInterface $entity, $op, AccountInterface $account) {
-  // Return net result of all enabled access schemes. If one scheme allows
-  // access, then it is granted.
   // We don't care about the View operation right now.
   if ($op === 'view' || $op === 'view label' || $account->hasPermission('bypass workbench access')) {
     // Return early.
     return AccessResult::neutral();
   }
-  return array_reduce(\Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple(), function (AccessResult $carry, AccessSchemeInterface $scheme) use ($entity, $op, $account) {
-    $carry->addCacheableDependency($scheme)->cachePerPermissions()->addCacheableDependency($entity);
-    return $carry->orIf($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account));
-  }, AccessResult::neutral());
+
+  // Return net result of all enabled access schemes.
+  $aggregate_access_result = AccessResult::neutral();
+
+  $schemes = \Drupal::entityTypeManager()->getStorage('access_scheme')->loadMultiple();
+
+  if (count($schemes) > 0) {
+    /* @var Drupal\Core\Config\ConfigFactoryInterface $config_factory */
+    $config_factory = \Drupal::service('config.factory');
+    $config = $config_factory->get('workbench_access.settings');
+
+    if ($config->get('deny_strict') === TRUE) {
+      foreach ($schemes as $scheme) {
+        if ($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account)->isForbidden()) {
+          $aggregate_access_result = AccessResult::forbidden();
+        }
+      }
+    }
+    else {
+      $aggregate_access_result = AccessResult::forbidden();
+
+      foreach ($schemes as $scheme) {
+        if ($scheme->getAccessScheme()->checkEntityAccess($scheme, $entity, $op, $account)->isNeutral()) {
+          $aggregate_access_result = AccessResult::neutral();
+        }
+      }
+    }
+  }
+
+  $aggregate_access_result->addCacheableDependency($entity);
+  $aggregate_access_result->cachePerPermissions();
+  foreach ($schemes as $scheme) {
+    $aggregate_access_result->addCacheableDependency($scheme);
+  }
+
+  return $aggregate_access_result;
 }
 
 /**
