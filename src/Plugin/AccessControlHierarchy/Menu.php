@@ -159,8 +159,11 @@ class Menu extends AccessControlHierarchyBase {
       $menu_parent = $menu . ':';
       // Remove unusable elements, except the existing parent.
       // Do not remove top-level menus, we check those separately.
-      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $menu_parent && $id != $element['link']['menu_parent']['#default_value']) && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
+      if ((!empty($element['link']['menu_parent']['#default_value']) && $id != $menu_parent) && empty(WorkbenchAccessManager::checkTree($scheme, $sections, $user_sections))) {
         unset($element['link']['menu_parent']['#options'][$id]);
+        if ($id == $element['link']['menu_parent']['#default_value']) {
+          unset($element['link']['menu_parent']['#default_value']);
+        }
       }
       // Check for the root menu item.
       if (!isset($menu_check[$menu]) && isset($element['link']['menu_parent']['#options'][$menu . ':'])) {
@@ -171,6 +174,11 @@ class Menu extends AccessControlHierarchyBase {
         }
         $menu_check[$menu] = TRUE;
       }
+    }
+    // As long as there are menu options available, check that the default value
+    // is still in the options, if not then default to the root item.
+    if (!empty($element['link']['menu_parent']['#options']) && empty($element['link']['menu_parent']['#default_value'])) {
+      $element['link']['menu_parent']['#default_value'] = current(array_keys($element['link']['menu_parent']['#options']));
     }
   }
 
