@@ -183,6 +183,24 @@ class MultipleSchemeAccessTest extends BrowserTestBase {
     $this->drupalGet('node/' . $node2->id() . '/edit');
     $this->assertResponse(200);
 
+    // In cases where one scheme is empty, access should be allowed unless
+    // deny on empty is enforced.
+    // Create a node and try to edit it.
+    $node_values = [
+      'type' => 'page',
+      'title' => 'foo',
+      WorkbenchAccessManagerInterface::FIELD_NAME => $staff_term->id(),
+    ];
+    $node3 = $this->createNode($node_values);
+    $this->drupalGet('node/' . $node3->id() . '/edit');
+    $this->assertResponse(200);
+
+    $config = $this->config('workbench_access.settings');
+    $config->set('deny_on_empty', TRUE)->save();
+
+    $this->drupalGet('node/' . $node3->id() . '/edit');
+    $this->assertResponse(403);
+
   }
 
 }
