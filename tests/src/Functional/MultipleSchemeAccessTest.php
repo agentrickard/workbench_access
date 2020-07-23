@@ -69,7 +69,6 @@ class MultipleSchemeAccessTest extends BrowserTestBase {
     $this->assertEqual($field->getDefaultValueLiteral(), []);
     $taxonomy_scheme = $this->setUpTaxonomyScheme($node_type, $vocab);
     $user_storage = \Drupal::service('workbench_access.user_section_storage');
-    $role_storage = \Drupal::service('workbench_access.role_section_storage');
 
     // Set up an editor and log in as them.
     $editor = $this->setUpEditorUser();
