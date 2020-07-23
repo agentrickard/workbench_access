@@ -155,7 +155,7 @@ function workbench_access_entity_create_access(AccountInterface $account, $conte
     return $carry;
   }, []);
   if (empty($valid_schemes)) {
-    return $forbidden->setReason(sprintf('User has no active sections for the following access scheme(s): %s', implode(', ', $invalid_schemes)));
+    return $forbidden->setReason(sprintf('User has no active sections.'));
   }
   return $return;
 }
