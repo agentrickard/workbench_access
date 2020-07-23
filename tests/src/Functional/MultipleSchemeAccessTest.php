@@ -121,11 +121,12 @@ class MultipleSchemeAccessTest extends BrowserTestBase {
     $this->drupalGet('node/add/page');
     $this->assertResponse(200);
 
+    // Strict checking does not affect creation.
     $config = $this->config('workbench_access.settings');
     $config->set('deny_strict', TRUE)->save();
 
     $this->drupalGet('node/add/page');
-    $this->assertResponse(403);
+    $this->assertResponse(200);
 
     // Create a node and try to edit it.
     $node_values = [
