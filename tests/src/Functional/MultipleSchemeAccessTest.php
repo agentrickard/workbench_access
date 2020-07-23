@@ -132,9 +132,15 @@ class MultipleSchemeAccessTest extends BrowserTestBase {
     $node_values = [
       'type' => 'page',
       'title' => 'foo',
-      WorkbenchAccessManagerInterface::FIELD_NAME => [$super_staff_term->id(), $staff_term->id()],
+      WorkbenchAccessManagerInterface::FIELD_NAME => $staff_term->id(),
     ];
     $node = $this->createNode($node_values);
+    _menu_ui_node_save($node, [
+      'title' => 'baz',
+      'menu_name' => 'main',
+      'description' => 'view baz',
+      'parent' => $staff_link->getPluginId(),
+    ]);
 
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->assertResponse(403);
@@ -149,7 +155,7 @@ class MultipleSchemeAccessTest extends BrowserTestBase {
     $node_values = [
       'type' => 'page',
       'title' => 'foo',
-      WorkbenchAccessManagerInterface::FIELD_NAME => [$super_staff_term->id(), $staff_term->id()],
+      WorkbenchAccessManagerInterface::FIELD_NAME => $staff_term->id(),
     ];
     $node2 = $this->createNode($node_values);
     _menu_ui_node_save($node2, [
@@ -170,6 +176,9 @@ class MultipleSchemeAccessTest extends BrowserTestBase {
 
     // Add the user to the base menu section.
     $user_storage->addUser($menu_scheme, $editor, [$base_link->getPluginId()]);
+    $expected = [$editor->id()];
+    $existing_users = $user_storage->getEditors($menu_scheme, $base_link->getPluginId());
+    $this->assertEquals($expected, array_keys($existing_users));
 
     $this->drupalGet('node/' . $node2->id() . '/edit');
     $this->assertResponse(200);
