@@ -134,11 +134,11 @@ class AssignUserForm extends FormBase {
     $schemes = $this->schemeStorage->loadMultiple();
     foreach ($schemes as $scheme) {
       $user_sections = $this->userSectionStorage->getUserSections($scheme, $user, FALSE);
-      $admin_sections = $this->userSectionStorage->getUserSections($scheme, $account, FALSE);
       $options = $this->getFormOptions($scheme);
       $role_sections = $this->roleSectionStorage->getRoleSections($scheme, $user);
+      $list = array_flip($role_sections);
       foreach ($options as $value => $label) {
-        if (in_array($value, $role_sections, TRUE)) {
+        if (isset($list[$value])) {
           $options[$value] = '<strong>' . $label . ' * </strong>';
         }
       }

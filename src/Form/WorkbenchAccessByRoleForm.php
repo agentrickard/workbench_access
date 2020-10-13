@@ -120,6 +120,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
         $this->roleSectionStorage->removeRole($this->scheme, $role_id, [$id]);
       }
     }
+    \Drupal::messenger()->addMessage($this->t('Role assignments updated.'));
   }
 
   /**

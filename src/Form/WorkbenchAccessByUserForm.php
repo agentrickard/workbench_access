@@ -8,6 +8,7 @@ use Drupal\workbench_access\WorkbenchAccessManagerInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\Messenger\MessengerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\user\Entity\User;
 
@@ -236,7 +237,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         $this->addEditors($uids_added, $section_id, $existing_editors);
       }
       else {
-        \Drupal::messenger()->addMessage($this->t('No valid users were selected to add'), 'warning');
+        \Drupal::messenger()->addMessage($this->t('No valid users were selected to add'), MessengerInterface::TYPE_WARNING);
       }
     }
 
@@ -246,7 +247,7 @@ class WorkbenchAccessByUserForm extends FormBase {
         $this->removeEditors($remove_editors, $section_id, $existing_editors);
       }
       else {
-        \Drupal::messenger()->addMessage($this->t('No users were selected to remove.'), 'warning');
+        \Drupal::messenger()->addMessage($this->t('No users were selected to remove.'), MessengerInterface::TYPE_WARNING);
       }
     }
   }
