@@ -168,9 +168,7 @@ class Menu extends AccessControlHierarchyBase {
       // Check for the root menu item.
       if (!isset($menu_check[$menu]) && isset($element['link']['menu_parent']['#options'][$menu . ':'])) {
         if (empty(WorkbenchAccessManager::checkTree($scheme, [$menu], $user_sections))) {
-          if (!empty($element['link']['menu_parent']['#default_value']) && $menu_parent != $element['link']['menu_parent']['#default_value']) {
-            unset($element['link']['menu_parent']['#options'][$menu . ':']);
-          }
+          unset($element['link']['menu_parent']['#options'][$menu . ':']);
         }
         $menu_check[$menu] = TRUE;
       }
