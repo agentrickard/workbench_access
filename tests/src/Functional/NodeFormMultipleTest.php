@@ -155,7 +155,8 @@ class NodeFormMultipleTest extends BrowserTestBase {
 
     // Save the node.
     $edit['title[0][value]'] = 'Test node';
-    $this->drupalPostForm('node/add/page', $edit, 'Save');
+    $this->drupalGet('node/add/page');
+    $this->submitForm($edit, 'Save');
 
     // Get node data. Note that we create one new node for each test case.
     $nid = 1;
@@ -198,7 +199,8 @@ class NodeFormMultipleTest extends BrowserTestBase {
 
     // This should retain $base_term->id() and $super_staff_term->id().
     $edit['title[0][value]'] = 'Updated node';
-    $this->drupalPostForm('node/1/edit', $edit, 'Save');
+    $this->drupalGet('node/1/edit');
+    $this->submitForm($edit, 'Save');
 
     // Reload the node and test.
     $expected = [3,2];

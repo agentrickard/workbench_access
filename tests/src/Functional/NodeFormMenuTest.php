@@ -190,7 +190,8 @@ class NodeFormMenuTest extends BrowserTestBase {
     $edit['title[0][value]'] = 'Test node';
     $edit['menu[title]'] = 'Test node';
     $edit['menu[menu_parent]'] = 'main:' . $base_link->getPluginId();
-    $this->drupalPostForm('node/add/page', $edit, 'Save');
+    $this->drupalGet('node/add/page');
+    $this->submitForm($edit, 'Save');
 
     $this->drupalGet('node/1/edit');
     $web_assert->optionExists('menu[menu_parent]', 'main:');
