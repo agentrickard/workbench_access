@@ -5,6 +5,9 @@ workbench_access.settings:
     deny_on_empty:
       type: boolean
       label: 'Deny access to unassigned content'
+    deny_strict:
+      type: boolean
+      label: 'When multiple schemes apply, deny access if any scheme does not provide access'
 
 
 entity_reference_selection.workbench_access:

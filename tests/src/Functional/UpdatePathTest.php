@@ -49,6 +49,7 @@ class UpdatePathTest extends UpdatePathTestBase {
   public function testUpdatePath() {
     $expected_new_config = [
       'deny_on_empty' => \Drupal::config('workbench_access.settings')->get('deny_on_empty'),
+      'deny_strict' => TRUE,
       '_core' => \Drupal::config('workbench_access.settings')->get('_core'),
     ];
     $block = Block::load('workbench_access_block');
