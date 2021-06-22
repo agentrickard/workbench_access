@@ -74,7 +74,6 @@ class WorkbenchAccessByUserForm extends FormBase {
   public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $access_scheme = NULL, $id = NULL) {
     $this->scheme = $access_scheme;
 
-    $element = $access_scheme->getAccessScheme()->load($id);
     $existing_editors = $this->userSectionStorage->getEditors($access_scheme, $id);
     $potential_editors = $this->userSectionStorage->getPotentialEditors($id);
 
@@ -95,7 +94,7 @@ class WorkbenchAccessByUserForm extends FormBase {
           'match_operator' => 'STARTS_WITH',
           'filter' => ['section_id' => $id],
         ],
-        '#title' => $this->t('Add editors to the %label section.', ['%label' => $element['label']]),
+        '#title' => $this->t('Add editors to the %label section.', ['%label' => $access_scheme->label()]),
         '#description' => $this->t('Search editors to add to this section, separate with comma to add multiple editors.<br>Only users in roles with permission to be assigned can be referenced.') . $toggle,
         '#tags' => TRUE,
       ];
@@ -109,7 +108,7 @@ class WorkbenchAccessByUserForm extends FormBase {
       }
       $form['add']['editors_add_mass'] = [
         '#type' => 'textarea',
-        '#title' => $this->t('Add editors to the %label section.', ['%label' => $element['label']]),
+        '#title' => $this->t('Add editors to the %label section.', ['%label' => $access_scheme->label()]),
         '#description' => $this->t('Add a list of user ids or usernames separated with comma or new line. Invalid or existing users will be ignored.') . $toggle,
       ];
       $form['add']['actions'] = [
@@ -124,14 +123,14 @@ class WorkbenchAccessByUserForm extends FormBase {
     else {
       $form['add']['message'] = [
         '#type' => 'markup',
-        '#markup' => '<p>' . $this->t('There are no additional users that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
+        '#markup' => '<p>' . $this->t('There are no additional users that can be added to the %label section', ['%label' => $access_scheme->label()]) . '</p>',
       ];
     }
 
     $form['remove'] = [
       '#type' => 'details',
       '#open' => TRUE,
-      '#title' => $this->t('Existing editors in the %label section.', ['%label' => $element['label']]),
+      '#title' => $this->t('Existing editors in the %label section.', ['%label' => $access_scheme->label()]),
       '#description' => $this->t('<p>Current editors list. Use the checkboxes to remove editors from this section.</p>'),
     ];
     // Prepare editors list for tableselect.
@@ -179,7 +178,7 @@ class WorkbenchAccessByUserForm extends FormBase {
       '#type' => 'tableselect',
       '#header' => [$this->t('Username')],
       '#options' => $editors_data,
-      '#empty' => $this->t('There are no editors assigned to the %label section.', ['%label' => $element['label']]),
+      '#empty' => $this->t('There are no editors assigned to the %label section.', ['%label' => $access_scheme->label()]),
     ];
     if ($existing_editors) {
       $form['remove']['actions'] = [
@@ -264,8 +263,7 @@ class WorkbenchAccessByUserForm extends FormBase {
    *   A page title.
    */
   public function pageTitle(AccessSchemeInterface $access_scheme, $id) {
-    $element = $access_scheme->getAccessScheme()->load($id);
-    return $this->t('Editors assigned to %label', ['%label' => $element['label']]);
+    return $this->t('Editors assigned to %label', ['%label' => $access_scheme->label()]);
   }
 
   /**
