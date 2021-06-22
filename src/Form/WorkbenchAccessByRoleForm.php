@@ -70,14 +70,14 @@ class WorkbenchAccessByRoleForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state, AccessSchemeInterface $access_scheme = NULL, $id = NULL) {
     $this->scheme = $access_scheme;
-    $element = $access_scheme->getAccessScheme()->load($id);
+
     $existing_roles = $this->roleSectionStorage->getRoles($access_scheme, $id);
     $potential_roles = $this->roleSectionStorage->getPotentialRolesFiltered($id);
 
     $form['existing_roles'] = ['#type' => 'value', '#value' => $existing_roles];
     $form['section_id'] = ['#type' => 'value', '#value' => $id];
     if (!$existing_roles) {
-      $text = $this->t('There are no roles assigned to the %label section.', ['%label' => $element['label']]);
+      $text = $this->t('There are no roles assigned to the %label section.', ['%label' => $access_scheme->label()]);
       $form['help'] = [
         '#type' => 'markup',
         '#markup' => '<p>' . $text . '</p>',
@@ -85,7 +85,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
     }
     if ($potential_roles) {
       $form['roles'] = [
-        '#title' => $this->t('Roles for the %label section.', ['%label' => $element['label']]),
+        '#title' => $this->t('Roles for the %label section.', ['%label' => $access_scheme->label()]),
         '#type' => 'checkboxes',
         '#options' => $potential_roles,
         '#default_value' => $existing_roles,
@@ -96,7 +96,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
     if (count($potential_roles) == count($existing_roles)) {
       $form['message'] = [
         '#type' => 'markup',
-        '#markup' => '<p>' . $this->t('There are no additional roles that can be added to the %label section', ['%label' => $element['label']]) . '</p>',
+        '#markup' => '<p>' . $this->t('There are no additional roles that can be added to the %label section', ['%label' => $access_scheme->label()]) . '</p>',
       ];
     }
 
@@ -135,8 +135,7 @@ class WorkbenchAccessByRoleForm extends FormBase {
    *   A page title.
    */
   public function pageTitle(AccessSchemeInterface $access_scheme, $id) {
-    $element = $access_scheme->getAccessScheme()->load($id);
-    return $this->t('Roles assigned to %label', ['%label' => $element['label']]);
+    return $this->t('Roles assigned to %label', ['%label' => $access_scheme->label()]);
   }
 
 }
