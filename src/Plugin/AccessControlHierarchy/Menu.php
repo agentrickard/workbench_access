@@ -129,9 +129,9 @@ class Menu extends AccessControlHierarchyBase {
    */
   protected function sortTree($a, $b) {
     if ($a->link->getWeight() == $b->link->getWeight()) {
-      return $a->link->getTitle() > $b->link->getTitle();
+      return ($a->link->getTitle() > $b->link->getTitle()) ? 1 : 0;;
     }
-    return $a->link->getWeight() > $b->link->getWeight();
+    return ($a->link->getWeight() > $b->link->getWeight()) ? 1 : 0;;
   }
 
   /**
