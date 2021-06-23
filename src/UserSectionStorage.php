@@ -181,6 +181,11 @@ class UserSectionStorage implements UserSectionStorageInterface {
     // user_role_names() returns an array with the role IDs as keys, so take
     // the array keys and merge them with previously found role IDs.
     $rids = array_keys($roles);
+
+    if (empty($rids)) {
+      return [];
+    }
+
     $query = $this->userStorage()->getQuery();
     $query->condition('status', 1)->sort('name');
     if (!in_array(AccountInterface::AUTHENTICATED_ROLE, $rids, TRUE)) {
