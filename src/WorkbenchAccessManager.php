@@ -151,7 +151,7 @@ class WorkbenchAccessManager extends DefaultPluginManager implements WorkbenchAc
       // If the user is assigned to all the top-level sections, treat as admin.
       $user_sections = $this->userSectionStorage->getUserSections($scheme, $account);
       foreach (array_keys($scheme->getAccessScheme()->getTree()) as $root) {
-        if (empty($user_sections[$root])) {
+        if (!in_array($root, $user_sections)) {
           return FALSE;
         }
       }
